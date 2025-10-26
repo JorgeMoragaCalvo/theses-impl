@@ -78,7 +78,7 @@ class Message(Base):
     content = Column(Text, nullable=False)
     timestamp = Column(DateTime, default=datetime.now(timezone.utc))
     # Agent information
-    agent_type = Column(String(100), nullable=True) # Which agent responded
+    agent_type = Column(String(100), nullable=True) # Which the agent responded
     metadata = Column(JSON, default={})
 
 class Assessment(Base):
@@ -105,3 +105,41 @@ class Assessment(Base):
     graded_at = Column(DateTime, nullable=True)
 
     metadata = Column(JSON, default={})
+
+class Feedback(Base):
+    """Student feedback on agent responses."""
+    __tablename__ = "feedback"
+
+    id = Column(Integer, primary_key=True, index=True)
+    message_id = Column(Integer, nullable=False, index=True)
+    student_id = Column(Integer, nullable=False, index=True)
+
+    # Feedback data
+    rating = Column(Integer, nullable=True) # 1 - 5 scale
+    is_helpful = Column(Integer, nullable=True) # 1=True, 0=False
+    comment = Column(Text, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+
+    metadata = Column(JSON, default={})
+
+# Database dependency for FastAPI
+def get_db() -> Generator[Session, None, None]:
+    """
+    Create a database session and close it after use.
+    Used as a dependency in FastAPI routes.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Database initialization
+def init_db() -> None:
+    """Initialize database tables."""
+    Base.metadata.create_all(bind=engine)
+
+def drop_db() -> None:
+    """Drop all database tables (use with caution)."""
+    Base.metadata.drop_all(bind=engine)
