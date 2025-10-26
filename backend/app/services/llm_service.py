@@ -122,7 +122,7 @@ class LLMService:
                 if max_tokens is not None:
                     llm_params["max_tokens"] = max_tokens
 
-                # Create new LLM instance with overridden params
+                # Create the new LLM instance with overridden params
                 if self.provider == "openai":
                     llm = ChatOpenAI(
                         model=settings.openai_model,
@@ -169,11 +169,14 @@ class LLMService:
             Generated response text
         """
         try:
+            # Prepend the system message if provided
             if system_prompt:
                 messages = [{"role": "system", "content": system_prompt}] + messages
 
+            # Convert to LangChain messages
             langchain_messages = self._convert_message(messages)
 
+            # Update LLM parameters if overrides provided
             if temperature is not None or max_tokens is not None:
                 if self.provider == "openai":
                     llm = ChatOpenAI(
@@ -192,6 +195,7 @@ class LLMService:
             else:
                 llm = self.llm
 
+            # Generate response asynchronously
             response = await llm.invoke(langchain_messages)
             response_text = response.content
 
@@ -219,7 +223,12 @@ class LLMService:
 _llm_service = Optional[LLMService] = None
 
 def get_llm_service() -> LLMService:
+    """
+    Get or create the global LLM service instance.
 
+    Returns:
+        LLMService instance
+    """
     global _llm_service
 
     if _llm_service is None:
