@@ -157,7 +157,7 @@ class ChatResponse(BaseModel):
     timestamp: datetime
 
 # Health Check
-class HealthCheckResponse(BaseModel):
+class HealthResponse(BaseModel):
     """Response model for health check endpoint."""
     status: str
     version: str
