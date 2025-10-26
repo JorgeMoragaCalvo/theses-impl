@@ -4,7 +4,7 @@ import logging
 import os
 
 from ..services.llm_service import get_llm_service
-from ...utils import format_error_message
+from backend import format_error_message
 
 """
 Base Agent - Foundation class for all specialized agents.

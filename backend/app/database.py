@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from typing import Generator
 import enum
 
-from backend.config import settings
+from backend import settings
 
 engine = create_engine(
     settings.database_url,

@@ -4,7 +4,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_anthropic import ChatAnthropic
 import logging
 
-from ...config import settings
+from backend import settings
 
 """
 LLM Service - Abstraction layer for different LLM providers.

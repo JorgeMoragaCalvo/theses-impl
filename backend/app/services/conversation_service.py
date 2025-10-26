@@ -2,8 +2,8 @@ from typing import List, Dict, Optional, Any
 from sqlalchemy.orm import Session
 import logging
 
-from ...database import Message, Conversation, Student
-from ...utils import format_conversation_history, format_knowledge_level_context
+from backend import Message, Conversation, Student
+from backend import format_conversation_history, format_knowledge_level_context
 
 logger = logging.getLogger(__name__)
 
