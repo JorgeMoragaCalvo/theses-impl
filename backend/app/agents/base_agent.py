@@ -4,7 +4,7 @@ import logging
 import os
 
 from ..services.llm_service import get_llm_service
-from backend import format_error_message
+from ..utils import format_error_message
 
 """
 Base Agent - Foundation class for all specialized agents.
@@ -142,3 +142,107 @@ class BaseAgent(ABC):
         except Exception as e:
             logger.error(f"Error in {self.agent_name} response generation: {str(e)}")
             return format_error_message(e)
+
+    async def a_generate_response(self,
+                                  user_message: str,
+                                  conversation_history: List[Dict[str, str]],
+                                  context: Dict[str, Any]) -> str:
+        """
+        Async version of generate_response.
+
+        Args:
+            user_message: Current user message
+            conversation_history: Previous messages
+            context: Context dictionary
+
+        Returns:
+            Generated response string
+        """
+        try:
+            # Get system prompt
+            system_prompt = self.get_system_prompt(context)
+
+            # Build messages list
+            messages = conversation_history.copy()
+            messages.append({"role": "user", "content": user_message})
+
+            # Generate response asynchronously
+            response = await self.llm_service.a_generate_response(
+                messages=messages,
+                system_prompt=system_prompt
+            )
+
+            logger.info(
+                f"{self.agent_name} (async) generated response: "
+                f"{len(response)} chars"
+            )
+
+            return response
+        except Exception as e:
+            logger.error(f"Error in {self.agent_name} (async) response generation: {str(e)}")
+            return format_error_message(e)
+
+    def get_agent_info(self) -> Dict[str, Any]:
+        """
+        Get information about this agent.
+
+        Returns:
+            Dictionary with agent information
+        """
+        return {
+            "name": self.agent_name,
+            "type": self.agent_type,
+            "has_course_materials": self.course_materials is not None,
+            "llm_provider": self.llm_service.get_provider_info()
+        }
+
+    def validate_message(self, message: str) -> bool:
+        """
+        Validate the user message before processing.
+
+        Args:
+            message: User message
+
+        Returns:
+            True if the message is valid
+        """
+        # Basic validation
+        if not message or not message.strip():
+            return False
+
+        # Check message length (avoid extremely long messages)
+        if len(message) > 1000:
+            logger.warning(f"Message too long: {len(message)} chars")
+            return False
+        return True
+
+    def preprocess_message(self, message: str) -> str:
+        """
+        Preprocess user message before sending to LLM.
+
+        Args:
+            message: Raw user message
+
+        Returns:
+            Preprocessed message
+        """
+        # Remove excessive whitespace
+        message = " ".join(message.split())
+
+        # Trim
+        message = message.strip()
+        return message
+
+    def postprocess_response(self, response: str) -> str:
+        """
+        Postprocess LLM response before returning to the user.
+
+        Args:
+            response: Raw LLM response
+
+        Returns:
+            Postprocessed response
+        """
+        # Basic cleanup
+        response = response.strip()
+        return response
