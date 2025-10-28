@@ -59,3 +59,37 @@ with col2:
         "Select difficulty:",
         ["Beginner", "Intermediate", "Advanced"]
     )
+
+if st.button("Generate Problem", type="primary", disabled=True):
+    st.info("This feature will be implemented in Week 4")
+
+st.divider()
+
+# Show placeholder assessment results
+st.subheader("📈 Your Recent Assessments")
+st.info("No assessments yet. This feature will be available soon!")
+
+with st.expander("Preview: Example Assessment"):
+    st.markdown("""
+    **Question:** Formulate a linear programming problem for the following scenario:
+
+    A company produces two products A and B. Product A requires 2 hours of labor and 1 kg of material.
+    Product B requires 1 hour of labor and 2 kg of material. The company has 100 hours of labor and 80 kg
+    of material available. Product A yields a profit of $30 and Product B yields $40. Maximize profit.
+
+    **Your Answer:** *(Will be submitted here)*
+
+    **Correct Answer:**
+    ```
+    Maximize: Z = 30x₁ + 40x₂
+    Subject to:
+        2x₁ + x₂ ≤ 100  (labor constraint)
+        x₁ + 2x₂ ≤ 80   (material constraint)
+        x₁, x₂ ≥ 0      (non-negativity)
+    ```
+
+    **Score:** 85/100
+
+    **Feedback:** Your formulation was mostly correct! The objective function and constraints
+    were properly identified. Remember to always explicitly state the non-negativity constraints.
+    """)
