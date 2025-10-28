@@ -44,4 +44,32 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 def check_backend_health():
-    pass
+    """Check if the backend is available."""
+    try:
+        response = requests.get(f"{BACKEND_URL}/health", timeout=5)
+        return response.status_code == 200, response.json()
+    except Exception as e:
+        return False, {"error": str(e)}
+
+def get_or_create_student(name: str, email: str):
+    """Get or create the student profile."""
+    try:
+        # Try to get student by email (we'll implement search later)
+        # For now, just create a new student
+        response = requests.post(
+            f"{BACKEND_URL}/students",
+            json={
+                "name": name,
+                "email": email
+            }
+        )
+        if response.status_code == 201:
+            return response.json()
+        elif response.status_code == 400:
+            # Student exists, we need to fetch by email
+            # For now, return None and handle in UI
+            return None
+    except Exception as e:
+        st.error(f"Error creating student: {e}")
+        return None
+None
