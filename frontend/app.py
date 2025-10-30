@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-from datetime import datetime
 import os
 from dotenv import load_dotenv
 """
@@ -99,7 +98,7 @@ def main():
             st.error("❌ Backend not available")
             st.warning("Please ensure the backend server is running at " + BACKEND_URL)
             st.code("cd backend\nuvicorn app.main:app --reload", language="bash")
-bash
+
         st.divider()
 
         # Initialize session state for the student
@@ -212,3 +211,100 @@ bash
            - **Assessment**: Take practice quizzes
            - **Progress**: View your learning statistics
         """)
+        st.divider()
+
+        st.markdown("### 📚 What You'll Learn")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("""
+            **Operations Research**
+            - Introduction to optimization
+            - Problem formulation basics
+            - Decision-making frameworks
+
+            **Mathematical Modeling**
+            - Translating real problems to math
+            - Variable and constraint identification
+            - Objective function design
+
+            **Linear Programming**
+            - LP formulation and solution
+            - Simplex method
+            - Duality theory
+            """)
+
+        with col2:
+            st.markdown("""
+            **Integer Programming**
+            - Binary and integer variables
+            - Branch and bound methods
+            - Combinatorial optimization
+
+            **Nonlinear Programming**
+            - Unconstrained optimization
+            - Constrained optimization
+            - KKT conditions
+            - Gradient methods
+            """)
+
+    else:
+        # Show the main chat interface for logged-in users
+        st.markdown(f"### 💬 Chat with AI Tutor")
+        st.markdown("Ask questions about any optimization method topic!")
+
+        # Initialize chat history
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+            st.session_state.conversation_id = None
+
+        # Display chat history
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        if prompt := st.chat_input("Ask a question about optimization methods..."):
+            # Add the user message to chat
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
+
+            with st.chat_message("assistant"):
+                with st.spinner("Thinking..."):
+                    try:
+                        response = requests.post(
+                            f"{BACKEND_URL}/chat",
+                            json={
+                                "student_id": st.session_state.student_id,
+                                "message": prompt,
+                                "conversation_id": st.session_state.conversation_id
+                            }
+                        )
+
+                        if response.status_code == 200:
+                            data = response.json()
+                            assistant_message = data["response"]
+                            st.session_state.conversation_id = data["conversation_id"]
+
+                            st.markdown(assistant_message)
+                            st.session_state.messages.append({
+                                "role": "assistant",
+                                "content": assistant_message
+                            })
+                        else:
+                            st.error(f"Error: {response.status_code}")
+                            st.json(response.json())
+                    except Exception as e:
+                        st.error(f"Failed to get response: {e}")
+
+        with st.sidebar:
+            st.divider()
+            if st.session_state.messages:
+                if st.button("🗑️ Clear Chat"):
+                    st.session_state.messages = []
+                    st.session_state.conversation_id = None
+                    st.rerun()
+
+if __name__ == "__main__":
+    main()main
