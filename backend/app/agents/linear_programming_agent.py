@@ -309,7 +309,7 @@ class LinearProgrammingAgent(BaseAgent):
 # Global agent instance
 _lp_agent: Optional[LinearProgrammingAgent] = None
 
-def get_linear_programming_aget() -> LinearProgrammingAgent:
+def get_linear_programming_agent() -> LinearProgrammingAgent:
     """
     Get or create the global Linear Programming agent instance.
 
