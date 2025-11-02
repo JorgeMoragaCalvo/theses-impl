@@ -196,7 +196,8 @@ class BaseAgent(ABC):
             "llm_provider": self.llm_service.get_provider_info()
         }
 
-    def validate_message(self, message: str) -> bool:
+    @staticmethod
+    def validate_message(message: str) -> bool:
         """
         Validate the user message before processing.
 
@@ -216,7 +217,8 @@ class BaseAgent(ABC):
             return False
         return True
 
-    def preprocess_message(self, message: str) -> str:
+    @staticmethod
+    def preprocess_message(message: str) -> str:
         """
         Preprocess user message before sending to LLM.
 
@@ -233,7 +235,8 @@ class BaseAgent(ABC):
         message = message.strip()
         return message
 
-    def postprocess_response(self, response: str) -> str:
+    @staticmethod
+    def postprocess_response(response: str) -> str:
         """
         Postprocess LLM response before returning to the user.
 

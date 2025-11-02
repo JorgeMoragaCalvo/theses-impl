@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import os
 import logging
 
@@ -196,7 +196,8 @@ class LinearProgrammingAgent(BaseAgent):
 
         return full_prompt
 
-    def is_lp_related(self, message: str) -> bool:
+    @staticmethod
+    def is_lp_related(message: str) -> bool:
         """
         Check if a message is related to Linear Programming.
 
@@ -306,7 +307,7 @@ class LinearProgrammingAgent(BaseAgent):
         return final_response
 
 # Global agent instance
-_lp_agent: LinearProgrammingAgent = None
+_lp_agent: Optional[LinearProgrammingAgent] = None
 
 def get_linear_programming_aget() -> LinearProgrammingAgent:
     """
