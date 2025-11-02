@@ -195,3 +195,129 @@ class LinearProgrammingAgent(BaseAgent):
         ])
 
         return full_prompt
+
+    def is_lp_related(self, message: str) -> bool:
+        """
+        Check if a message is related to Linear Programming.
+
+        Args:
+            message: User message
+
+        Returns:
+            True if the message appears LP-related
+        """
+        lp_keywords = [
+            "linear programming", "lp", "simplex", "duality", "constraint",
+            "objective function", "feasible", "optimal", "maximize", "minimize",
+            "slack variable", "shadow price", "sensitivity", "graphical method",
+            "basic variable", "pivot", "tableau", "formulation", "optimization"
+        ]
+
+        message_lower = message.lower()
+        return any(keyword in message_lower for keyword in lp_keywords)
+
+    def generate_response(self, user_message: str,
+                          conversation_history: List[Dict[str, str]],
+                          context: Dict[str, Any]) -> str:
+        """
+        Generate LP tutor response with preprocessing.
+
+        Args:
+            user_message: Current user message
+            conversation_history: Previous messages
+            context: Context dictionary
+
+        Returns:
+            Generated response
+        """
+
+        # Preprocess message
+        if not self.validate_message(user_message):
+            return "I didn't receive a valid message. Could you please try again?"
+
+        preprocessed_message = self.preprocess_message(user_message)
+
+        # Check if the question is LP-related
+        if not self.is_lp_related(preprocessed_message):
+            off_topic_response = (
+                "I'm specifically trained to help with Linear Programming topics. "
+                "Your question seems to be about something else. "
+                "\n\nI can help you with:\n"
+                "- Formulating LP problems\n"
+                "- Solving problems using graphical method or simplex\n"
+                "- Understanding duality and sensitivity analysis\n"
+                "- Working through LP examples and applications\n"
+                "\nWould you like to ask about any of these Linear Programming topics?"
+            )
+            return off_topic_response
+
+        # Generate response using base class method
+        response = super().generate_response(
+            preprocessed_message,
+            conversation_history,
+            context
+        )
+
+        final_response = self.postprocess_response(response)
+        return final_response
+
+    async def a_generate_response(
+            self,
+            user_message: str,
+            conversation_history: List[Dict[str, str]],
+            context: Dict[str, Any]
+    ) -> str:
+        """
+        Async version with preprocessing.
+
+        Args:
+            user_message: Current user message
+            conversation_history: Previous messages
+            context: Context dictionary
+
+        Returns:
+            Generated response
+        """
+        # Preprocess
+        if not self.validate_message(user_message):
+            return "I didn't receive a valid message. Could you please try again?"
+
+        preprocessed_message = self.preprocess_message(user_message)
+
+        # Check if LP-related
+        if not self.is_lp_related(preprocessed_message):
+            off_topic_response = (
+                "I'm specifically trained to help with Linear Programming. "
+                "Please ask me about LP formulation, simplex method, duality, "
+                "or other Linear Programming topics!"
+            )
+            return off_topic_response
+
+        # Generate async
+        response = await super().a_generate_response(
+            preprocessed_message,
+            conversation_history,
+            context
+        )
+
+        # Postprocess
+        final_response = self.postprocess_response(response)
+
+        return final_response
+
+# Global agent instance
+_lp_agent: LinearProgrammingAgent = None
+
+def get_linear_programming_aget() -> LinearProgrammingAgent:
+    """
+    Get or create the global Linear Programming agent instance.
+
+    Returns:
+        LinearProgrammingAgent instance
+    """
+    global _lp_agent
+
+    if _lp_agent is None:
+        _lp_agent = LinearProgrammingAgent()
+
+    return _lp_agent
