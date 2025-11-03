@@ -170,7 +170,7 @@ async def list_students(skip: int = 0, limit: int = 100, db: Session = Depends(g
 @app.post("/chat", response_model=ChatResponse)
 async def chat(chat_request: ChatRequest, db: Session = Depends(get_db)):
     """
-    Send a message and get AI tutor response.
+    Send a message and get the AI tutor response.
     This is a placeholder that will be replaced with actual agent logic.
     """
     # Verify student exists
@@ -190,7 +190,7 @@ async def chat(chat_request: ChatRequest, db: Session = Depends(get_db)):
         ).first()
 
     if not conversation:
-        # Create new conversation
+        # Create the new conversation
         conversation = Conversation(
             student_id=chat_request.student_id,
             topic=chat_request.topic,
@@ -245,7 +245,7 @@ async def chat(chat_request: ChatRequest, db: Session = Depends(get_db)):
         )
         agent_type = "error"
 
-    # Save assistant message
+    # Save the assistant message
     assistant_message = Message(
         conversation_id=conversation.id,
         role="assistant",
@@ -264,3 +264,54 @@ async def chat(chat_request: ChatRequest, db: Session = Depends(get_db)):
         topic=chat_request.topic,
         timestamp=assistant_message.timestamp
     )
+
+# Conversation endpoints
+@app.get("/conversations/{conversation_id}", response_model=ConversationResponse)
+async def get_conversation(conversation_id: int, db: Session = Depends(get_db)):
+    """Get conversation by ID with all messages"""
+    conversation = db.query(Conversation).filter(Conversation.id == conversation_id).first()
+    if not conversation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Conversation not found"
+        )
+
+    # Get all messages in conversation
+    messages = db.query(Message).filter(
+        Message.conversation_id == conversation_id
+    ).order_by(Message.timestamp).all()
+
+    # return ConversationResponse(
+    #     id=conversation.id,
+    #     student_id=conversation.student_id,
+    #     topic=conversation.topic,
+    #     started_at=conversation.started_at,
+    #     ended_at=conversation.ended_at,
+    #     is_active=bool(conversation.is_active),
+    #     messages=[MessageResponse.from_orm(msg) for msg in messages],
+    #     metadata=conversation.metadata
+    # )
+
+    conv = ConversationResponse.model_validate(conversation)
+    conv.messages = [MessageResponse.model_validate(msg) for msg in messages]
+    return conv
+
+@app.get("/students/{student_id}/conversations", response_model=List[ConversationResponse])
+async def get_student_conversations(student_id: int, db: Session = Depends(get_db)):
+    """Get all conversations for a student"""
+    conversations = db.query(Conversation).filter(
+        Conversation.student_id == student_id
+    ).order_by(Conversation.started_at.desc()).all()
+
+    return [
+        ConversationResponse(
+            id=conv.id,
+            student_id=conv.student_id,
+            topic=conv.topic,
+            started_at=conv.started_at,
+            ended_at=conv.ended_at,
+            is_active=bool(conv.is_active),
+            metadata=conv.metadata
+        )
+        for conv in conversations
+    ]
