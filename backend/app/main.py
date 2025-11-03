@@ -75,6 +75,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Health check endpoint
 @app.get("/health", response_model=HealthResponse)
 async def health_check(db: Session = Depends(get_db)):
     database_connected = False
@@ -90,3 +91,77 @@ async def health_check(db: Session = Depends(get_db)):
         llm_provider=settings.llm_provider,
         database_connected=database_connected
     )
+
+# Student endpoints
+@app.post("/students", response_model=StudentResponse, status_code=status.HTTP_201_CREATED)
+async def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
+    """Create a new student profile."""
+    # Check if the email already exists
+    existing_student = db.query(Student).filter(Student.email == student_data.email).first()
+    if existing_student:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Student with this email already exists"
+        )
+
+    new_student = Student(
+        name=student_data.name,
+        email=student_data.email,
+        knowledge_levels=student_data.knowledge_levels or {
+            "operations_research": "beginner",
+            "mathematical_modeling": "beginner",
+            "linear_programming": "beginner",
+            "integer_programming": "beginner",
+            "nonlinear_programming": "beginner"
+        },
+        preferences=student_data.preferences or {}
+    )
+
+    db.add(new_student)
+    db.commit()
+    db.refresh(new_student)
+
+    logger.info(f"Created new student: {new_student.id} - {new_student.email}")
+    return new_student
+
+@app.get("/students/{student_id}", response_model=StudentResponse)
+async def get_student(student_id: int, db: Session = Depends(get_db)):
+    """Get student profile by ID"""
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found"
+        )
+    return student
+
+@app.put("/students/{student_id}", response_model=StudentResponse)
+async def update_student(student_id: int, student_data: StudentUpdate, db: Session = Depends(get_db)):
+    """Update student profile"""
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found"
+        )
+
+    if student_data.name is not None:
+        student.name = student_data.name
+    if student_data.email is not None:
+        student.email = student_data.email
+    if student_data.knowledge_levels is not None:
+        student.knowledge_level = student_data.knowledge_levels
+    if student_data.preferences is not None:
+        student.preferences = student_data.preferences
+
+    db.commit()
+    db.refresh(student)
+
+    logger.info(f"Updated student: {student_id}")
+    return student
+
+@app.get("/students", response_model=List[StudentResponse])
+async def list_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    """List all students"""
+    students = db.query(Student).offset(skip).limit(limit).all()
+    return students
