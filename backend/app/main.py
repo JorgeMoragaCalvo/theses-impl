@@ -303,15 +303,54 @@ async def get_student_conversations(student_id: int, db: Session = Depends(get_d
         Conversation.student_id == student_id
     ).order_by(Conversation.started_at.desc()).all()
 
-    return [
-        ConversationResponse(
-            id=conv.id,
-            student_id=conv.student_id,
-            topic=conv.topic,
-            started_at=conv.started_at,
-            ended_at=conv.ended_at,
-            is_active=bool(conv.is_active),
-            metadata=conv.metadata
+    # return [
+    #     ConversationResponse(
+    #         id=conv.id,
+    #         student_id=conv.student_id,
+    #         topic=conv.topic,
+    #         started_at=conv.started_at,
+    #         ended_at=conv.ended_at,
+    #         is_active=bool(conv.is_active),
+    #         metadata=conv.metadata)
+    #     for conv in conversations
+    # ]
+
+    return [ConversationResponse.model_validate(conv) for conv in conversations]
+
+# Feedback endpoint
+@app.post("/feedback", response_model=FeedbackResponse, status_code=status.HTTP_201_CREATED)
+async def create_feedback(feedback_data: FeedbackCreate, db: Session = Depends(get_db)):
+    """Create feedback for a message"""
+    # Verify message exists
+    message = db.query(Message).filter(Message.id == feedback_data.message_id).first()
+    if not message:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Message not found"
         )
-        for conv in conversations
-    ]
+
+    # Create feedback
+    new_feedback = Feedback(
+        message_id=feedback_data.message_id,
+        student_id=feedback_data.student_id,
+        rating=feedback_data.rating,
+        is_helpful=1 if feedback_data.is_helpful else 0 if feedback_data.is_helpful is not None else None,
+        comment=feedback_data.comment
+    )
+
+    db.add(new_feedback)
+    db.commit()
+    db.refresh(new_feedback)
+
+    logger.info(f"Created feedback for message {feedback_data.message_id}")
+
+    return FeedbackResponse(
+        id=new_feedback.id,
+        message_id=new_feedback.message_id,
+        student_id=new_feedback.student_id,
+        rating=new_feedback.rating,
+        is_helpful=bool(new_feedback.is_helpful) if new_feedback.is_helpful is not None else None,
+        comment=new_feedback.comment,
+        created_at=new_feedback.created_at,
+        metadata=new_feedback.metadata
+    )
