@@ -165,3 +165,102 @@ async def list_students(skip: int = 0, limit: int = 100, db: Session = Depends(g
     """List all students"""
     students = db.query(Student).offset(skip).limit(limit).all()
     return students
+
+# Chat endpoint (placeholder - will be implemented with agents)
+@app.post("/chat", response_model=ChatResponse)
+async def chat(chat_request: ChatRequest, db: Session = Depends(get_db)):
+    """
+    Send a message and get AI tutor response.
+    This is a placeholder that will be replaced with actual agent logic.
+    """
+    # Verify student exists
+    student = db.query(Student).filter(Student.id == chat_request.student_id).first()
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found"
+        )
+
+    # Get or create conversation
+    conversation = None
+    if chat_request.conversation_id:
+        conversation = db.query(Conversation).filter(
+            Conversation.id == chat_request.conversation_id,
+            Conversation.is_active == 1
+        ).first()
+
+    if not conversation:
+        # Create new conversation
+        conversation = Conversation(
+            student_id=chat_request.student_id,
+            topic=chat_request.topic,
+            is_active=1
+        )
+        db.add(conversation)
+        db.commit()
+        db.refresh(conversation)
+
+    # Save user message
+    user_message = Message(
+        conversation_id=conversation.id,
+        role="user",
+        content=chat_request.message
+    )
+    db.add(user_message)
+    db.commit()
+
+    try:
+        # Get LP agent
+        lp_agent = get_linear_programming_agent()
+
+        # Get conversation service
+        conversation_service = get_conversation_service(db)
+
+        # Retrieve conversation history (last 10 messages)
+        conversation_history = conversation_service.get_conversation_history(
+            conversation_id=conversation.id
+        )
+
+        # Get student context
+        context = conversation_service.get_conversation_context(
+            conversation_id=conversation.id,
+            student_id=chat_request.student_id,
+            topic="linear_programming"
+        )
+
+        # Generate AI response
+        response_text = lp_agent.generate_response(
+            user_message=chat_request.message,
+            conversation_history=conversation_history,
+            context=context
+        )
+        agent_type = lp_agent.agent_type
+
+        logger.info(f"Generated response for student {chat_request.student_id}: {len(response_text)} chars")
+    except Exception as e:
+        logger.error(f"Error generating AI response: {str(e)}")
+        response_text = (
+            "I apologize, but I encountered an error processing your request. "
+            "Please try again or rephrase your question."
+        )
+        agent_type = "error"
+
+    # Save assistant message
+    assistant_message = Message(
+        conversation_id=conversation.id,
+        role="assistant",
+        content=response_text,
+        agent_type=agent_type
+    )
+    db.add(assistant_message)
+    db.commit()
+    db.refresh(assistant_message)
+
+    return ChatResponse(
+        conversation_id=conversation.id,
+        message_id=assistant_message.id,
+        response=response_text,
+        agent_type=agent_type,
+        topic=chat_request.topic,
+        timestamp=assistant_message.timestamp
+    )
