@@ -106,7 +106,7 @@ async def create_student(student_data: StudentCreate, db: Session = Depends(get_
 
     new_student = Student(
         name=student_data.name,
-        email=student_data.email,
+        email=str(student_data.email),
         knowledge_levels=student_data.knowledge_levels or {
             "operations_research": "beginner",
             "mathematical_modeling": "beginner",
@@ -126,7 +126,7 @@ async def create_student(student_data: StudentCreate, db: Session = Depends(get_
 
 @app.get("/students/{student_id}", response_model=StudentResponse)
 async def get_student(student_id: int, db: Session = Depends(get_db)):
-    """Get student profile by ID"""
+    """Get the student profile by ID"""
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(
@@ -148,7 +148,7 @@ async def update_student(student_id: int, student_data: StudentUpdate, db: Sessi
     if student_data.name is not None:
         student.name = student_data.name
     if student_data.email is not None:
-        student.email = student_data.email
+        student.email = str(student_data.email)
     if student_data.knowledge_levels is not None:
         student.knowledge_level = student_data.knowledge_levels
     if student_data.preferences is not None:
