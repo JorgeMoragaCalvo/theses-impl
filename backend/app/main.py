@@ -354,3 +354,23 @@ async def create_feedback(feedback_data: FeedbackCreate, db: Session = Depends(g
         created_at=new_feedback.created_at,
         metadata=new_feedback.metadata
     )
+
+# Root endpoint
+@app.get("/")
+async def root():
+    """Root endpoint with AI information"""
+    return {
+        "message": "AI Tutoring System for Optimization Methods",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "app.main:app",
+        host=settings.backend_host,
+        port=settings.backend_port,
+        reload=settings.debug
+    )
