@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     chroma_collection_name: str = "course_materials"
 
     # Application Configuration
+    version: str = "1.0.0"
     debug: bool = True
     log_level: str = "INFO"
 

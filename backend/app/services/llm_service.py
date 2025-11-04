@@ -4,7 +4,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_anthropic import ChatAnthropic
 import logging
 
-from backend import settings
+from ..config import settings
 
 """
 LLM Service - Abstraction layer for different LLM providers.
@@ -220,7 +220,7 @@ class LLMService:
         }
 
 # Global LLM service instance
-_llm_service = Optional[LLMService] = None
+_llm_service: Optional[LLMService] = None
 
 def get_llm_service() -> LLMService:
     """

@@ -2,8 +2,8 @@ from typing import List, Dict, Optional, Any
 from sqlalchemy.orm import Session
 import logging
 
-from backend import Message, Conversation, Student
-from backend import format_conversation_history, format_knowledge_level_context
+from ..database import Message, Conversation, Student
+from ..utils import format_conversation_history, format_knowledge_level_context
 
 logger = logging.getLogger(__name__)
 
@@ -222,9 +222,9 @@ class ConversationService:
             if not conversation:
                 return None
 
-            # Check if there's a summary in metadata
-            if conversation.metadata and "summary" in conversation.metadata:
-                return conversation.metadata["summary"]
+            # Check if there's a summary in extra_data
+            if conversation.extra_data and "summary" in conversation.extra_data:
+                return conversation.extra_data["summary"]
 
             # Get first few messages as summary
             messages = self.db.query(Message).filter(

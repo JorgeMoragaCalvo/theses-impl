@@ -30,7 +30,7 @@ class MessageRole(str, Enum):
 
 # Request Models
 class StudentCreate(BaseModel):
-    """Request model for creating a new student."""
+    """Request the model for creating a new student."""
     name: str = Field(..., min_length=1, max_length=255)
     email: EmailStr
     knowledge_levels: Optional[Dict[str, str]] = None
@@ -51,7 +51,7 @@ class MessageCreate(BaseModel):
     topic: Optional[Topic] = None
 
 class FeedbackCreate(BaseModel):
-    """Request model for creating a new feedback."""
+    """Request the model for creating new feedback."""
     message_id: int
     student_id: int
     rating: Optional[int] = Field(None, ge=1, le=5)
@@ -59,7 +59,7 @@ class FeedbackCreate(BaseModel):
     comment: Optional[str] = None
 
 class AssessmentSubmit(BaseModel):
-    """Request model for generating a new assessment."""
+    """Request the model for generating a new assessment."""
     student_id: int
     topic: Topic
     difficulty: Optional[KnowledgeLevel] = KnowledgeLevel.INTERMEDIATE
@@ -86,7 +86,7 @@ class MessageResponse(BaseModel):
     content: str
     timestamp: datetime
     agent_type: Optional[str] = None
-    metadata = Dict[str, Any]
+    extra_data: Dict[str, Any]
 
     class Config:
         from_attributes = True
@@ -100,7 +100,7 @@ class ConversationResponse(BaseModel):
     ended_at: Optional[datetime] = None
     is_active: bool
     messages: Optional[List[MessageResponse]] = None
-    metadata: Dict[str, Any]
+    extra_data: Dict[str, Any]
 
     class Config:
         from_attributes = True
@@ -120,7 +120,7 @@ class AssessmentResponse(BaseModel):
     created_at: datetime
     submitted_at: Optional[datetime] = None
     graded_at: Optional[datetime] = None
-    metadata: Dict[str, Any]
+    extra_data: Dict[str, Any]
 
     class Config:
         from_attributes = True
@@ -134,7 +134,7 @@ class FeedbackResponse(BaseModel):
     is_helpful: Optional[bool] = None
     comment: Optional[str] = None
     created_at: datetime
-    metadata: Dict[str, Any]
+    extra_data: Dict[str, Any]
 
     class Config:
         from_attributes = True

@@ -30,7 +30,7 @@ AI Tutoring System for Optimization Methods.
 """
 
 logging.basicConfig(
-    level=getattr(logging, settings.log_level),
+    level=settings.log_level.upper(),
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ async def lifespan(_: FastAPI):
 app = FastAPI(
     title="AI Tutoring System for Optimization Methods",
     description="Backend API for personalized AI tutoring in optimization methods.",
-    version="1.0.0",
+    version=settings.version,
     debug=settings.debug,
     lifespan=lifespan
 )
@@ -352,7 +352,7 @@ async def create_feedback(feedback_data: FeedbackCreate, db: Session = Depends(g
         is_helpful=bool(new_feedback.is_helpful) if new_feedback.is_helpful is not None else None,
         comment=new_feedback.comment,
         created_at=new_feedback.created_at,
-        metadata=new_feedback.metadata
+        extra_data=new_feedback.extra_data,
     )
 
 # Root endpoint
@@ -361,7 +361,7 @@ async def root():
     """Root endpoint with AI information"""
     return {
         "message": "AI Tutoring System for Optimization Methods",
-        "version": "1.0.0",
+        "version": settings.version,
         "docs": "/docs",
         "health": "/health"
     }

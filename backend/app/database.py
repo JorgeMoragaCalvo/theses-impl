@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from typing import Generator
 import enum
 
-from backend import settings
+from .config import settings
 
 engine = create_engine(
     settings.database_url,
@@ -66,7 +66,7 @@ class Conversation(Base):
     started_at = Column(DateTime, default=datetime.now(timezone.utc))
     ended_at = Column(DateTime, nullable=True)
     is_active = Column(Integer, default=1) # 1=True, 0=False
-    metadata = Column(JSON, default={}) # Session metadata
+    extra_data = Column(JSON, default={}) # Session metadata
 
 class Message(Base):
     """Individual message in a conversation."""
@@ -79,7 +79,7 @@ class Message(Base):
     timestamp = Column(DateTime, default=datetime.now(timezone.utc))
     # Agent information
     agent_type = Column(String(100), nullable=True) # Which the agent responded
-    metadata = Column(JSON, default={})
+    extra_data = Column(JSON, default={})
 
 class Assessment(Base):
     """Student assessment and quiz results."""
@@ -104,7 +104,7 @@ class Assessment(Base):
     submitted_at = Column(DateTime, nullable=True)
     graded_at = Column(DateTime, nullable=True)
 
-    metadata = Column(JSON, default={})
+    extra_data = Column(JSON, default={})
 
 class Feedback(Base):
     """Student feedback on agent responses."""
@@ -121,7 +121,7 @@ class Feedback(Base):
 
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
-    metadata = Column(JSON, default={})
+    extra_data = Column(JSON, default={})
 
 # Database dependency for FastAPI
 def get_db() -> Generator[Session, None, None]:
