@@ -21,14 +21,15 @@ class Settings(BaseSettings):
 
     # OpenAI Configuration
     openai_api_key: str = ""
-    openai_model: str = "gpt-3.5-turbo"
+    openai_model: str = "gpt-4-turbo-preview"
 
     # Anthropic Configuration
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-3-5-sonnet-20241022"
 
     # Database Configuration
-    database_url: str = "postgresql://postgres:postgres@localhost:5432/security"
+    # database_url: str = "postgresql://postgres:postgres123@localhost:5432/security"
+    database_url: str
     database_echo: bool = False
 
     # Chroma Vector Store Configuration
@@ -45,7 +46,7 @@ class Settings(BaseSettings):
     backend_port: int = 8000
 
     # Frontend Configuration
-    fronted_host: str = "localhost"
+    frontend_host: str = "localhost"
     frontend_port: int = 8501
     backend_url: str = f"http://localhost:{backend_port}"
 
