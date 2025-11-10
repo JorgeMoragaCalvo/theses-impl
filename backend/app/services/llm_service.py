@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_anthropic import ChatAnthropic
+from langchain_google_genai import ChatGoogleGenerativeAI
 import logging
 
 from ..config import settings
@@ -30,20 +31,31 @@ class LLMService:
         Initialize the appropriate LLM based on configuration.
 
         Returns:
-            LLM instance (ChatOpenAI or ChatAnthropic)
+            LLM instance (ChatGoogleGenerativeAI, ChatOpenAI or ChatAnthropic)
 
         Raises:
             ValueError: If the provider is not supported, or the API key is missing
         """
-        if self.provider == "openai":
+        if self.provider == "gemini" or self.provider == "google":
+            if not settings.google_api_key:
+                raise ValueError("Google API key not configured. Please set GOOGLE_API_KEY in .env file.")
+
+            return ChatGoogleGenerativeAI(
+                model=settings.google_model,
+                temperature=settings.temperature,
+                max_output_tokens=settings.max_tokens,
+                google_api_key=settings.google_api_key
+            )
+
+        elif self.provider == "openai":
             if not settings.openai_api_key:
                 raise ValueError("OpenAI API key not configured. Please set OPENAI_API_KEY in .env file.")
 
             return ChatOpenAI(
-                model=settings.openai_model,
+                tiktoken_model_name=settings.openai_model,
                 temperature=settings.temperature,
                 max_tokens=settings.max_tokens,
-                api_key=settings.openai_api_key
+                openai_api_key=settings.openai_api_key
             )
 
         elif self.provider == "anthropic":
@@ -54,15 +66,52 @@ class LLMService:
                 model=settings.anthropic_model,
                 temperature=settings.temperature,
                 max_tokens=settings.max_tokens,
-                api_key=settings.anthropic_api_key
+                anthropic_api_key=settings.anthropic_api_key
             )
         else:
             raise ValueError(
                 f"Unsupported LLM provider: {self.provider}. "
-                f"Please set LLM_PROVIDER in .env file to 'openai' or 'anthropic'."
+                f"Please set LLM_PROVIDER in .env file to 'gemini', 'openai' or 'anthropic'."
             )
 
-    def _convert_message(self, messages: List[Dict[str, str]]) -> List:
+    def _get_llm_with_overrides(self, temperature: Optional[float] = None, max_tokens: Optional[int] = None):
+        """
+        Get LLM instance with optional parameter overrides.
+
+        Args:
+            temperature: Optional temperature override
+            max_tokens: Optional max_tokens override
+
+        Returns:
+            LLM instance with overrides applied if provided, else default
+        """
+        if temperature is not None or max_tokens is not None:
+            if self.provider == "gemini" or self.provider == "google":
+                return ChatGoogleGenerativeAI(
+                    model=settings.google_model,
+                    temperature=temperature or settings.temperature,
+                    max_output_tokens=max_tokens or settings.max_tokens,
+                    google_api_key=settings.google_api_key
+                )
+            elif self.provider == "openai":
+                return ChatOpenAI(
+                    tiktoken_model_name=settings.openai_model,
+                    temperature=temperature or settings.temperature,
+                    max_tokens=max_tokens or settings.max_tokens,
+                    openai_api_key=settings.openai_api_key
+                )
+            else:
+                return ChatAnthropic(
+                    model=settings.anthropic_model,
+                    temperature=temperature or settings.temperature,
+                    max_tokens=max_tokens or settings.max_tokens,
+                    anthropic_api_key=settings.anthropic_api_key
+                )
+        else:
+            return self.llm
+
+    @staticmethod
+    def _convert_message(messages: List[Dict[str, str]]) -> List:
         """
         Convert message dictionaries to LangChain message objects.
 
@@ -115,30 +164,7 @@ class LLMService:
             langchain_messages = self._convert_message(messages)
 
             # Update LLM parameters if overrides provided
-            if temperature is not None or max_tokens is not None:
-                llm_params = {}
-                if temperature is not None:
-                    llm_params["temperature"] = temperature
-                if max_tokens is not None:
-                    llm_params["max_tokens"] = max_tokens
-
-                # Create the new LLM instance with overridden params
-                if self.provider == "openai":
-                    llm = ChatOpenAI(
-                        model=settings.openai_model,
-                        temperature=temperature or settings.temperature,
-                        max_tokens=max_tokens or settings.max_tokens,
-                        api_key=settings.openai_api_key
-                    )
-                else:
-                    llm = ChatAnthropic(
-                        model=settings.anthropic_model,
-                        temperature=temperature or settings.temperature,
-                        max_tokens=max_tokens or settings.max_tokens,
-                        api_key=settings.anthropic_api_key
-                    )
-            else:
-                llm = self.llm
+            llm = self._get_llm_with_overrides(temperature, max_tokens)
 
             # Generate response
             response = llm.invoke(langchain_messages)
@@ -177,26 +203,10 @@ class LLMService:
             langchain_messages = self._convert_message(messages)
 
             # Update LLM parameters if overrides provided
-            if temperature is not None or max_tokens is not None:
-                if self.provider == "openai":
-                    llm = ChatOpenAI(
-                        model=settings.openai_model,
-                        temperature=temperature or settings.temperature,
-                        max_tokens=max_tokens or settings.max_tokens,
-                        api_key=settings.openai_api_key
-                    )
-                else:
-                    llm = ChatAnthropic(
-                        model=settings.anthropic_model,
-                        temperature=temperature or settings.temperature,
-                        max_tokens=max_tokens or settings.max_tokens,
-                        api_key=settings.anthropic_api_key
-                    )
-            else:
-                llm = self.llm
+            llm = self._get_llm_with_overrides(temperature, max_tokens)
 
             # Generate response asynchronously
-            response = await llm.invoke(langchain_messages)
+            response = await llm.ainvoke(langchain_messages)
             response_text = response.content
 
             logger.info(f"Generated async response with {self.provider}: {len(response_text)} characters")
@@ -235,4 +245,3 @@ def get_llm_service() -> LLMService:
         _llm_service = LLMService()
 
     return _llm_service
-
