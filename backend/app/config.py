@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     # LLM Provider Configuration
-    llm_provider: Literal["openai", "anthropic"] = "openai"
+    llm_provider: Literal["gemini", "google", "openai", "anthropic"] = "openai"
 
     # OpenAI Configuration
     openai_api_key: str = ""
@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     # Anthropic Configuration
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-3-5-sonnet-20241022"
+
+    # Gemini Configuration
+    google_api_key: str = ""
+    google_model: str = "gemini-2.5-flash-lite"
 
     # Database Configuration
     # database_url: str = "postgresql://postgres:postgres123@localhost:5432/security"
@@ -61,14 +65,18 @@ class Settings(BaseSettings):
     @property
     def current_api_key(self) -> str:
         """Get the API key for the currently selected LLM provider."""
-        if self.llm_provider == "openai":
+        if self.llm_provider == "gemini" or self.llm_provider == "google":
+            return self.google_api_key
+        elif self.llm_provider == "openai":
             return self.openai_api_key
         return self.anthropic_api_key
 
     @property
     def current_model(self) -> str:
         """Get the model name for the currently selected LLM provider."""
-        if self.llm_provider == "openai":
+        if self.llm_provider == "gemini" or self.llm_provider == "google":
+            return self.google_model
+        elif self.llm_provider == "openai":
             return self.openai_model
         return self.anthropic_model
 
