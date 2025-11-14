@@ -1,7 +1,13 @@
 import streamlit as st
-import requests
+import sys
 import os
+from pathlib import Path
 from dotenv import load_dotenv
+
+# Add the parent directory to the path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from utils.api_client import get_api_client
+from utils.constants import TOPIC_OPTIONS, TOPICS_LIST
 """
 Chat page - Detailed conversation interface with topic selection.
 """
@@ -9,28 +15,25 @@ Chat page - Detailed conversation interface with topic selection.
 load_dotenv()
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
+# Get API client
+api_client = get_api_client(BACKEND_URL)
+
 st.set_page_config(page_title="Chat - AI Tutor", page_icon="💬", layout="wide")
 
 st.title("💬 Chat with AI Tutor")
 
-# Check if the student is logged in
-if "student_id" not in st.session_state or st.session_state.student_id is None:
+# Check if the user is authenticated
+if not api_client.is_authenticated():
     st.warning("Please login from the home page first!")
+    st.info("Click the link in the sidebar to go to the home page.")
     st.stop()
 
 st.sidebar.header("🎯 Select Topic")
-topic_options = {
-    "Any Topic (Auto-detect)": None,
-    "Operations Research": "operations_research",
-    "Mathematical Modeling": "mathematical_modeling",
-    "Linear Programming": "linear_programming",
-    "Integer Programming": "integer_programming",
-    "Nonlinear Programming": "nonlinear_programming"
-}
+# TODO: Implement auto-detect topic feature in the future
 
 selected_topic = st.sidebar.selectbox(
     "Focus on specific topic:",
-    options=list(topic_options.keys())
+    options=TOPICS_LIST
 )
 
 # Initialize chat
@@ -56,33 +59,26 @@ if prompt := st.chat_input("Ask your question..."):
     # Get AI response
     with st.chat_message("assistant"):
         with st.spinner("AI Tutor is thinking..."):
-            try:
-                payload = {
-                    "student_id": st.session_state.student_id,
-                    "message": prompt,
-                    "conversation_id": st.session_state.chat_conversation_id
-                }
+            # Use the authenticated API client (student_id extracted from token)
+            success, data = api_client.post("/chat", json_data={
+                "message": prompt,
+                "conversation_id": st.session_state.chat_conversation_id,
+                "topic": TOPIC_OPTIONS[selected_topic]
+            })
 
-                if topic_options[selected_topic]:
-                    payload["topic"] = topic_options[selected_topic]
+            if success:
+                st.markdown(data["response"])
+                st.caption(f"Agent: {data['agent_type']}")
 
-                response = requests.post(f"{BACKEND_URL}/chat", json=payload)
-
-                if response.status_code == 200:
-                    data = response.json()
-                    st.markdown(data["response"])
-                    st.caption(f"Agent: {data['agent_type']}")
-
-                    st.session_state.chat_messages.append({
-                        "role": "assistant",
-                        "content": data["response"],
-                        "agent_type": data["agent_type"]
-                    })
-                    st.session_state.chat_conversation_id = data["conversation_id"]
-                else:
-                    st.error(f"Error: {response.status_code}")
-            except Exception as e:
-                st.error(f"Failed to get response: {e}")
+                st.session_state.chat_messages.append({
+                    "role": "assistant",
+                    "content": data["response"],
+                    "agent_type": data["agent_type"]
+                })
+                st.session_state.chat_conversation_id = data["conversation_id"]
+            else:
+                error_msg = data.get("detail", data.get("error", "Failed to get response"))
+                st.error(f"Error: {error_msg}")
 
 # Sidebar controls
 with st.sidebar:

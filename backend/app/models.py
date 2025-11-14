@@ -28,6 +28,11 @@ class MessageRole(str, Enum):
     ASSISTANT = "assistant"
     SYSTEM = "system"
 
+class UserRole(str, Enum):
+    """User role for authorization."""
+    USER = "user"
+    ADMIN = "admin"
+
 # Request Models
 class StudentCreate(BaseModel):
     """Request the model for creating a new student."""
@@ -35,6 +40,17 @@ class StudentCreate(BaseModel):
     email: EmailStr
     knowledge_levels: Optional[Dict[str, str]] = None
     preferences: Optional[Dict[str, Any]] = None
+
+class StudentRegister(BaseModel):
+    """Request model for user registration."""
+    name: str = Field(..., min_length=1, max_length=255)
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=72)
+
+class StudentLogin(BaseModel):
+    """Request model for user login."""
+    email: EmailStr
+    password: str = Field(..., min_length=1)
 
 class StudentUpdate(BaseModel):
     """Request model for updating student information."""
@@ -46,23 +62,31 @@ class StudentUpdate(BaseModel):
 class MessageCreate(BaseModel):
     """Request model for creating a new message."""
     conversation_id: Optional[int] = None
-    student_id: int
     content: str = Field(..., min_length=1)
     topic: Optional[Topic] = None
 
 class FeedbackCreate(BaseModel):
     """Request the model for creating new feedback."""
     message_id: int
-    student_id: int
     rating: Optional[int] = Field(None, ge=1, le=5)
     is_helpful: Optional[bool] = None
     comment: Optional[str] = None
 
-class AssessmentSubmit(BaseModel):
+class AssessmentGenerate(BaseModel):
     """Request the model for generating a new assessment."""
-    student_id: int
     topic: Topic
     difficulty: Optional[KnowledgeLevel] = KnowledgeLevel.INTERMEDIATE
+    conversation_id: Optional[int] = None
+
+class AssessmentAnswerSubmit(BaseModel):
+    """Request model for submitting a student's answer to an assessment."""
+    student_answer: str = Field(..., min_length=1)
+
+class AssessmentGradeRequest(BaseModel):
+    """Request model for manually grading an assessment."""
+    score: float = Field(..., ge=0)
+    max_score: Optional[float] = Field(None, ge=0)
+    feedback: Optional[str] = None
 
 # Response Models
 class StudentResponse(BaseModel):
@@ -70,13 +94,22 @@ class StudentResponse(BaseModel):
     id: int
     name: str
     email: str
+    role: str
+    is_active: bool
     knowledge_levels: Dict[str, str]
     preferences: Dict[str, Any]
     created_at: datetime
     updated_at: datetime
+    last_login: Optional[datetime] = None
 
     class Config:
         from_attributes = True
+
+class TokenResponse(BaseModel):
+    """Response model for authentication token."""
+    access_token: str
+    token_type: str = "bearer"
+    user: StudentResponse
 
 class MessageResponse(BaseModel):
     """Response model for message data."""
@@ -142,10 +175,9 @@ class FeedbackResponse(BaseModel):
 # Chat Models
 class ChatRequest(BaseModel):
     """Request model for chat endpoint."""
-    student_id: int
     message: str = Field(..., min_length=1)
     conversation_id: Optional[int] = None
-    topic: Optional[Topic] = None
+    topic: Topic  # The required field - auto-detect feature will be implemented later
 
 class ChatResponse(BaseModel):
     """Response model for chat endpoint."""

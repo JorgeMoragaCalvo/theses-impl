@@ -2,8 +2,10 @@ import streamlit as st
 import requests
 import os
 from dotenv import load_dotenv
+from utils.api_client import get_api_client
+from utils.constants import TOPIC_OPTIONS, TOPICS_LIST, TOPIC_DESCRIPTIONS, DEFAULT_TOPIC
 """
-Progress tracking page - Student learning analytics.
+Main application page - AI Tutor for Optimization Methods.
 """
 
 # Load environment variables
@@ -11,6 +13,9 @@ load_dotenv()
 
 # Configuration
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+
+# Get API client
+api_client = get_api_client(BACKEND_URL)
 
 # Page configuration
 st.set_page_config(
@@ -50,27 +55,7 @@ def check_backend_health():
     except Exception as e:
         return False, {"error": str(e)}
 
-def get_or_create_student(name: str, email: str):
-    """Get or create the student profile."""
-    try:
-        # Try to get student by email (we'll implement search later)
-        # For now, just create a new student
-        response = requests.post(
-            f"{BACKEND_URL}/students",
-            json={
-                "name": name,
-                "email": email
-            }
-        )
-        if response.status_code == 201:
-            return response.json()
-        elif response.status_code == 400:
-            # Student exists, we need to fetch by email
-            # For now, return None and handle in UI
-            return None
-    except Exception as e:
-        st.error(f"Error creating student: {e}")
-        return None
+# Authentication forms removed - now using the API client
 
 def main():
     """Main application entry point."""
@@ -101,54 +86,92 @@ def main():
 
         st.divider()
 
-        # Initialize session state for the student
-        if "student_id" not in st.session_state:
-            st.session_state.student_id = None
-            st.session_state.student_name = ""
-            st.session_state.student_email = ""
+        # Authentication section
+        if not api_client.is_authenticated():
+            # Show login/register tabs
+            auth_tab = st.radio("Choose action:", ["Login", "Register"], horizontal=True)
 
-        # Student login/registration
-        if st.session_state.student_id is None:
-            st.subheader("Login / Register")
+            if auth_tab == "Login":
+                st.subheader("Login")
+                login_email = st.text_input("Email", key="login_email")
+                login_password = st.text_input("Password", type="password", key="login_password")
 
-            name = st.text_input("Name", key="input_name")
-            email = st.text_input("Email", key="input_email")
-
-            if st.button("Start learning", type="primary"):
-                if name and email:
-                    student_data = get_or_create_student(name, email)
-                    if student_data:
-                        st.session_state.student_id = student_data["id"]
-                        st.session_state.student_name = student_data["name"]
-                        st.session_state.student_email = student_data["email"]
-                        st.success(f"Welcome, {name}!")
-                        st.rerun()
+                if st.button("Login", type="primary", key="login_btn"):
+                    if login_email and login_password:
+                        with st.spinner("Logging in..."):
+                            success, data = api_client.login(login_email, login_password)
+                            if success:
+                                st.success(f"Welcome back, {data['user']['name']}!")
+                                st.rerun()
+                            else:
+                                error_msg = data.get("detail", "Login failed")
+                                st.error(f"Error: {error_msg}")
                     else:
-                        st.warning("Email already exists. We'll implement login soon!")
-                else:
-                    st.warning("Please enter your name and email!")
-        else:
-            # Show logged in the student
-            st.success(f"Logged in as: **{st.session_state.student_name}**")
-            st.text(f"Email: {st.session_state.student_email}")
+                        st.warning("Please enter your email and password!")
 
-            if st.button("Logout"):
-                st.session_state.student_id = None
-                st.session_state.student_name = ""
-                st.session_state.student_email = ""
+            else:  # Register
+                st.subheader("Register")
+                register_name = st.text_input("Name", key="register_name")
+                register_email = st.text_input("Email", key="register_email")
+                register_password = st.text_input("Password", type="password", key="register_password", help="Minimum 8 characters")
+                register_password_confirm = st.text_input("Confirm Password", type="password", key="register_password_confirm")
+
+                if st.button("Register", type="primary", key="register_btn"):
+                    if register_name and register_email and register_password:
+                        if register_password != register_password_confirm:
+                            st.error("Passwords do not match!")
+                        elif len(register_password) < 8:
+                            st.error("Password must be at least 8 characters!")
+                        else:
+                            with st.spinner("Creating account..."):
+                                success, data = api_client.register(register_name, register_email, register_password)
+                                if success:
+                                    st.success(f"Welcome, {data['user']['name']}! Your account has been created.")
+                                    st.rerun()
+                                else:
+                                    error_msg = data.get("detail", "Registration failed")
+                                    st.error(f"Error: {error_msg}")
+                    else:
+                        st.warning("Please fill in all fields!")
+
+        else:
+            # Show logged-in user
+            user_name = st.session_state.get("student_name", "User")
+            user_email = st.session_state.get("student_email", "")
+            user_role = st.session_state.get("user_role", "user")
+
+            st.success(f"Logged in as: **{user_name}**")
+            st.text(f"Email: {user_email}")
+            if user_role == "admin":
+                st.info("Role: Administrator")
+
+            if st.button("Logout", key="logout_btn"):
+                api_client.logout()
+                st.success("Logged out successfully!")
                 st.rerun()
+
+            st.divider()
+
+            # Topic selector for logged-in users
+            st.subheader("🎯 Select Topic")
+
+            # Initialize the topic in the session state if not present
+            if "selected_topic" not in st.session_state:
+                st.session_state.selected_topic = DEFAULT_TOPIC
+
+            selected_topic = st.selectbox(
+                "Choose your learning focus:",
+                options=TOPICS_LIST,
+                index=TOPICS_LIST.index(st.session_state.selected_topic),
+                key="home_topic_selector",
+                help="Select which optimization topic you want to learn about"
+            )
+            st.session_state.selected_topic = selected_topic
 
         st.divider()
 
         st.subheader("📚 Topics Covered")
-        topics = [
-            "Operations Research",
-            "Mathematical Modeling",
-            "Linear Programming",
-            "Integer Programming",
-            "Nonlinear Programming"
-        ]
-        for topic in topics:
+        for topic in TOPICS_LIST:
             st.text(f"• {topic}")
 
     # Main content area
@@ -181,7 +204,7 @@ def main():
         """)
         return
 
-    if st.session_state.student_id is None:
+    if not api_client.is_authenticated():
         # Welcome screen
         st.markdown("### Welcome to the AI Tutoring System! 👋")
 
@@ -204,12 +227,15 @@ def main():
 
         st.markdown("### 🚀 Getting Started")
         st.markdown("""
-        1. **Enter your name and email** in the sidebar to create your profile
-        2. **Click 'Start Learning'** to begin
+        1. **Login or Register** in the sidebar to access your account
+           - New users: Click 'Register' and create an account
+           - Existing users: Click 'Login' with your credentials
+        2. **Start learning** with AI tutors
         3. **Navigate to pages** using the sidebar menu:
            - **Chat**: Talk with AI tutors about optimization methods
-           - **Assessment**: Take practice quizzes
-           - **Progress**: View your learning statistics
+           - **Assessment**: Take practice quizzes and get instant feedback
+           - **Progress**: View your learning statistics and improvement
+           - **Admin** (admins only): Manage users and view system stats
         """)
         st.divider()
 
@@ -217,37 +243,23 @@ def main():
 
         col1, col2 = st.columns(2)
 
+        # First column: first 3 topics
         with col1:
-            st.markdown("""
-            **Operations Research**
-            - Introduction to optimization
-            - Problem formulation basics
-            - Decision-making frameworks
+            for topic in TOPICS_LIST[:3]:
+                descriptions = TOPIC_DESCRIPTIONS.get(topic, [])
+                st.markdown(f"**{topic}**")
+                for desc in descriptions:
+                    st.markdown(f"- {desc}")
+                st.markdown("")  # Add spacing
 
-            **Mathematical Modeling**
-            - Translating real problems to math
-            - Variable and constraint identification
-            - Objective function design
-
-            **Linear Programming**
-            - LP formulation and solution
-            - Simplex method
-            - Duality theory
-            """)
-
+        # Second column: remaining topics
         with col2:
-            st.markdown("""
-            **Integer Programming**
-            - Binary and integer variables
-            - Branch and bound methods
-            - Combinatorial optimization
-
-            **Nonlinear Programming**
-            - Unconstrained optimization
-            - Constrained optimization
-            - KKT conditions
-            - Gradient methods
-            """)
+            for topic in TOPICS_LIST[3:]:
+                descriptions = TOPIC_DESCRIPTIONS.get(topic, [])
+                st.markdown(f"**{topic}**")
+                for desc in descriptions:
+                    st.markdown(f"- {desc}")
+                st.markdown("")  # Add spacing
 
     else:
         # Show the main chat interface for logged-in users
@@ -272,31 +284,29 @@ def main():
 
             with st.chat_message("assistant"):
                 with st.spinner("Thinking..."):
-                    try:
-                        response = requests.post(
-                            f"{BACKEND_URL}/chat",
-                            json={
-                                "student_id": st.session_state.student_id,
-                                "message": prompt,
-                                "conversation_id": st.session_state.conversation_id
-                            }
-                        )
+                    # Get selected topic from session state
+                    selected_topic = st.session_state.get("selected_topic", DEFAULT_TOPIC)
+                    topic_value = TOPIC_OPTIONS[selected_topic]
 
-                        if response.status_code == 200:
-                            data = response.json()
-                            assistant_message = data["response"]
-                            st.session_state.conversation_id = data["conversation_id"]
+                    # Use authenticated API client
+                    success, data = api_client.post("/chat", json_data={
+                        "message": prompt,
+                        "conversation_id": st.session_state.conversation_id,
+                        "topic": topic_value
+                    })
 
-                            st.markdown(assistant_message)
-                            st.session_state.messages.append({
-                                "role": "assistant",
-                                "content": assistant_message
-                            })
-                        else:
-                            st.error(f"Error: {response.status_code}")
-                            st.json(response.json())
-                    except Exception as e:
-                        st.error(f"Failed to get response: {e}")
+                    if success:
+                        assistant_message = data["response"]
+                        st.session_state.conversation_id = data["conversation_id"]
+
+                        st.markdown(assistant_message)
+                        st.session_state.messages.append({
+                            "role": "assistant",
+                            "content": assistant_message
+                        })
+                    else:
+                        error_msg = data.get("detail", data.get("error", "Failed to get response"))
+                        st.error(f"Error: {error_msg}")
 
         with st.sidebar:
             st.divider()

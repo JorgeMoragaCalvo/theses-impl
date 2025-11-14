@@ -1,10 +1,13 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Literal
+import logging
 
 """
 Configuration management for the AI Tutoring System.
 Loads environment variables and provides application settings.
 """
+
+logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
@@ -17,7 +20,7 @@ class Settings(BaseSettings):
     )
 
     # LLM Provider Configuration
-    llm_provider: Literal["gemini", "google", "openai", "anthropic"] = "openai"
+    llm_provider: Literal["gemini", "google", "openai", "anthropic"] = "gemini"
 
     # OpenAI Configuration
     openai_api_key: str = ""
@@ -54,9 +57,10 @@ class Settings(BaseSettings):
     frontend_port: int = 8501
     backend_url: str = f"http://localhost:{backend_port}"
 
-    # Session Configuration
-    secret_key: str = "secret"
+    # Session and Authentication Configuration
+    secret_key: str = "your-secret-key-change-this-in-production-min-32-chars"  # Must be changed in .env
     session_timeout_minutes: int = 60
+    access_token_expire_days: int = 7  # JWT token expiration
 
     # LLM Configuration
     temperature: float = 0.4
@@ -79,6 +83,27 @@ class Settings(BaseSettings):
         elif self.llm_provider == "openai":
             return self.openai_model
         return self.anthropic_model
+
+    def model_post_init(self, __context):
+        """Validate settings after initialization."""
+        # Log the loaded SECRET_KEY (first/last 4 chars only for security)
+        if len(self.secret_key) >= 8:
+            masked_key = f"{self.secret_key[:4]}...{self.secret_key[-4:]}"
+        else:
+            masked_key = "***"
+        logger.info(f"Loaded SECRET_KEY: {masked_key}")
+
+        # Warn if using default/insecure key
+        if self.secret_key in [
+            "secret",
+            "your_secret_key_here",
+            "your-secret-key-change-this-in-production-min-32-chars"
+        ]:
+            logger.warning(
+                "⚠️  WARNING: Using default SECRET_KEY! "
+                "This is INSECURE for production. "
+                "Generate a secure key: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+            )
 
 # Global settings instance
 settings = Settings()

@@ -7,12 +7,15 @@ from contextlib import asynccontextmanager
 import logging
 
 from .config import settings
-from .database import get_db, init_db, Student, Conversation, Message, Assessment, Feedback
+from .database import get_db, init_db, Student, Conversation, Message, Assessment, Feedback, UserRole
 from .models import (
     HealthResponse,
     StudentCreate,
     StudentResponse,
     StudentUpdate,
+    StudentRegister,
+    StudentLogin,
+    TokenResponse,
     ChatRequest,
     ChatResponse,
     ConversationResponse,
@@ -20,9 +23,23 @@ from .models import (
     FeedbackResponse,
     FeedbackCreate,
     ProgressResponse,
+    AssessmentResponse,
+    AssessmentGenerate,
+    AssessmentAnswerSubmit,
+    AssessmentGradeRequest,
+)
+from .auth import (
+    get_password_hash,
+    authenticate_user,
+    create_access_token,
+    get_current_user,
+    get_current_admin_user
 )
 from .agents.linear_programming_agent import get_linear_programming_agent
+from .agents.mathematical_modeling_agent import get_mathematical_modeling_agent
 from .services.conversation_service import get_conversation_service
+from .routers import admin
+from datetime import datetime, timezone
 
 """
 FastAPI main application entry point.
@@ -34,6 +51,30 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
+# Agent Registry - Maps topic names to agent getter functions
+AGENT_REGISTRY = {
+    "linear_programming": get_linear_programming_agent,
+    "mathematical_modeling": get_mathematical_modeling_agent,
+}
+
+def get_agent_for_topic(topic: str):
+    """
+    Get the appropriate agent for a given topic.
+
+    Args:
+        topic: Topic string (e.g., "linear_programming", "mathematical_modeling")
+
+    Returns:
+        Agent instance for the specified topic
+    """
+    agent_getter = AGENT_REGISTRY.get(topic)
+    if agent_getter is None:
+        logger.warning(f"No agent found for topic '{topic}', falling back to linear programming agent")
+        return get_linear_programming_agent()
+
+    logger.info(f"Selected agent for topic: {topic}")
+    return agent_getter()
 
 # Lifespan context manager
 @asynccontextmanager
@@ -75,6 +116,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers
+app.include_router(admin.router)
+
 # Health check endpoint
 @app.get("/health", response_model=HealthResponse)
 async def health_check(db: Session = Depends(get_db)):
@@ -91,6 +135,83 @@ async def health_check(db: Session = Depends(get_db)):
         llm_provider=settings.llm_provider,
         database_connected=database_connected
     )
+
+# Authentication endpoints
+@app.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+async def register(user_data: StudentRegister, db: Session = Depends(get_db)):
+    """Register a new user and return the JWT token."""
+    # Check if email already exists
+    existing_user = db.query(Student).filter(Student.email == user_data.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+
+    # Create new student with hashed password
+    new_student = Student(
+        name=user_data.name,
+        email=str(user_data.email),
+        password_hash=get_password_hash(user_data.password),
+        role=UserRole.USER,  # Default role
+        is_active=True,
+        knowledge_levels={
+            "operations_research": "beginner",
+            "mathematical_modeling": "beginner",
+            "linear_programming": "beginner",
+            "integer_programming": "beginner",
+            "nonlinear_programming": "beginner"
+        },
+        preferences={}
+    )
+
+    db.add(new_student)
+    db.commit()
+    db.refresh(new_student)
+
+    # Create the access token
+    access_token = create_access_token(data={"sub": str(new_student.id)})
+
+    logger.info(f"New user registered: {new_student.id} - {new_student.email}")
+
+    return TokenResponse(
+        access_token=access_token,
+        # token_type="bearer",
+        user=StudentResponse.model_validate(new_student)
+    )
+
+@app.post("/auth/login", response_model=TokenResponse)
+async def login(credentials: StudentLogin, db: Session = Depends(get_db)):
+    """Login with email and password, return JWT token."""
+    # Authenticate user
+    student = authenticate_user(db, str(credentials.email), credentials.password)
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Update last login timestamp
+    student.last_login = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(student)
+
+    # Create the access token
+    access_token = create_access_token(data={"sub": str(student.id)})
+
+    logger.info(f"User logged in: {student.id} - {student.email}")
+
+    return TokenResponse(
+        access_token=access_token,
+        # token_type="bearer",
+        user=StudentResponse.model_validate(student)
+    )
+
+@app.get("/auth/me", response_model=StudentResponse)
+async def get_me(current_user: Student = Depends(get_current_user)):
+    """Get current authenticated user information."""
+    return StudentResponse.model_validate(current_user)
 
 # Student endpoints
 @app.post("/students", response_model=StudentResponse, status_code=status.HTTP_201_CREATED)
@@ -125,8 +246,19 @@ async def create_student(student_data: StudentCreate, db: Session = Depends(get_
     return new_student
 
 @app.get("/students/{student_id}", response_model=StudentResponse)
-async def get_student(student_id: int, db: Session = Depends(get_db)):
-    """Get the student profile by ID"""
+async def get_student(
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
+    """Get the student profile by ID. Requires authentication."""
+    # Users can view their own profile, admins can view any profile
+    if current_user.id != student_id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to view this profile"
+        )
+
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(
@@ -136,8 +268,20 @@ async def get_student(student_id: int, db: Session = Depends(get_db)):
     return student
 
 @app.put("/students/{student_id}", response_model=StudentResponse)
-async def update_student(student_id: int, student_data: StudentUpdate, db: Session = Depends(get_db)):
-    """Update student profile"""
+async def update_student(
+    student_id: int,
+    student_data: StudentUpdate,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
+    """Update student profile. Users can only update their own profile."""
+    # Users can only update their own profile
+    if current_user.id != student_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this profile"
+        )
+
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(
@@ -150,7 +294,7 @@ async def update_student(student_id: int, student_data: StudentUpdate, db: Sessi
     if student_data.email is not None:
         student.email = str(student_data.email)
     if student_data.knowledge_levels is not None:
-        student.knowledge_level = student_data.knowledge_levels
+        student.knowledge_levels = student_data.knowledge_levels
     if student_data.preferences is not None:
         student.preferences = student_data.preferences
 
@@ -161,25 +305,29 @@ async def update_student(student_id: int, student_data: StudentUpdate, db: Sessi
     return student
 
 @app.get("/students", response_model=List[StudentResponse])
-async def list_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """List all students"""
+async def list_students(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    # current_admin: Student = Depends(get_current_admin_user)
+):
+    """List all students. Admin only."""
     students = db.query(Student).offset(skip).limit(limit).all()
     return students
 
 # Chat endpoint (placeholder - will be implemented with agents)
 @app.post("/chat", response_model=ChatResponse)
-async def chat(chat_request: ChatRequest, db: Session = Depends(get_db)):
+async def chat(
+    chat_request: ChatRequest,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
     """
     Send a message and get the AI tutor response.
-    This is a placeholder that will be replaced with actual agent logic.
+    Requires authentication.
     """
-    # Verify student exists
-    student = db.query(Student).filter(Student.id == chat_request.student_id).first()
-    if not student:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Student not found"
-        )
+    # Use authenticated user's ID instead of request data
+    student_id = current_user.id
 
     # Get or create conversation
     conversation = None
@@ -192,13 +340,20 @@ async def chat(chat_request: ChatRequest, db: Session = Depends(get_db)):
     if not conversation:
         # Create the new conversation
         conversation = Conversation(
-            student_id=chat_request.student_id,
+            student_id=student_id,
             topic=chat_request.topic,
             is_active=1
         )
         db.add(conversation)
         db.commit()
         db.refresh(conversation)
+
+    # Verify the conversation belongs to the authenticated user
+    if conversation.student_id != student_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this conversation"
+        )
 
     # Save user message
     user_message = Message(
@@ -210,8 +365,9 @@ async def chat(chat_request: ChatRequest, db: Session = Depends(get_db)):
     db.commit()
 
     try:
-        # Get LP agent
-        lp_agent = get_linear_programming_agent()
+        # Get the appropriate agent based on the topic
+        topic_value = chat_request.topic.value  # Get string value from enum
+        agent = get_agent_for_topic(topic_value)
 
         # Get conversation service
         conversation_service = get_conversation_service(db)
@@ -221,22 +377,22 @@ async def chat(chat_request: ChatRequest, db: Session = Depends(get_db)):
             conversation_id=conversation.id
         )
 
-        # Get student context
+        # Get student context with the actual topic
         context = conversation_service.get_conversation_context(
             conversation_id=conversation.id,
-            student_id=chat_request.student_id,
-            topic="linear_programming"
+            student_id=student_id,
+            topic=topic_value
         )
 
-        # Generate AI response
-        response_text = lp_agent.generate_response(
+        # Generate AI response using the selected agent
+        response_text = agent.generate_response(
             user_message=chat_request.message,
             conversation_history=conversation_history,
             context=context
         )
-        agent_type = lp_agent.agent_type
+        agent_type = agent.agent_type
 
-        logger.info(f"Generated response for student {chat_request.student_id}: {len(response_text)} chars")
+        logger.info(f"Generated response for student {student_id} using {agent_type} agent: {len(response_text)} chars")
     except Exception as e:
         logger.error(f"Error generating AI response: {str(e)}")
         response_text = (
@@ -267,8 +423,12 @@ async def chat(chat_request: ChatRequest, db: Session = Depends(get_db)):
 
 # Conversation endpoints
 @app.get("/conversations/{conversation_id}", response_model=ConversationResponse)
-async def get_conversation(conversation_id: int, db: Session = Depends(get_db)):
-    """Get conversation by ID with all messages"""
+async def get_conversation(
+    conversation_id: int,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
+    """Get conversation by ID with all messages. Requires authentication."""
     conversation = db.query(Conversation).filter(Conversation.id == conversation_id).first()
     if not conversation:
         raise HTTPException(
@@ -276,51 +436,50 @@ async def get_conversation(conversation_id: int, db: Session = Depends(get_db)):
             detail="Conversation not found"
         )
 
+    # Users can only view their own conversations
+    if conversation.student_id != current_user.id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to view this conversation"
+        )
+
     # Get all messages in conversation
     messages = db.query(Message).filter(
         Message.conversation_id == conversation_id
     ).order_by(Message.timestamp).all()
-
-    # return ConversationResponse(
-    #     id=conversation.id,
-    #     student_id=conversation.student_id,
-    #     topic=conversation.topic,
-    #     started_at=conversation.started_at,
-    #     ended_at=conversation.ended_at,
-    #     is_active=bool(conversation.is_active),
-    #     messages=[MessageResponse.from_orm(msg) for msg in messages],
-    #     metadata=conversation.metadata
-    # )
 
     conv = ConversationResponse.model_validate(conversation)
     conv.messages = [MessageResponse.model_validate(msg) for msg in messages]
     return conv
 
 @app.get("/students/{student_id}/conversations", response_model=List[ConversationResponse])
-async def get_student_conversations(student_id: int, db: Session = Depends(get_db)):
-    """Get all conversations for a student"""
+async def get_student_conversations(
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
+    """Get all conversations for a student. Requires authentication."""
+    # Users can only view their own conversations, admins can view any
+    if current_user.id != student_id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to view these conversations"
+        )
+
     conversations = db.query(Conversation).filter(
         Conversation.student_id == student_id
     ).order_by(Conversation.started_at.desc()).all()
-
-    # return [
-    #     ConversationResponse(
-    #         id=conv.id,
-    #         student_id=conv.student_id,
-    #         topic=conv.topic,
-    #         started_at=conv.started_at,
-    #         ended_at=conv.ended_at,
-    #         is_active=bool(conv.is_active),
-    #         metadata=conv.metadata)
-    #     for conv in conversations
-    # ]
 
     return [ConversationResponse.model_validate(conv) for conv in conversations]
 
 # Feedback endpoint
 @app.post("/feedback", response_model=FeedbackResponse, status_code=status.HTTP_201_CREATED)
-async def create_feedback(feedback_data: FeedbackCreate, db: Session = Depends(get_db)):
-    """Create feedback for a message"""
+async def create_feedback(
+    feedback_data: FeedbackCreate,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
+    """Create feedback for a message. Requires authentication."""
     # Verify message exists
     message = db.query(Message).filter(Message.id == feedback_data.message_id).first()
     if not message:
@@ -329,10 +488,10 @@ async def create_feedback(feedback_data: FeedbackCreate, db: Session = Depends(g
             detail="Message not found"
         )
 
-    # Create feedback
+    # Create feedback (use authenticated user's ID)
     new_feedback = Feedback(
         message_id=feedback_data.message_id,
-        student_id=feedback_data.student_id,
+        student_id=current_user.id,
         rating=feedback_data.rating,
         is_helpful=1 if feedback_data.is_helpful else 0 if feedback_data.is_helpful is not None else None,
         comment=feedback_data.comment
@@ -354,6 +513,224 @@ async def create_feedback(feedback_data: FeedbackCreate, db: Session = Depends(g
         created_at=new_feedback.created_at,
         extra_data=new_feedback.extra_data,
     )
+
+# Progress endpoint
+@app.get("/students/{student_id}/progress", response_model=ProgressResponse)
+async def get_student_progress(
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
+    """Get comprehensive progress metrics for a student. Requires authentication."""
+    # Users can only view their own progress, admins can view any
+    if current_user.id != student_id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to view this progress"
+        )
+
+    # Verify student exists
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found"
+        )
+
+    # Get conversation service
+    conversation_service = get_conversation_service(db)
+
+    # Compute progress
+    progress = conversation_service.compute_student_progress(student_id)
+
+    logger.info(f"Retrieved progress for student {student_id}")
+    return progress
+
+# Assessment endpoints
+@app.get("/students/{student_id}/assessments", response_model=List[AssessmentResponse])
+async def get_student_assessments(
+    student_id: int,
+    topic: str = None,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
+    """Get all assessments for a student, optionally filtered by topic. Requires authentication."""
+    # Users can only view their own assessments, admins can view any
+    if current_user.id != student_id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to view these assessments"
+        )
+
+    # Verify student exists
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found"
+        )
+
+    # Build query
+    query = db.query(Assessment).filter(Assessment.student_id == student_id)
+
+    # Filter by topic if provided
+    if topic:
+        query = query.filter(Assessment.topic == topic)
+
+    # Get assessments
+    assessments = query.order_by(
+        Assessment.created_at.desc()
+    ).offset(skip).limit(limit).all()
+
+    return [AssessmentResponse.model_validate(assessment) for assessment in assessments]
+
+@app.get("/assessments/{assessment_id}", response_model=AssessmentResponse)
+async def get_assessment(
+    assessment_id: int,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
+    """Get a specific assessment by ID. Requires authentication."""
+    assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
+    if not assessment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Assessment not found"
+        )
+
+    # Users can only view their own assessments, admins can view any
+    if assessment.student_id != current_user.id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to view this assessment"
+        )
+
+    return AssessmentResponse.model_validate(assessment)
+
+@app.post("/assessments/generate", response_model=AssessmentResponse, status_code=status.HTTP_201_CREATED)
+async def generate_assessment(
+    assessment_data: AssessmentGenerate,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
+    """Generate a new assessment for the authenticated student on a specific topic."""
+    # Use authenticated user's ID instead of request data
+    student_id = current_user.id
+
+    # Verify conversation exists if provided and belongs to the user
+    if assessment_data.conversation_id:
+        conversation = db.query(Conversation).filter(
+            Conversation.id == assessment_data.conversation_id
+        ).first()
+        if not conversation:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Conversation not found"
+            )
+        if conversation.student_id != student_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to use this conversation"
+            )
+
+    # TODO: In the future, use LLM to generate assessment question
+    # For now, create a placeholder assessment
+    question = f"Practice problem for {assessment_data.topic.value} at {assessment_data.difficulty.value} level"
+
+    new_assessment = Assessment(
+        student_id=student_id,
+        conversation_id=assessment_data.conversation_id,
+        topic=assessment_data.topic,
+        question=question,
+        max_score=7.0,  # Default max score
+        extra_data={"difficulty": assessment_data.difficulty.value}
+    )
+
+    db.add(new_assessment)
+    db.commit()
+    db.refresh(new_assessment)
+
+    logger.info(f"Generated assessment {new_assessment.id} for student {student_id}")
+    return AssessmentResponse.model_validate(new_assessment)
+
+@app.post("/assessments/{assessment_id}/submit", response_model=AssessmentResponse)
+async def submit_assessment_answer(
+    assessment_id: int,
+    answer_data: AssessmentAnswerSubmit,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
+    """Submit a student's answer to an assessment. Requires authentication."""
+    # Get assessment
+    assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
+    if not assessment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Assessment not found"
+        )
+
+    # Users can only submit their own assessments
+    if assessment.student_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to submit this assessment"
+        )
+
+    # Check if already submitted
+    if assessment.submitted_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Assessment has already been submitted"
+        )
+
+    # Update assessment with answer
+    assessment.student_answer = answer_data.student_answer
+    assessment.submitted_at = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(assessment)
+
+    logger.info(f"Student submitted answer for assessment {assessment_id}")
+    return AssessmentResponse.model_validate(assessment)
+
+@app.post("/assessments/{assessment_id}/grade", response_model=AssessmentResponse)
+async def grade_assessment(
+    assessment_id: int,
+    grade_data: AssessmentGradeRequest,
+    db: Session = Depends(get_db),
+    current_admin: Student = Depends(get_current_admin_user)
+):
+    """Grade an assessment (admin only)."""
+    # Get assessment
+    assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
+    if not assessment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Assessment not found"
+        )
+
+    # Check if submitted
+    if not assessment.submitted_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Assessment must be submitted before grading"
+        )
+
+    # Update assessment with grade
+    assessment.score = grade_data.score
+    if grade_data.max_score:
+        assessment.max_score = grade_data.max_score
+    if grade_data.feedback:
+        assessment.feedback = grade_data.feedback
+    assessment.graded_at = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(assessment)
+
+    logger.info(f"Admin {current_admin.id} graded assessment {assessment_id}: {grade_data.score}/{assessment.max_score}")
+    return AssessmentResponse.model_validate(assessment)
 
 # Root endpoint
 @app.get("/")

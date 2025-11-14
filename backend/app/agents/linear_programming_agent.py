@@ -34,7 +34,7 @@ class LinearProgrammingAgent(BaseAgent):
         # load course materials
         materials_path = os.path.join(
             os.path.dirname(__file__),
-            "..", "data",
+            "..", "..", "..", "data",
             "course_materials",
             "linear_programming_fundamental.md"
         )

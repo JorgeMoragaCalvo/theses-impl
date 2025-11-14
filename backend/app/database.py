@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, JSON, Float, Enum
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, JSON, Float, Enum, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from datetime import datetime, timezone
@@ -36,6 +36,11 @@ class Topic(str, enum.Enum):
     INTEGER_PROGRAMMING = "integer_programming"
     NONLINEAR_PROGRAMMING = "nonlinear_programming"
 
+class UserRole(str, enum.Enum):
+    """User role for authorization."""
+    USER = "user"
+    ADMIN = "admin"
+
 class Student(Base):
     """Student profile model."""
     __tablename__ = "students"
@@ -43,7 +48,11 @@ class Student(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
     email = Column(String(255), unique=True, nullable=False, index=True)
-    create_at = Column(DateTime, default=datetime.now(timezone.utc))
+    password_hash = Column(String(255), nullable=False)
+    role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    last_login = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
     # Knowledge levels for each topic (stored as JSON)
     knowledge_levels = Column(JSON, default={

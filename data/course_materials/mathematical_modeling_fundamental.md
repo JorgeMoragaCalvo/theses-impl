@@ -79,23 +79,23 @@ Mathematical models help us:
 - Identify decision variables
 - Define the objective function
 - Specify constraints
-- Choose appropriate model type
+- Choose the appropriate model type
 
 #### Step 3: Data Collection
-- Gather necessary parameters and coefficients
+- Gather the necessary parameters and coefficients
 - Validate data quality
 - Handle missing or uncertain data
 - Estimate relationships when data is limited
 
 #### Step 4: Model Solution
-- Choose appropriate solution method
+- Choose the appropriate solution method
 - Implement the model in software
 - Solve for optimal or good solutions
 - Check for computational issues
 
 #### Step 5: Solution Analysis
 - Interpret results in real-world terms
-- Check if solution makes practical sense
+- Check if the solution makes practical sense
 - Perform sensitivity analysis
 - Identify key drivers of the solution
 
@@ -118,7 +118,7 @@ Modeling is rarely a one-pass process. You often need to:
 
 ## 3. Components of Mathematical Models
 
-Every optimization model has three essential components:
+Every optimization model has three essential parts:
 
 ### 3.1 Decision Variables
 
@@ -157,7 +157,7 @@ Maximize (or Minimize): f(x₁, x₂, ..., xₙ)
 ```
 
 **Best Practices:**
-- Should align with true business objective
+- Should align with the true business objective
 - Include all relevant costs/benefits
 - Use consistent units
 - Consider multiple objectives if necessary
@@ -198,7 +198,7 @@ Minimize: Σᵢ Σⱼ cᵢⱼxᵢⱼ  (total shipping cost)
 **Best Practices:**
 - Every constraint should represent a real limitation
 - Avoid redundant constraints
-- Check that constraints don't make problem infeasible
+- Check that constraints don't make the problem infeasible
 - Use appropriate inequality direction (≤, ≥, =)
 
 ---
@@ -226,7 +226,7 @@ Subject to:
 - Proportional relationships
 - Continuous quantities
 - Problems with many variables and constraints
-- When optimal solution is needed
+- When the optimal solution is needed
 
 **Examples:** Production planning, diet optimization, portfolio allocation
 
@@ -473,7 +473,7 @@ When there are multiple objectives:
    - Put bounds on others: f₂(x) ≤ threshold
 
 3. **Goal Programming:**
-   - Set target for each goal
+   - Set the target for each goal
    - Minimize deviations from targets
 
 ---
@@ -501,20 +501,20 @@ When there are multiple objectives:
 - Model represents the real problem accurately
 - Important factors are included
 - Solution makes practical sense
-- Stakeholders agree model captures reality
+- Stakeholders agree the model captures reality
 
 **Techniques:**
 - Compare results to historical data
 - Test with scenarios from experience
 - Get domain expert feedback
-- Check if solution is implementable
+- Check if the solution is implementable
 
 ### 7.3 Sensitivity Analysis
 
-**Purpose:** Understand how solution changes with parameters
+**Purpose:** Understand how the solution changes with parameters
 
 **Questions:**
-- How much can costs change before solution changes?
+- How much can costs change before the solution changes?
 - What if demand is 10% higher?
 - Which constraints are most restrictive?
 - What is the value of additional resources?
@@ -643,7 +643,7 @@ To become proficient at mathematical modeling:
 3. **Start with small examples**: Build intuition
 4. **Learn common patterns**: Recognize problem types
 5. **Verify your formulation**: Test with simple cases
-6. **Interpret solutions**: Translate math back to real world
+6. **Interpret solutions**: Translate math back to the real world
 7. **Practice regularly**: Modeling is a skill developed through practice
 
 ---
