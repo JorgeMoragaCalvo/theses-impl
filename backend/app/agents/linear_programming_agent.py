@@ -3,6 +3,7 @@ import os
 import logging
 
 from .base_agent import BaseAgent
+from ..utils import get_explanation_strategies_from_context
 
 """
 Linear Programming Agent - Specialized tutor for Linear Programming concepts.
@@ -160,6 +161,49 @@ class LinearProgrammingAgent(BaseAgent):
             {self.format_context_for_prompt(context)}
             """
 
+        # Alternative Explanation Strategies
+        strategies_guide = """
+        Alternative Explanation Strategies:
+        You have multiple ways to explain Linear Programming concepts. Adapt your approach based on student needs:
+
+        1. **STEP-BY-STEP APPROACH**: Break concepts into numbered sequential steps
+           - Ideal for procedures like simplex method or graphical solution
+           - Clear, actionable instructions at each stage
+           - Example: "Step 1: Convert to standard form... Step 2: Set up initial tableau..."
+
+        2. **EXAMPLE-BASED APPROACH**: Use concrete numerical examples
+           - Ideal when student asks "how do I..."
+           - Work through complete example with real numbers
+           - Example: "Let's solve: Maximize 3x + 2y subject to x + y ≤ 4..."
+
+        3. **CONCEPTUAL APPROACH**: Focus on underlying intuition
+           - Ideal for "why" questions
+           - Explain the reasoning and theory first
+           - Example: "Duality exists because every LP has a complementary problem..."
+
+        4. **VISUAL/GEOMETRIC APPROACH**: Describe graphical representation
+           - Ideal for 2-variable problems or geometric intuition
+           - Paint picture with words: feasible region, corner points, objective direction
+           - Example: "Imagine a region bounded by lines. The solution is at a corner..."
+
+        5. **FORMAL MATHEMATICAL APPROACH**: Rigorous definitions and proofs
+           - Ideal for advanced students or theoretical questions
+           - Use precise notation, theorems, formal logic
+           - Example: "Let x ∈ ℝⁿ be feasible. By the Fundamental Theorem of LP..."
+
+        6. **COMPARATIVE APPROACH**: Compare with other methods
+           - Ideal when distinguishing between techniques
+           - Show similarities, differences, when to use each
+           - Example: "Graphical method works for 2 variables, but simplex handles any dimension..."
+
+        Adaptive Teaching Protocol:
+        - DETECT confusion from student messages ("I don't understand", "??", short responses)
+        - When confusion detected: ACKNOWLEDGE empathetically and SWITCH strategies
+        - For repeated questions on same topic: Try COMPLETELY DIFFERENT approach
+        - After complex explanations: ASK "Does this make sense?" or "Would you like me to explain differently?"
+        - Offer choices when student is stuck: "I can show you an example, explain the theory, or walk through step-by-step"
+        """
+
         # Communication style
         style_guide = """
         Communication Style:
@@ -170,6 +214,8 @@ class LinearProgrammingAgent(BaseAgent):
         - Suggest related practice problems
         - Celebrate progress and correct thinking
         - Gently correct errors with explanations
+        - ADAPT your explanation style if student seems confused
+        - REQUEST feedback on understanding after complex topics
 
         When showing mathematical solutions:
         - Use clear formatting (ASCII math or explain in words)
@@ -177,20 +223,29 @@ class LinearProgrammingAgent(BaseAgent):
         - Explain each step briefly
         - Highlight key insights
         - Show final answer clearly
+        - Check understanding along the way
+
+        Feedback Loop Guidelines:
+        - After explaining new concept: "Does that make sense?"
+        - If student seems lost: "Let me try explaining this differently..."
+        - When detecting struggle: "Would it help if I showed you an example?" or "Should I break this down step-by-step?"
+        - Offer explicit alternatives: "I can explain this with [option 1], [option 2], or [option 3]"
 
         Example response structure:
         1. Acknowledge the question/problem
-        2. Provide conceptual explanation
+        2. Provide explanation (using selected strategy)
         3. Show step-by-step solution (if applicable)
         4. Verify the answer
-        5. Offer follow-up practice or related concepts
+        5. Request feedback: "Does this help?" or "Would you like more detail on any part?"
+        6. Offer follow-up practice or related concepts
         """
 
-        # Combina all parts
+        # Combine all parts
         full_prompt = "\n\n".join([
             base_prompt,
             level_specific,
             materials_section,
+            strategies_guide,
             style_guide
         ])
 
@@ -221,7 +276,7 @@ class LinearProgrammingAgent(BaseAgent):
                           conversation_history: List[Dict[str, str]],
                           context: Dict[str, Any]) -> str:
         """
-        Generate LP tutor response with preprocessing.
+        Generate LP tutor response with adaptive preprocessing.
 
         Args:
             user_message: Current user message
@@ -229,7 +284,7 @@ class LinearProgrammingAgent(BaseAgent):
             context: Context dictionary
 
         Returns:
-            Generated response
+            Generated response with adaptive explanations
         """
 
         # Preprocess message
@@ -252,14 +307,84 @@ class LinearProgrammingAgent(BaseAgent):
             )
             return off_topic_response
 
-        # Generate response using base class method
-        response = super().generate_response(
+        # ADAPTIVE LEARNING: Detect confusion
+        confusion_analysis = self.detect_student_confusion(
             preprocessed_message,
-            conversation_history,
-            context
+            conversation_history
         )
 
+        # Define available explanation strategies for LP
+        available_strategies = [
+            "step-by-step", "example-based", "conceptual",
+            "visual", "formal-mathematical", "comparative"
+        ]
+
+        # Get previously used strategies from context
+        previous_strategies = get_explanation_strategies_from_context(context)
+
+        # Select the appropriate explanation strategy
+        knowledge_level = context.get("student", {}).get("knowledge_level", "beginner")
+        selected_strategy = self.select_explanation_strategy(
+            confusion_level=confusion_analysis["level"],
+            knowledge_level=knowledge_level,
+            previous_strategies=previous_strategies,
+            all_available_strategies=available_strategies
+        )
+
+        # Build adaptive prompt section
+        adaptive_prompt = self.build_adaptive_prompt_section(
+            confusion_analysis=confusion_analysis,
+            selected_strategy=selected_strategy,
+            context=context
+        )
+
+        # Get base system prompt
+        base_system_prompt = self.get_system_prompt(context)
+
+        # Inject adaptive instructions if needed
+        if adaptive_prompt:
+            enhanced_system_prompt = base_system_prompt + "\n\n" + adaptive_prompt
+        else:
+            enhanced_system_prompt = base_system_prompt
+
+        # Build messages list
+        messages = conversation_history.copy()
+        messages.append({"role": "user", "content": preprocessed_message})
+
+        # Generate response with enhanced prompt
+        try:
+            response = self.llm_service.generate_response(
+                messages=messages,
+                system_prompt=enhanced_system_prompt
+            )
+        except Exception as e:
+            logger.error(f"Error in {self.agent_name} response generation: {str(e)}")
+            from ..utils import format_error_message
+            return format_error_message(e)
+
+        # Postprocess
         final_response = self.postprocess_response(response)
+
+        # Add the feedback request if appropriate
+        if self.should_add_feedback_request(
+            response_text=final_response,
+            conversation_history=conversation_history,
+            context=context,
+            confusion_detected=confusion_analysis["detected"]
+        ):
+            final_response = self.add_feedback_request_to_response(
+                response=final_response,
+                confusion_level=confusion_analysis["level"],
+                selected_strategy=selected_strategy
+            )
+
+        # Store metadata about this response (for future use)
+        # This would be saved to message.extra_data in the actual system
+        logger.info(
+            f"Generated LP response with strategy={selected_strategy}, "
+            f"confusion={confusion_analysis['level']}"
+        )
+
         return final_response
 
     async def a_generate_response(
@@ -269,7 +394,7 @@ class LinearProgrammingAgent(BaseAgent):
             context: Dict[str, Any]
     ) -> str:
         """
-        Async version with preprocessing.
+        Async version with adaptive preprocessing.
 
         Args:
             user_message: Current user message
@@ -277,7 +402,7 @@ class LinearProgrammingAgent(BaseAgent):
             context: Context dictionary
 
         Returns:
-            Generated response
+            Generated response with adaptive explanations
         """
         # Preprocess
         if not self.validate_message(user_message):
@@ -294,15 +419,81 @@ class LinearProgrammingAgent(BaseAgent):
             )
             return off_topic_response
 
-        # Generate async
-        response = await super().a_generate_response(
+        # ADAPTIVE LEARNING: Detect confusion
+        confusion_analysis = self.detect_student_confusion(
             preprocessed_message,
-            conversation_history,
-            context
+            conversation_history
         )
+
+        # Define available explanation strategies for LP
+        available_strategies = [
+            "step-by-step", "example-based", "conceptual",
+            "visual", "formal-mathematical", "comparative"
+        ]
+
+        # Get previously used strategies from context
+        previous_strategies = get_explanation_strategies_from_context(context)
+
+        # Select the appropriate explanation strategy
+        knowledge_level = context.get("student", {}).get("knowledge_level", "beginner")
+        selected_strategy = self.select_explanation_strategy(
+            confusion_level=confusion_analysis["level"],
+            knowledge_level=knowledge_level,
+            previous_strategies=previous_strategies,
+            all_available_strategies=available_strategies
+        )
+
+        # Build adaptive prompt section
+        adaptive_prompt = self.build_adaptive_prompt_section(
+            confusion_analysis=confusion_analysis,
+            selected_strategy=selected_strategy,
+            context=context
+        )
+
+        # Get base system prompt
+        base_system_prompt = self.get_system_prompt(context)
+
+        # Inject adaptive instructions if needed
+        if adaptive_prompt:
+            enhanced_system_prompt = base_system_prompt + "\n\n" + adaptive_prompt
+        else:
+            enhanced_system_prompt = base_system_prompt
+
+        # Build messages list
+        messages = conversation_history.copy()
+        messages.append({"role": "user", "content": preprocessed_message})
+
+        # Generate response with enhanced prompt (async)
+        try:
+            response = await self.llm_service.a_generate_response(
+                messages=messages,
+                system_prompt=enhanced_system_prompt
+            )
+        except Exception as e:
+            logger.error(f"Error in {self.agent_name} async response generation: {str(e)}")
+            from ..utils import format_error_message
+            return format_error_message(e)
 
         # Postprocess
         final_response = self.postprocess_response(response)
+
+        # Add the feedback request if appropriate
+        if self.should_add_feedback_request(
+            response_text=final_response,
+            conversation_history=conversation_history,
+            context=context,
+            confusion_detected=confusion_analysis["detected"]
+        ):
+            final_response = self.add_feedback_request_to_response(
+                response=final_response,
+                confusion_level=confusion_analysis["level"],
+                selected_strategy=selected_strategy
+            )
+
+        logger.info(
+            f"Generated async LP response with strategy={selected_strategy}, "
+            f"confusion={confusion_analysis['level']}"
+        )
 
         return final_response
 
