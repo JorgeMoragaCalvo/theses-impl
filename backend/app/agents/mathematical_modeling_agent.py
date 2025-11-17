@@ -3,6 +3,7 @@ import os
 import logging
 
 from .base_agent import BaseAgent
+from ..utils import get_explanation_strategies_from_context
 
 """
 Mathematical Modeling Agent - Specialized tutor for Mathematical Modeling and Problem Formulation.
@@ -223,6 +224,49 @@ class MathematicalModelingAgent(BaseAgent):
             {self.format_context_for_prompt(context)}
             """
 
+        # Alternative Explanation Strategies
+        strategies_guide = """
+        Alternative Explanation Strategies:
+        You have multiple ways to explain Mathematical Modeling concepts. Adapt your approach based on student needs:
+
+        1. **PROBLEM-FIRST APPROACH**: Start with real problem, build model gradually
+           - Ideal for beginners or when student asks "how to model"
+           - Present scenario, then systematically build each part
+           - Example: "Imagine a factory... what can the manager decide? That's our variables..."
+
+        2. **COMPONENT-BY-COMPONENT APPROACH**: Variables → Objective → Constraints separately
+           - Ideal when student is stuck on specific part
+           - Focus deeply on one component before moving to next
+           - Example: "Let's just focus on identifying decision variables first..."
+
+        3. **PATTERN RECOGNITION APPROACH**: Show this is like problem type X
+           - Ideal for intermediate students learning to recognize types
+           - Compare to standard problems (diet, transportation, scheduling)
+           - Example: "This is a classic resource allocation problem, like..."
+
+        4. **REVERSE ENGINEERING APPROACH**: Start with solution, work backwards
+           - Ideal when student doesn't know where to start
+           - Show what answer would look like, then how to get there
+           - Example: "The solution would tell us how many of each to make. So we need variables for..."
+
+        5. **ANALOGICAL APPROACH**: Compare to everyday decision-making
+           - Ideal for building intuition
+           - Relate to familiar situations
+           - Example: "It's like planning your weekly budget - you decide how much to spend (variables)..."
+
+        6. **TEMPLATE-BASED APPROACH**: Provide formulation template to fill in
+           - Ideal when student knows concepts but needs structure
+           - Give framework with blanks to complete
+           - Example: "Maximize [what?] Subject to: [what limits you?]..."
+
+        Adaptive Teaching Protocol:
+        - DETECT confusion from student messages ("I don't know where to start", "how do I find variables?")
+        - When confusion detected: ACKNOWLEDGE and SIMPLIFY
+        - For repeated questions: Try COMPLETELY DIFFERENT approach (e.g., switch from abstract to concrete example)
+        - After showing formulation: ASK "Does this model capture the problem?" or "Would you like me to explain any part differently?"
+        - When student is stuck: Offer choices: "I can show an example, give you a template, or walk through step-by-step"
+        """
+
         # Communication style
         style_guide = """
         Communication Style:
@@ -233,6 +277,8 @@ class MathematicalModelingAgent(BaseAgent):
         - Encourage students to think aloud about their reasoning
         - Validate good intuitions and gently correct misconceptions
         - Provide multiple examples to illustrate concepts
+        - ADAPT your explanation if student seems confused
+        - REQUEST feedback on understanding after showing formulations
 
         When helping with problem formulation:
         1. First, ensure understanding of the problem scenario
@@ -242,15 +288,22 @@ class MathematicalModelingAgent(BaseAgent):
         5. Write mathematical notation for each component
         6. Review: Does the formulation capture the real problem?
 
+        Feedback Loop Guidelines:
+        - After showing formulation: "Does this make sense?" or "Can you see how this captures the problem?"
+        - If student seems lost: "Let me try explaining this a different way..."
+        - When detecting struggle: "Would it help to see an example?" or "Should I give you a template to work from?"
+        - Offer explicit alternatives: "I can approach this by [option 1], [option 2], or [option 3]"
+
         Example response structure:
         1. Acknowledge the problem and confirm understanding
-        2. Discuss the problem context and what's being asked
+        2. Apply selected explanation strategy
         3. Identify decision variables with clear definitions
         4. Formulate the objective function with explanation
         5. Develop constraints one-by-one with reasoning
         6. Present complete formulation
         7. Verify it makes sense in the real-world context
-        8. Suggest what type of optimization method could solve it
+        8. Request feedback: "Does this formulation make sense?"
+        9. Suggest what type of optimization method could solve it
 
         Important notes:
         - Always define decision variables with units and meaning
@@ -265,6 +318,7 @@ class MathematicalModelingAgent(BaseAgent):
             base_prompt,
             level_specific,
             materials_section,
+            strategies_guide,
             style_guide
         ])
 
@@ -301,7 +355,7 @@ class MathematicalModelingAgent(BaseAgent):
                           conversation_history: List[Dict[str, str]],
                           context: Dict[str, Any]) -> str:
         """
-        Generate Mathematical Modeling tutor response with preprocessing.
+        Generate Mathematical Modeling tutor response with adaptive preprocessing.
 
         Args:
             user_message: Current user message
@@ -309,7 +363,7 @@ class MathematicalModelingAgent(BaseAgent):
             context: Context dictionary
 
         Returns:
-            Generated response
+            Generated response with adaptive explanations
         """
 
         # Preprocess message
@@ -333,14 +387,82 @@ class MathematicalModelingAgent(BaseAgent):
             )
             return off_topic_response
 
-        # Generate response using base class method
-        response = super().generate_response(
+        # ADAPTIVE LEARNING: Detect confusion
+        confusion_analysis = self.detect_student_confusion(
             preprocessed_message,
-            conversation_history,
-            context
+            conversation_history
         )
 
+        # Define available explanation strategies for Mathematical Modeling
+        available_strategies = [
+            "problem-first", "component-by-component", "pattern-recognition",
+            "reverse-engineering", "analogical", "template-based"
+        ]
+
+        # Get previously used strategies from context
+        previous_strategies = get_explanation_strategies_from_context(context)
+
+        # Select the appropriate explanation strategy
+        knowledge_level = context.get("student", {}).get("knowledge_level", "beginner")
+        selected_strategy = self.select_explanation_strategy(
+            confusion_level=confusion_analysis["level"],
+            knowledge_level=knowledge_level,
+            previous_strategies=previous_strategies,
+            all_available_strategies=available_strategies
+        )
+
+        # Build adaptive prompt section
+        adaptive_prompt = self.build_adaptive_prompt_section(
+            confusion_analysis=confusion_analysis,
+            selected_strategy=selected_strategy,
+            context=context
+        )
+
+        # Get base system prompt
+        base_system_prompt = self.get_system_prompt(context)
+
+        # Inject adaptive instructions if needed
+        if adaptive_prompt:
+            enhanced_system_prompt = base_system_prompt + "\n\n" + adaptive_prompt
+        else:
+            enhanced_system_prompt = base_system_prompt
+
+        # Build messages list
+        messages = conversation_history.copy()
+        messages.append({"role": "user", "content": preprocessed_message})
+
+        # Generate response with enhanced prompt
+        try:
+            response = self.llm_service.generate_response(
+                messages=messages,
+                system_prompt=enhanced_system_prompt
+            )
+        except Exception as e:
+            logger.error(f"Error in {self.agent_name} response generation: {str(e)}")
+            from ..utils import format_error_message
+            return format_error_message(e)
+
+        # Postprocess
         final_response = self.postprocess_response(response)
+
+        # Add the feedback request if appropriate
+        if self.should_add_feedback_request(
+            response_text=final_response,
+            conversation_history=conversation_history,
+            context=context,
+            confusion_detected=confusion_analysis["detected"]
+        ):
+            final_response = self.add_feedback_request_to_response(
+                response=final_response,
+                confusion_level=confusion_analysis["level"],
+                selected_strategy=selected_strategy
+            )
+
+        logger.info(
+            f"Generated Modeling response with strategy={selected_strategy}, "
+            f"confusion={confusion_analysis['level']}"
+        )
+
         return final_response
 
     async def a_generate_response(
@@ -350,7 +472,7 @@ class MathematicalModelingAgent(BaseAgent):
             context: Dict[str, Any]
     ) -> str:
         """
-        Async version with preprocessing.
+        Async version with adaptive preprocessing.
 
         Args:
             user_message: Current user message
@@ -358,7 +480,7 @@ class MathematicalModelingAgent(BaseAgent):
             context: Context dictionary
 
         Returns:
-            Generated response
+            Generated response with adaptive explanations
         """
         # Preprocess
         if not self.validate_message(user_message):
@@ -376,15 +498,81 @@ class MathematicalModelingAgent(BaseAgent):
             )
             return off_topic_response
 
-        # Generate async
-        response = await super().a_generate_response(
+        # ADAPTIVE LEARNING: Detect confusion
+        confusion_analysis = self.detect_student_confusion(
             preprocessed_message,
-            conversation_history,
-            context
+            conversation_history
         )
+
+        # Define available explanation strategies for Mathematical Modeling
+        available_strategies = [
+            "problem-first", "component-by-component", "pattern-recognition",
+            "reverse-engineering", "analogical", "template-based"
+        ]
+
+        # Get previously used strategies from context
+        previous_strategies = get_explanation_strategies_from_context(context)
+
+        # Select the appropriate explanation strategy
+        knowledge_level = context.get("student", {}).get("knowledge_level", "beginner")
+        selected_strategy = self.select_explanation_strategy(
+            confusion_level=confusion_analysis["level"],
+            knowledge_level=knowledge_level,
+            previous_strategies=previous_strategies,
+            all_available_strategies=available_strategies
+        )
+
+        # Build adaptive prompt section
+        adaptive_prompt = self.build_adaptive_prompt_section(
+            confusion_analysis=confusion_analysis,
+            selected_strategy=selected_strategy,
+            context=context
+        )
+
+        # Get base system prompt
+        base_system_prompt = self.get_system_prompt(context)
+
+        # Inject adaptive instructions if needed
+        if adaptive_prompt:
+            enhanced_system_prompt = base_system_prompt + "\n\n" + adaptive_prompt
+        else:
+            enhanced_system_prompt = base_system_prompt
+
+        # Build messages list
+        messages = conversation_history.copy()
+        messages.append({"role": "user", "content": preprocessed_message})
+
+        # Generate response with enhanced prompt (async)
+        try:
+            response = await self.llm_service.a_generate_response(
+                messages=messages,
+                system_prompt=enhanced_system_prompt
+            )
+        except Exception as e:
+            logger.error(f"Error in {self.agent_name} async response generation: {str(e)}")
+            from ..utils import format_error_message
+            return format_error_message(e)
 
         # Postprocess
         final_response = self.postprocess_response(response)
+
+        # Add the feedback request if appropriate
+        if self.should_add_feedback_request(
+            response_text=final_response,
+            conversation_history=conversation_history,
+            context=context,
+            confusion_detected=confusion_analysis["detected"]
+        ):
+            final_response = self.add_feedback_request_to_response(
+                response=final_response,
+                confusion_level=confusion_analysis["level"],
+                selected_strategy=selected_strategy
+            )
+
+        logger.info(
+            f"Generated async Modeling response with strategy={selected_strategy}, "
+            f"confusion={confusion_analysis['level']}"
+        )
 
         return final_response
 
