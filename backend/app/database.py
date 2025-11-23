@@ -15,9 +15,9 @@ Database configuration and session management for PostgreSQL.
 engine = create_engine(
     settings.database_url,
     echo=settings.database_echo,
-    pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=10
+    pool_pre_ping=True, # sends a "ping" to check if the connection is still alive
+    pool_size=5, # How many simultaneous connections to keep open with the database
+    max_overflow=10 # How many additional connections to allow if the pool reaches its size
 )
 
 # Create the SessionLocal class

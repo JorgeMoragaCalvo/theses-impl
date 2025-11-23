@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     # Database Configuration
     # database_url: str = "postgresql://postgres:postgres123@localhost:5432/security"
     database_url: str
-    database_echo: bool = False
+    database_echo: bool = False # True prints all SQL queries to console
 
     # Chroma Vector Store Configuration
     chroma_persist_directory: str = "./chroma_db"
