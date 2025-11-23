@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from .config import settings
-from .database import get_db, init_db, Student, Conversation, Message, Assessment, Feedback, UserRole
+from .database import get_db, init_db, Student, Conversation, Message, Assessment, Feedback, UserRole, GradingSource
 from .models import (
     HealthResponse,
     StudentCreate,
@@ -38,6 +38,8 @@ from .auth import (
 from .agents.linear_programming_agent import get_linear_programming_agent
 from .agents.mathematical_modeling_agent import get_mathematical_modeling_agent
 from .services.conversation_service import get_conversation_service
+from .services.assessment_service import get_assessment_service
+from .services.grading_service import get_grading_service
 from .routers import admin
 from datetime import datetime, timezone
 
@@ -635,17 +637,42 @@ async def generate_assessment(
                 detail="Not authorized to use this conversation"
             )
 
-    # TODO: In the future, use LLM to generate assessment question
-    # For now, create a placeholder assessment
-    question = f"Practice problem for {assessment_data.topic.value} at {assessment_data.difficulty.value} level"
+    # Generate personalized assessment using LLM
+    assessment_service = get_assessment_service(db)
+
+    try:
+        generated_assessment = assessment_service.generate_personalized_assessment(
+            student_id=student_id,
+            topic=assessment_data.topic,
+            difficulty=str(assessment_data.difficulty.value),
+            conversation_id=assessment_data.conversation_id
+        )
+
+        question = generated_assessment.get("question")
+        correct_answer = generated_assessment.get("correct_answer")
+        rubric = generated_assessment.get("rubric")
+        metadata = generated_assessment.get("metadata", {})
+
+        # Add difficulty to metadata
+        metadata["difficulty"] = assessment_data.difficulty.value
+
+    except Exception as e:
+        logger.error(f"Error generating personalized assessment: {str(e)}")
+        # Fallback to simple assessment
+        question = f"Practice problem for {assessment_data.topic.value} at {assessment_data.difficulty.value} level"
+        correct_answer = None
+        rubric = None
+        metadata = {"difficulty": assessment_data.difficulty.value, "generation_error": True}
 
     new_assessment = Assessment(
         student_id=student_id,
         conversation_id=assessment_data.conversation_id,
         topic=assessment_data.topic,
         question=question,
+        correct_answer=correct_answer,
+        rubric=rubric,
         max_score=7.0,  # Default max score
-        extra_data={"difficulty": assessment_data.difficulty.value}
+        extra_data=metadata
     )
 
     db.add(new_assessment)
@@ -662,7 +689,7 @@ async def submit_assessment_answer(
     db: Session = Depends(get_db),
     current_user: Student = Depends(get_current_user)
 ):
-    """Submit a student's answer to an assessment. Requires authentication."""
+    """Submit a student's answer to an assessment and automatically grade it. Requires authentication."""
     # Get assessment
     assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
     if not assessment:
@@ -689,10 +716,30 @@ async def submit_assessment_answer(
     assessment.student_answer = answer_data.student_answer
     assessment.submitted_at = datetime.now(timezone.utc)
 
+    # Commit the submission first
     db.commit()
     db.refresh(assessment)
 
-    logger.info(f"Student submitted answer for assessment {assessment_id}")
+    # Automatically grade the assessment using LLM
+    try:
+        grading_service = get_grading_service(db)
+        score, feedback = grading_service.grade_assessment(assessment)
+
+        # Update assessment with grading results
+        assessment.score = score
+        assessment.feedback = feedback
+        assessment.graded_at = datetime.now(timezone.utc)
+        assessment.graded_by = GradingSource.AUTO
+
+        db.commit()
+        db.refresh(assessment)
+
+        logger.info(f"Student submitted and auto-graded assessment {assessment_id} - Score: {score}/{assessment.max_score}")
+    except Exception as e:
+        logger.error(f"Failed to auto-grade assessment {assessment_id}: {str(e)}")
+        # Continue even if grading fails - assessment is submitted but not graded
+        logger.info(f"Assessment {assessment_id} submitted but not graded due to error")
+
     return AssessmentResponse.model_validate(assessment)
 
 @app.post("/assessments/{assessment_id}/grade", response_model=AssessmentResponse)
@@ -702,7 +749,7 @@ async def grade_assessment(
     db: Session = Depends(get_db),
     current_admin: Student = Depends(get_current_admin_user)
 ):
-    """Grade an assessment (admin only)."""
+    """Grade or override assessment grading (admin only). Can override auto-graded assessments."""
     # Get assessment
     assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
     if not assessment:
@@ -718,6 +765,10 @@ async def grade_assessment(
             detail="Assessment must be submitted before grading"
         )
 
+    # Check if this is an override of existing grading
+    is_override = assessment.graded_at is not None
+    was_auto_graded = assessment.graded_by == GradingSource.AUTO
+
     # Update assessment with grade
     assessment.score = grade_data.score
     if grade_data.max_score:
@@ -725,11 +776,17 @@ async def grade_assessment(
     if grade_data.feedback:
         assessment.feedback = grade_data.feedback
     assessment.graded_at = datetime.now(timezone.utc)
+    assessment.graded_by = GradingSource.ADMIN
+
+    # Track override timestamp if this is overriding an auto-grade
+    if is_override and was_auto_graded:
+        assessment.overridden_at = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(assessment)
 
-    logger.info(f"Admin {current_admin.id} graded assessment {assessment_id}: {grade_data.score}/{assessment.max_score}")
+    action = "overrode auto-grade for" if is_override and was_auto_graded else "graded"
+    logger.info(f"Admin {current_admin.id} {action} assessment {assessment_id}: {grade_data.score}/{assessment.max_score}")
     return AssessmentResponse.model_validate(assessment)
 
 # Root endpoint
