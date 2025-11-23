@@ -64,7 +64,7 @@ class Settings(BaseSettings):
 
     # LLM Configuration
     temperature: float = 0.4
-    max_tokens: int = 1000
+    max_tokens: int = 2000
 
     @property
     def current_api_key(self) -> str:
