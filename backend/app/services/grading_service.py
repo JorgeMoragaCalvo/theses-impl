@@ -110,51 +110,51 @@ class GradingService:
         """
         prompt = f"""You are an expert grader for {topic} assessments in operations research and optimization methods.
 
-Your task is to grade a student's answer fairly and objectively, providing constructive feedback.
+            Your task is to grade a student's answer fairly and objectively, providing constructive feedback.
 
-## Assessment Question:
-{question}
+            ## Assessment Question:
+            {question}
 
-## Student's Answer:
-{student_answer}
+            ## Student's Answer:
+            {student_answer}
 
-## Reference Solution:
-{correct_answer}
+            ## Reference Solution:
+            {correct_answer}
 
-## Grading Rubric:
-{rubric}
+            ## Grading Rubric:
+            {rubric}
 
-## Maximum Score: {max_score} points
+            ## Maximum Score: {max_score} points
 
-## Grading Guidelines:
-1. **Be Fair and Objective**: Grade based on the rubric and the correctness of the approach and solution
-2. **Partial Credit**: Award partial credit for correct methodology even if the final answer is wrong
-3. **Show Your Work**: Explain what the student did correctly and where they made mistakes
-4. **Be Constructive**: Provide specific, actionable feedback that helps the student improve
-5. **Check Understanding**: Evaluate whether the student demonstrates understanding of core concepts
-6. **Minor Errors**: Don't penalize heavily for minor arithmetic errors if the approach is correct
-7. **Alternative Approaches**: Accept valid alternative solution methods if they're correct
-8. **Completeness**: Consider whether the student fully addressed all parts of the question
+            ## Grading Guidelines:
+            1. **Be Fair and Objective**: Grade based on the rubric and the correctness of the approach and solution
+            2. **Partial Credit**: Award partial credit for correct methodology even if the final answer is wrong
+            3. **Show Your Work**: Explain what the student did correctly and where they made mistakes
+            4. **Be Constructive**: Provide specific, actionable feedback that helps the student improve
+            5. **Check Understanding**: Evaluate whether the student demonstrates understanding of core concepts
+            6. **Minor Errors**: Don't penalize heavily for minor arithmetic errors if the approach is correct
+            7. **Alternative Approaches**: Accept valid alternative solution methods if they're correct
+            8. **Completeness**: Consider whether the student fully addressed all parts of the question
 
-## Output Format:
-Please provide your response in the following JSON format:
+            ## Output Format:
+            Please provide your response in the following JSON format:
 
-```json
-{{
-    "score": <numeric score between 0 and {max_score}>,
-    "feedback": "Detailed feedback explaining the grade, highlighting strengths and areas for improvement"
-}}
-```
+            ```json
+            {{
+                "score": <numeric score between 0 and {max_score}>,
+                "feedback": "Detailed feedback explaining the grade, highlighting strengths and areas for improvement"
+            }}
+            ```
 
-## Important:
-- The score MUST be a number between 0 and {max_score}
-- Provide specific, constructive feedback (3-5 sentences minimum)
-- Cite specific parts of the student's answer in your feedback
-- Be encouraging while being honest about mistakes
-- IMPORTANT: Respond ONLY with the JSON object, no additional text before or after
+            ## Important:
+            - The score MUST be a number between 0 and {max_score}
+            - Provide specific, constructive feedback (3-5 sentences minimum)
+            - Cite specific parts of the student's answer in your feedback
+            - Be encouraging while being honest about mistakes
+            - IMPORTANT: Respond ONLY with the JSON object, no additional text before or after
 
-Grade the assessment now.
-"""
+            Grade the assessment now.
+            """
         return prompt
 
     def parse_grading_response(self, llm_response: str, max_score: float) -> Tuple[float, str]:
@@ -189,7 +189,7 @@ Grade the assessment now.
             feedback = parsed.get("feedback", "No feedback provided.")
 
             # Validate score is within bounds
-            score = max(0.0, min(score, max_score))
+            score = max(1.0, min(score, max_score))
 
             return score, feedback
 
@@ -210,7 +210,7 @@ Grade the assessment now.
         Returns:
             Tuple of (score, feedback)
         """
-        score = 0.0
+        score = 1.0
         feedback = llm_response
 
         # Try to find score patterns
@@ -247,7 +247,6 @@ Grade the assessment now.
             feedback = feedback[:1000] + "..."
 
         return score, feedback
-
 
 def get_grading_service(db: Session) -> GradingService:
     """
