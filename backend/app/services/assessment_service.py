@@ -91,7 +91,8 @@ class AssessmentService:
             response = self.llm_service.generate_response(
                 messages=messages,
                 system_prompt=system_prompt,
-                temperature=0.7  # Moderate creativity for varied questions
+                temperature=0.7,  # Moderate creativity for varied questions
+                max_tokens=4000  # Allow longer responses for complete assessments
             )
 
             # Parse the LLM response
