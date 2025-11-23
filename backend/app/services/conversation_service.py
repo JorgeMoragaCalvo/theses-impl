@@ -134,7 +134,7 @@ class ConversationService:
                                  include_assessment_data: bool = True) -> Dict[str, Any]:
         """
         Get complete context for a conversation.
-        Combines conversation history, student information, and assessment data.
+        Combines conversation history, student information, assessment data, and adaptive learning metadata.
 
         Args:
             conversation_id: Conversation ID
@@ -159,12 +159,22 @@ class ConversationService:
             include_assessment_data=include_assessment_data
         )
 
+        # Get conversation extra_data for adaptive learning metadata
+        conversation = self.db.query(Conversation).filter(
+            Conversation.id == conversation_id
+        ).first()
+
+        conversation_extra_data = {}
+        if conversation and conversation.extra_data:
+            conversation_extra_data = conversation.extra_data
+
         # Combine contexts
         context = {
             "conversation_id": conversation_id,
             "conversation_history": history,
             "student": student_context,
-            "topic": topic
+            "topic": topic,
+            "conversation_extra_data": conversation_extra_data
         }
 
         # Add assessment-specific context if requested and the topic is provided
@@ -436,10 +446,11 @@ class ConversationService:
         Returns:
             ProgressResponse with aggregated metrics
         """
-        try:
-            # Get student info
-            student = self.db.query(Student).filter(Student.id == student_id).first()
+        logger.info(f"Computing progress for student {student_id}")
 
+        # Get student info
+        try:
+            student = self.db.query(Student).filter(Student.id == student_id).first()
             if not student:
                 logger.warning(f"Student {student_id} not found for progress computation")
                 return ProgressResponse(
@@ -451,92 +462,8 @@ class ConversationService:
                     topics_covered=[],
                     recent_activity=[]
                 )
-
-            # Count conversations
-            total_conversations = self.db.query(Conversation).filter(
-                Conversation.student_id == student_id
-            ).count()
-
-            # Count messages
-            total_messages = self.db.query(Message).join(Conversation).filter(
-                Conversation.student_id == student_id
-            ).count()
-
-            # Get assessments
-            assessments = self.db.query(Assessment).filter(
-                Assessment.student_id == student_id
-            ).all()
-
-            total_assessments = len(assessments)
-            graded_assessments = [a for a in assessments if a.score is not None]
-
-            # Calculate average score
-            average_score = None
-            if graded_assessments:
-                average_score = sum(a.score for a in graded_assessments) / len(graded_assessments)
-
-            # Get topics covered from conversations
-            conversations_with_topics = self.db.query(Conversation).filter(
-                Conversation.student_id == student_id,
-                Conversation.topic.isnot(None)
-            ).all()
-
-            topics_covered = list(set([
-                conv.topic.value for conv in conversations_with_topics if conv.topic
-            ]))
-
-            # Build recent activity timeline
-            recent_activity = []
-
-            # Get recent conversations (last 5)
-            recent_conversations = self.db.query(Conversation).filter(
-                Conversation.student_id == student_id
-            ).order_by(Conversation.started_at.desc()).limit(5).all()
-
-            for conv in recent_conversations:
-                activity_entry = {
-                    "type": "conversation",
-                    "timestamp": conv.started_at.isoformat() if conv.started_at else None,
-                    "topic": conv.topic.value if conv.topic else "General",
-                    "message_count": self.count_conversation_messages(conv.id)
-                }
-                recent_activity.append(activity_entry)
-
-            # Get recent assessments (last 5)
-            recent_assessments = self.db.query(Assessment).filter(
-                Assessment.student_id == student_id
-            ).order_by(Assessment.created_at.desc()).limit(5).all()
-
-            for assessment in recent_assessments:
-                activity_entry = {
-                    "type": "assessment",
-                    "timestamp": assessment.created_at.isoformat() if assessment.created_at else None,
-                    "topic": assessment.topic.value if assessment.topic else "Unknown",
-                    "score": assessment.score,
-                    "status": "graded" if assessment.graded_at else ("submitted" if assessment.submitted_at else "pending")
-                }
-                recent_activity.append(activity_entry)
-
-            # Sort recent activity by timestamp
-            recent_activity.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
-            recent_activity = recent_activity[:10]  # Keep only 10 most recent
-
-            progress = ProgressResponse(
-                student_id=student_id,
-                knowledge_levels=student.knowledge_levels or {},
-                total_conversations=total_conversations,
-                total_messages=total_messages,
-                total_assessments=total_assessments,
-                average_score=round(average_score, 2) if average_score else None,
-                topics_covered=topics_covered,
-                recent_activity=recent_activity
-            )
-
-            logger.info(f"Computed progress for student {student_id}: "
-                       f"{total_conversations} convs, {total_assessments} assessments")
-            return progress
         except Exception as e:
-            logger.error(f"Error computing student progress: {str(e)}")
+            logger.error(f"Error fetching student {student_id}: {str(e)}")
             return ProgressResponse(
                 student_id=student_id,
                 knowledge_levels={},
@@ -546,6 +473,126 @@ class ConversationService:
                 topics_covered=[],
                 recent_activity=[]
             )
+
+        # Count conversations (with error handling)
+        total_conversations = 0
+        try:
+            total_conversations = self.db.query(Conversation).filter(
+                Conversation.student_id == student_id
+            ).count()
+            logger.debug(f"Student {student_id}: {total_conversations} conversations")
+        except Exception as e:
+            logger.error(f"Error counting conversations for student {student_id}: {str(e)}")
+
+        # Count messages (with error handling)
+        total_messages = 0
+        try:
+            total_messages = self.db.query(Message).join(Conversation).filter(
+                Conversation.student_id == student_id
+            ).count()
+            logger.debug(f"Student {student_id}: {total_messages} messages")
+        except Exception as e:
+            logger.error(f"Error counting messages for student {student_id}: {str(e)}")
+
+        # Get assessments (with error handling)
+        total_assessments = 0
+        average_score = None
+        try:
+            logger.debug(f"Querying assessments for student {student_id}")
+            assessments = self.db.query(Assessment).filter(
+                Assessment.student_id == student_id
+            ).all()
+
+            total_assessments = len(assessments)
+            logger.debug(f"Student {student_id}: {total_assessments} assessments found")
+
+            graded_assessments = [a for a in assessments if a.score is not None]
+
+            # Calculate average score
+            if graded_assessments:
+                # Filter out None scores before summing (defensive check)
+                valid_scores = [a.score for a in graded_assessments if a.score is not None]
+                if valid_scores:
+                    average_score = sum(valid_scores) / len(valid_scores)
+                    logger.debug(f"Student {student_id}: average score = {average_score}")
+        except Exception as e:
+            logger.error(f"Error processing assessments for student {student_id}: {str(e)}", exc_info=True)
+
+        # Get topics covered from conversations (with error handling)
+        topics_covered = []
+        try:
+            conversations_with_topics = self.db.query(Conversation).filter(
+                Conversation.student_id == student_id,
+                Conversation.topic.isnot(None)
+            ).all()
+
+            topics_covered = list(set([
+                conv.topic.value for conv in conversations_with_topics if conv.topic
+            ]))
+            logger.debug(f"Student {student_id}: {len(topics_covered)} topics covered")
+        except Exception as e:
+            logger.error(f"Error getting topics for student {student_id}: {str(e)}")
+
+        # Build recent activity timeline (with error handling)
+        recent_activity = []
+        try:
+            # Get recent conversations (last 5)
+            recent_conversations = self.db.query(Conversation).filter(
+                Conversation.student_id == student_id
+            ).order_by(Conversation.started_at.desc()).limit(5).all()
+
+            for conv in recent_conversations:
+                try:
+                    activity_entry = {
+                        "type": "conversation",
+                        "timestamp": conv.started_at.isoformat() if conv.started_at else None,
+                        "topic": conv.topic.value if conv.topic else "General",
+                        "message_count": self.count_conversation_messages(conv.id)
+                    }
+                    recent_activity.append(activity_entry)
+                except Exception as e:
+                    logger.warning(f"Error processing conversation {conv.id} for activity: {str(e)}")
+
+            # Get recent assessments (last 5)
+            recent_assessments = self.db.query(Assessment).filter(
+                Assessment.student_id == student_id
+            ).order_by(Assessment.created_at.desc()).limit(5).all()
+
+            for assessment in recent_assessments:
+                try:
+                    activity_entry = {
+                        "type": "assessment",
+                        "timestamp": assessment.created_at.isoformat() if assessment.created_at else None,
+                        "topic": assessment.topic.value if assessment.topic else "Unknown",
+                        "score": assessment.score,
+                        "status": "graded" if assessment.graded_at else ("submitted" if assessment.submitted_at else "pending")
+                    }
+                    recent_activity.append(activity_entry)
+                except Exception as e:
+                    logger.warning(f"Error processing assessment {assessment.id} for activity: {str(e)}")
+
+            # Sort recent activity by timestamp
+            recent_activity.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+            recent_activity = recent_activity[:10]  # Keep only 10 most recent
+        except Exception as e:
+            logger.error(f"Error building recent activity for student {student_id}: {str(e)}")
+
+        # Build response with whatever data we successfully collected
+        progress = ProgressResponse(
+            student_id=student_id,
+            knowledge_levels=student.knowledge_levels or {},
+            total_conversations=total_conversations,
+            total_messages=total_messages,
+            total_assessments=total_assessments,
+            average_score=round(average_score, 2) if average_score else None,
+            topics_covered=topics_covered,
+            recent_activity=recent_activity
+        )
+
+        logger.info(f"Computed progress for student {student_id}: "
+                   f"{total_conversations} convs, {total_messages} msgs, "
+                   f"{total_assessments} assessments, avg_score={average_score}")
+        return progress
 
     def should_suggest_assessment(self, conversation_id: int,
                                    student_id: int,
@@ -599,6 +646,146 @@ class ConversationService:
         except Exception as e:
             logger.error(f"Error checking assessment suggestion: {str(e)}")
             return False
+
+    def track_explanation_strategy(
+        self,
+        conversation_id: int,
+        strategy: str,
+        confusion_level: str
+    ) -> None:
+        """
+        Track the usage of an explanation strategy in a conversation.
+
+        Args:
+            conversation_id: Conversation ID
+            strategy: Strategy name used
+            confusion_level: Confusion level detected
+        """
+        try:
+            conversation = self.db.query(Conversation).filter(
+                Conversation.id == conversation_id
+            ).first()
+
+            if not conversation:
+                logger.warning(f"Conversation {conversation_id} not found for strategy tracking")
+                return
+
+            # Initialize extra_data if needed
+            if not conversation.extra_data:
+                conversation.extra_data = {}
+
+            # Track strategies used
+            strategies_used = conversation.extra_data.get("strategies_used", [])
+            strategies_used.append(strategy)
+            conversation.extra_data["strategies_used"] = strategies_used
+
+            # Track last strategy
+            conversation.extra_data["last_strategy"] = strategy
+
+            # Track confusion count
+            if confusion_level in ["low", "medium", "high"]:
+                confusion_count = conversation.extra_data.get("confusion_count", 0)
+                conversation.extra_data["confusion_count"] = confusion_count + 1
+
+            # Commit changes
+            self.db.commit()
+
+            logger.info(
+                f"Tracked strategy '{strategy}' for conversation {conversation_id}, "
+                f"confusion={confusion_level}"
+            )
+        except Exception as e:
+            logger.error(f"Error tracking explanation strategy: {str(e)}")
+            self.db.rollback()
+
+    def mark_strategy_successful(
+        self,
+        conversation_id: int,
+        strategy: str
+    ) -> None:
+        """
+        Mark a strategy as successful (confusion was resolved).
+
+        Args:
+            conversation_id: Conversation ID
+            strategy: Strategy that was successful
+        """
+        try:
+            conversation = self.db.query(Conversation).filter(
+                Conversation.id == conversation_id
+            ).first()
+
+            if not conversation:
+                return
+
+            # Initialize extra_data if needed
+            if not conversation.extra_data:
+                conversation.extra_data = {}
+
+            # Track successful strategies
+            successful_strategies = conversation.extra_data.get("successful_strategies", {})
+            successful_strategies[strategy] = successful_strategies.get(strategy, 0) + 1
+            conversation.extra_data["successful_strategies"] = successful_strategies
+
+            # Commit changes
+            self.db.commit()
+
+            logger.info(f"Marked strategy '{strategy}' as successful for conversation {conversation_id}")
+        except Exception as e:
+            logger.error(f"Error marking strategy successful: {str(e)}")
+            self.db.rollback()
+
+    def analyze_strategy_effectiveness(
+        self,
+        conversation_id: int
+    ) -> Dict[str, Any]:
+        """
+        Analyze which strategies have been most effective in this conversation.
+
+        Args:
+            conversation_id: Conversation ID
+
+        Returns:
+            Dictionary with strategy effectiveness analysis
+        """
+        try:
+            conversation = self.db.query(Conversation).filter(
+                Conversation.id == conversation_id
+            ).first()
+
+            if not conversation or not conversation.extra_data:
+                return {
+                    "strategies_used": [],
+                    "successful_strategies": {},
+                    "confusion_count": 0,
+                    "most_effective": None
+                }
+
+            strategies_used = conversation.extra_data.get("strategies_used", [])
+            successful_strategies = conversation.extra_data.get("successful_strategies", {})
+            confusion_count = conversation.extra_data.get("confusion_count", 0)
+
+            # Find the most effective strategy
+            most_effective = None
+            if successful_strategies:
+                most_effective = max(successful_strategies.items(), key=lambda x: x[1])[0]
+
+            return {
+                "strategies_used": strategies_used,
+                "successful_strategies": successful_strategies,
+                "confusion_count": confusion_count,
+                "most_effective": most_effective,
+                "total_strategies": len(strategies_used),
+                "unique_strategies": len(set(strategies_used))
+            }
+        except Exception as e:
+            logger.error(f"Error analyzing strategy effectiveness: {str(e)}")
+            return {
+                "strategies_used": [],
+                "successful_strategies": {},
+                "confusion_count": 0,
+                "most_effective": None
+            }
 
 def get_conversation_service(db: Session) -> ConversationService:
     """
