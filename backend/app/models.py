@@ -33,6 +33,11 @@ class UserRole(str, Enum):
     USER = "user"
     ADMIN = "admin"
 
+class GradingSource(str, Enum):
+    """Source of assessment grading."""
+    AUTO = "auto"
+    ADMIN = "admin"
+
 # Request Models
 class StudentCreate(BaseModel):
     """Request the model for creating a new student."""
@@ -88,7 +93,7 @@ class AssessmentGradeRequest(BaseModel):
     max_score: Optional[float] = Field(None, ge=0)
     feedback: Optional[str] = None
 
-# Response Models
+# Response Models (data output. How the API responds)
 class StudentResponse(BaseModel):
     """Response model for student data."""
     id: int
@@ -147,9 +152,12 @@ class AssessmentResponse(BaseModel):
     question: str
     student_answer: Optional[str] = None
     correct_answer: Optional[str] = None
+    rubric: Optional[str] = None
     score: Optional[float] = None
     max_score: float
     feedback: Optional[str] = None
+    graded_by: Optional[str] = None
+    overridden_at: Optional[datetime] = None
     created_at: datetime
     submitted_at: Optional[datetime] = None
     graded_at: Optional[datetime] = None
@@ -157,6 +165,20 @@ class AssessmentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @classmethod
+    def model_validate(cls, obj, **kwargs):
+        """Custom validation to handle enum conversion."""
+        if hasattr(obj, '__dict__'):
+            data = {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
+            # Convert topic enum to string value if it's an enum
+            if 'topic' in data and hasattr(data['topic'], 'value'):
+                data['topic'] = data['topic'].value
+            # Convert graded_by enum to string value if it's an enum
+            if 'graded_by' in data and hasattr(data['graded_by'], 'value'):
+                data['graded_by'] = data['graded_by'].value
+            return super().model_validate(data, **kwargs)
+        return super().model_validate(obj, **kwargs)
 
 class FeedbackResponse(BaseModel):
     """Response model for feedback data."""
