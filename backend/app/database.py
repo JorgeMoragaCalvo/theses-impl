@@ -7,6 +7,11 @@ import enum
 
 from .config import settings
 
+"""
+Database configuration and session management for PostgreSQL.
+"""
+
+# Create SQLAlchemy engine
 engine = create_engine(
     settings.database_url,
     echo=settings.database_echo,
@@ -41,6 +46,12 @@ class UserRole(str, enum.Enum):
     USER = "user"
     ADMIN = "admin"
 
+class GradingSource(str, enum.Enum):
+    """Source of assessment grading."""
+    AUTO = "auto"
+    ADMIN = "admin"
+
+# Database Models
 class Student(Base):
     """Student profile model."""
     __tablename__ = "students"
@@ -75,6 +86,13 @@ class Conversation(Base):
     started_at = Column(DateTime, default=datetime.now(timezone.utc))
     ended_at = Column(DateTime, nullable=True)
     is_active = Column(Integer, default=1) # 1=True, 0=False
+    # Extra data stores session metadata and adaptive learning tracking:
+    # - strategies_used: list[str] - List of explanation strategies used in this conversation
+    # - confusion_count: int - Number of times confusion was detected
+    # - successful_strategies: dict - Strategies that resolved confusion (strategy -> success count)
+    # - last_strategy: str - Most recently used strategy
+    # - student_preferences: dict - Inferred student preferences from interaction patterns
+    # Metadata
     extra_data = Column(JSON, default={}) # Session metadata
 
 class Message(Base):
@@ -88,6 +106,13 @@ class Message(Base):
     timestamp = Column(DateTime, default=datetime.now(timezone.utc))
     # Agent information
     agent_type = Column(String(100), nullable=True) # Which the agent responded
+    # Extra data stores adaptive learning metadata:
+    # - explanation_strategy: str - Strategy used for this response (e.g., "step-by-step", "example-based")
+    # - confusion_detected: bool - Whether confusion was detected in the user message
+    # - confusion_level: str - Level of confusion (none/low/medium/high)
+    # - feedback_requested: bool - Whether agent requested understanding feedback
+    # - contains_alternative: bool - Whether this is an alternative explanation
+    # Metadata
     extra_data = Column(JSON, default={})
 
 class Assessment(Base):
@@ -103,16 +128,20 @@ class Assessment(Base):
     question = Column(Text, nullable=False)
     student_answer = Column(Text, nullable=True)
     correct_answer = Column(Text, nullable=True)
+    rubric = Column(Text, nullable=True)
 
     #Grading
     score = Column(Float, nullable=True)
     max_score = Column(Float, default=7.0)
     feedback = Column(Text, nullable=True)
+    graded_by = Column(Enum(GradingSource), nullable=True)  # Tracks if auto-graded or manually graded
+    overridden_at = Column(DateTime, nullable=True)  # When admin overrode the auto-grade
 
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     submitted_at = Column(DateTime, nullable=True)
     graded_at = Column(DateTime, nullable=True)
 
+    # Metadata
     extra_data = Column(JSON, default={})
 
 class Feedback(Base):
@@ -130,6 +159,7 @@ class Feedback(Base):
 
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
+    # Metadata
     extra_data = Column(JSON, default={})
 
 # Database dependency for FastAPI
@@ -149,6 +179,7 @@ def init_db() -> None:
     """Initialize database tables."""
     Base.metadata.create_all(bind=engine)
 
+# Database cleanup
 def drop_db() -> None:
     """Drop all database tables (use with caution)."""
     Base.metadata.drop_all(bind=engine)
