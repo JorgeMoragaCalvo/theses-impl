@@ -211,177 +211,111 @@ Flujo completo:
 - Devuelve `ConversationResponse` con la lista de mensajes.
 
 ### Conversaciones de un estudiante `/students/{student_id}/conversations`
+- Autoriza: el propio estudiante o admin.
+- Devuelve todas las conversaciones del estudiante ordenadas por started_at descendente.
 
-Autoriza: el propio estudiante o admin.
-
-Devuelve todas las conversaciones del estudiante ordenadas por started_at descendente.
-
-11. Feedback /feedback
+## 10. Feedback `/feedback`
+```python
 @app.post("/feedback", response_model=FeedbackResponse)
 async def create_feedback(feedback_data: FeedbackCreate, ...)
-
-
-Verifica que el Message existe.
-
-Crea un Feedback:
-
-message_id
-
-student_id = current_user.id
-
-rating
-
-is_helpful (mapea booleano a 0/1/None)
-
-comment
-
-Devuelve FeedbackResponse.
+```
+- Verifica que el `Message` existe.
+- Crea un `Feedback`:
+  - `message_id`
+  - `student_id = current_user.id`
+  - `rating`
+  - `is_helpful` (mapea booleano a 0/1/None)
+  - `comment`
+- Devuelve `FeedbackResponse`.
 
 Sirve para evaluar la calidad de las respuestas de la IA.
 
-12. Progreso del estudiante /students/{student_id}/progress
+## 11. Progreso del estudiante `/students/{student_id}/progress`
+- Autoriza: el propio estudiante o admin.
+- Verifica que el estudiante existe.
+- Usa `conversation_service.compute_student_progress(student_id)` para generar métricas agregadas (por ejemplo, número de sesiones, dificultades, etc., según se defina en el servicio).
+- Devuelve un `ProgressResponse`.
 
-Autoriza: el propio estudiante o admin.
+## 12. Evaluaciones (Assessments)
+### 12.1 Listar evaluaciones de un estudiante
+`GET /students/{student_id}/assessments`
+- Autoriza: propio estudiante o admin.
+- Opcionalmente filtra por `topic`.
+- Usa paginación (`skip`, `limit`).
+- Devuelve lista de `AssessmentResponse`.
 
-Verifica que el estudiante existe.
+### 12.2 Obtener una evaluación
+`GET /assessments/{assessment_id}`
+- Verifica que existe.
+- Solo dueño o admin puede verla.
+- Devuelve `AssessmentResponse`.
 
-Usa conversation_service.compute_student_progress(student_id) para generar métricas agregadas (por ejemplo, número de sesiones, dificultades, etc., según se defina en el servicio).
+### 12.3 Generar evaluación
+`POST /assessments/generate`
+- Solo para usuario autenticado; usa `current_user.id`.
+- Opcionalmente, asocia una conversación (`conversation_id`):
+  - Verifica que exista.
+  - Verifica que pertenezca al usuario.
+- Usa `assessment_service.generate_personalized_assessment(...)` con:
+  - `student_id`
+  - `topic`
+  - `difficulty` (string desde enum)
+  - `conversation_id` (para personalizar según chat previo).
+- Espera un `dict` con:
+  - `question`
+  - `correct_answer`
+  - `rubric`
+  - `metadata`
+- Si falla, crea una pregunta de fallback simple.
+- Crea Assessment con:
+  - `max_score` = 7.0 por defecto.
+  - `extra_data = metadata + difficulty`.
+- Devuelve `AssessmentResponse`.
 
-Devuelve un ProgressResponse.
+### 12.4 Enviar respuesta de evaluación (auto‐corregida)
+`POST /assessments/{assessment_id}/submit`
+- Verifica que la evaluación exista.
+- Solo el dueño puede enviar (`student_id == current_user.id`).
+- Si ya fue enviada (`submitted_at` no es `None`) → error.
+- Guarda:
+  - `student_answer`
+  - `submitted_at = now()`
+- Luego intenta auto-calificar:
+  - Usa `grading_service.grade_assessment(assessment)` → (score, feedback).
+  - Guarda `score, feedback, graded_at, graded_by = GradingSource.AUTO`.
+- Si falla el grading:
+  - Deja la evaluación enviada pero sin calificar.
 
-13. Evaluaciones (Assessments)
-13.1 Listar evaluaciones de un estudiante
+### 12.5 Calificar / sobrescribir calificación (admin)
+POST `/assessments/{assessment_id}/grade`
 
-GET /students/{student_id}/assessments
+- Solo admin (`get_current_admin_user`).
+- Verifica existencia y que ya esté enviada.
+- Permite:
+  - Establecer `score`
+  - Opcionalmente cambiar `max_score`
+  - Opcionalmente `feedback`
+- Marca:
+  - `graded_by = GradingSource.ADMIN`
+  - `graded_at = now()`
+- Si ya estaba calificada y fue auto (AUTO), registra `overridden_at = now()`.
 
-Autoriza: propio estudiante o admin.
-
-Opcionalmente filtra por topic.
-
-Usa paginación (skip, limit).
-
-Devuelve lista de AssessmentResponse.
-
-13.2 Obtener una evaluación
-
-GET /assessments/{assessment_id}
-
-Verifica que existe.
-
-Solo dueño o admin puede verla.
-
-Devuelve AssessmentResponse.
-
-13.3 Generar evaluación
-
-POST /assessments/generate
-
-Solo para usuario autenticado; usa current_user.id.
-
-Opcionalmente asocia una conversación (conversation_id):
-
-Verifica que exista.
-
-Verifica que pertenezca al usuario.
-
-Usa assessment_service.generate_personalized_assessment(...) con:
-
-student_id
-
-topic
-
-difficulty (string desde enum)
-
-conversation_id (para personalizar según chat previo).
-
-Espera un dict con:
-
-question
-
-correct_answer
-
-rubric
-
-metadata
-
-Si falla, crea una pregunta de fallback simple.
-
-Crea Assessment con:
-
-max_score = 7.0 por defecto.
-
-extra_data = metadata + difficulty.
-
-Devuelve AssessmentResponse.
-
-13.4 Enviar respuesta de evaluación (auto‐corregida)
-
-POST /assessments/{assessment_id}/submit
-
-Verifica que la evaluación exista.
-
-Solo el dueño puede enviar (student_id == current_user.id).
-
-Si ya fue enviada (submitted_at no es None) → error.
-
-Guarda:
-
-student_answer
-
-submitted_at = now()
-
-Luego intenta auto-calificar:
-
-Usa grading_service.grade_assessment(assessment) → (score, feedback).
-
-Guarda score, feedback, graded_at, graded_by = GradingSource.AUTO.
-
-Si falla el grading:
-
-Deja la evaluación enviada pero sin calificar.
-
-13.5 Calificar / sobrescribir calificación (admin)
-
-POST /assessments/{assessment_id}/grade
-
-Solo admin (get_current_admin_user).
-
-Verifica existencia y que ya esté enviada.
-
-Permite:
-
-Establecer score
-
-Opcionalmente cambiar max_score
-
-Opcionalmente feedback
-
-Marca:
-
-graded_by = GradingSource.ADMIN
-
-graded_at = now()
-
-Si ya estaba calificada y fue auto (AUTO), registra overridden_at = now().
-
-14. Endpoint raíz /
-
+## 13. Endpoint raíz /
 Devuelve un JSON simple:
-
+```json
 {
   "message": "AI Tutoring System for Optimization Methods",
   "version": ...,
   "docs": "/docs",
   "health": "/health"
 }
-
+```
 
 Facilita descubrir la API.
 
-15. Ejecución directa con Uvicorn
-
+## 14. Ejecución directa con Uvicorn
 Al final:
-
+```python
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
@@ -390,32 +324,21 @@ if __name__ == "__main__":
         port=settings.backend_port,
         reload=settings.debug
     )
+```
 
+Permite ejecutar la app con `python -m app.main` (o similar) sin tener que llamar a uvicorn manualmente.
 
-Permite ejecutar la app con python -m app.main (o similar) sin tener que llamar a uvicorn manualmente.
+## 15. Resumen conceptual
+En pocas palabras, el `main.py`:
 
-16. Resumen conceptual
-
-En pocas palabras, este archivo:
-
-Orquesta todo el backend:
-
-Autenticación y usuarios,
-
-Chat con agentes de IA específicos por tema,
-
-Gestión de conversaciones y feedback,
-
-Seguimiento de progreso,
-
-Generación y corrección (auto y manual) de evaluaciones.
-
-Se apoya en:
-
-Modelos Pydantic para requests/responses limpios.
-
-SQLAlchemy para persistencia.
-
-Servicios (conversation_service, assessment_service, grading_service) para encapsular lógica compleja.
-
-Agentes LLM para generar respuestas y evaluaciones personalizadas.
+- Orquesta todo el backend:
+  - Autenticación y usuarios,
+  - Chat con agentes de IA específicos por tema,
+  - Gestión de conversaciones y feedback,
+  - Seguimiento de progreso,
+  - Generación y corrección (auto y manual) de evaluaciones.
+- Se apoya en:
+  - Modelos Pydantic para requests/responses limpios.
+  - SQLAlchemy para persistencia.
+  - Servicios (`conversation_service`, `assessment_service`, `grading_service`) para encapsular lógica compleja.
+  - Agentes LLM para generar respuestas y evaluaciones personalizadas.
