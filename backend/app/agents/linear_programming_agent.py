@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import os
 import logging
 
@@ -272,41 +272,45 @@ class LinearProgrammingAgent(BaseAgent):
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in lp_keywords)
 
-    def generate_response(self, user_message: str,
-                          conversation_history: List[Dict[str, str]],
-                          context: Dict[str, Any]) -> str:
+    def _validate_and_preprocess(self, user_message: str) -> Tuple[Optional[str], Optional[str]]:
         """
-        Generate LP tutor response with adaptive preprocessing.
-
-        Args:
-            user_message: Current user message
-            conversation_history: Previous messages
-            context: Context dictionary
+        Validate and preprocess the incoming message.
 
         Returns:
-            Generated response with adaptive explanations
+            (preprocessed_message, error_message)
         """
-
-        # Preprocess message
         if not self.validate_message(user_message):
-            return "I didn't receive a valid message. Could you please try again?"
+            return None, "I didn't receive a valid message. Could you please try again?"
 
         preprocessed_message = self.preprocess_message(user_message)
+        return preprocessed_message, None
 
-        # Check if the question is LP-related
-        if not self.is_lp_related(preprocessed_message):
-            off_topic_response = (
-                "I'm specifically trained to help with Linear Programming topics. "
-                "Your question seems to be about something else. "
-                "\n\nI can help you with:\n"
-                "- Formulating LP problems\n"
-                "- Solving problems using graphical method or simplex\n"
-                "- Understanding duality and sensitivity analysis\n"
-                "- Working through LP examples and applications\n"
-                "\nWould you like to ask about any of these Linear Programming topics?"
-            )
-            return off_topic_response
+    @staticmethod
+    def _get_off_topic_response() -> str:
+        """
+        Standard off-topic response for both sync and async flows.
+        """
+        return (
+            "I'm specifically trained to help with Linear Programming topics. "
+            "Your question seems to be about something else. "
+            "\n\nI can help you with:\n"
+            "- Formulating LP problems\n"
+            "- Solving problems using graphical method or simplex\n"
+            "- Understanding duality and sensitivity analysis\n"
+            "- Working through LP examples and applications\n"
+            "\nWould you like to ask about any of these Linear Programming topics?"
+        )
 
+    def _prepare_generation_components(
+            self,
+            preprocessed_message: str,
+            conversation_history: List[Dict[str, str]],
+            context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Prepare all shared components needed to generate a response
+        (used by both sync and async paths).
+        """
         # ADAPTIVE LEARNING: Detect confusion
         confusion_analysis = self.detect_student_confusion(
             preprocessed_message,
@@ -351,21 +355,28 @@ class LinearProgrammingAgent(BaseAgent):
         messages = conversation_history.copy()
         messages.append({"role": "user", "content": preprocessed_message})
 
-        # Generate response with enhanced prompt
-        try:
-            response = self.llm_service.generate_response(
-                messages=messages,
-                system_prompt=enhanced_system_prompt
-            )
-        except Exception as e:
-            logger.error(f"Error in {self.agent_name} response generation: {str(e)}")
-            from ..utils import format_error_message
-            return format_error_message(e)
+        return {
+            "messages": messages,
+            "system_prompt": enhanced_system_prompt,
+            "selected_strategy": selected_strategy,
+            "confusion_analysis": confusion_analysis
+        }
 
-        # Postprocess
-        final_response = self.postprocess_response(response)
+    def _postprocess_with_feedback(
+            self,
+            raw_response: str,
+            conversation_history: List[Dict[str, str]],
+            context: Dict[str, Any],
+            confusion_analysis: Dict[str, Any],
+            selected_strategy: str,
+            async_mode: bool = False
+    ) -> str:
+        """
+        Shared postprocessing and feedback-augmentation for sync & async flows.
+        """
 
-        # Add the feedback request if appropriate
+        final_response = self.postprocess_response(raw_response)
+
         if self.should_add_feedback_request(
             response_text=final_response,
             conversation_history=conversation_history,
@@ -378,14 +389,67 @@ class LinearProgrammingAgent(BaseAgent):
                 selected_strategy=selected_strategy
             )
 
-        # Store metadata about this response (for future use)
-        # This would be saved to message.extra_data in the actual system
+        mode_label = "async" if async_mode else "sync"
         logger.info(
-            f"Generated LP response with strategy={selected_strategy}, "
+            f"Generated {mode_label} LP response with strategy={selected_strategy}, "
             f"confusion={confusion_analysis['level']}"
         )
-
         return final_response
+
+    def generate_response(self, user_message: str,
+                          conversation_history: List[Dict[str, str]],
+                          context: Dict[str, Any]) -> str:
+        """
+        Generate LP tutor response with adaptive preprocessing.
+
+        Args:
+            user_message: Current user message
+            conversation_history: Previous messages
+            context: Context dictionary
+
+        Returns:
+            Generated response with adaptive explanations
+        """
+
+        # Preprocess message
+        # if not self.validate_message(user_message):
+        #     return "I didn't receive a valid message. Could you please try again?"
+
+        # preprocessed_message = self.preprocess_message(user_message)
+
+        preprocessed_message, error_message = self._validate_and_preprocess(user_message)
+        if error_message:
+            return error_message
+
+        # Check if the question is LP-related
+        if not self.is_lp_related(preprocessed_message):
+            return self._get_off_topic_response()
+
+        components = self._prepare_generation_components(
+            preprocessed_message=preprocessed_message,
+            conversation_history=conversation_history,
+            context=context,
+        )
+
+        # Generate response with enhanced prompt
+        try:
+            response = self.llm_service.generate_response(
+                messages=components["messages"],
+                system_prompt=components["system_prompt"]
+            )
+        except Exception as e:
+            logger.error(f"Error in {self.agent_name} response generation: {str(e)}")
+            from ..utils import format_error_message
+            return format_error_message(e)
+
+        # return final_response
+        return self._postprocess_with_feedback(
+            raw_response=response,
+            conversation_history=conversation_history,
+            context=context,
+            confusion_analysis=components["confusion_analysis"],
+            selected_strategy=components["selected_strategy"],
+        )
 
     async def a_generate_response(
             self,
@@ -405,69 +469,73 @@ class LinearProgrammingAgent(BaseAgent):
             Generated response with adaptive explanations
         """
         # Preprocess
-        if not self.validate_message(user_message):
-            return "I didn't receive a valid message. Could you please try again?"
+        # if not self.validate_message(user_message):
+        #     return "I didn't receive a valid message. Could you please try again?"
 
-        preprocessed_message = self.preprocess_message(user_message)
+        preprocessed_message, error_message = self.preprocess_message(user_message)
+        if error_message:
+            return error_message
 
         # Check if LP-related
+
         if not self.is_lp_related(preprocessed_message):
-            off_topic_response = (
-                "I'm specifically trained to help with Linear Programming. "
-                "Please ask me about LP formulation, simplex method, duality, "
-                "or other Linear Programming topics!"
-            )
-            return off_topic_response
+            return self._get_off_topic_response()
 
-        # ADAPTIVE LEARNING: Detect confusion
-        confusion_analysis = self.detect_student_confusion(
-            preprocessed_message,
-            conversation_history
+        # # ADAPTIVE LEARNING: Detect confusion
+        # confusion_analysis = self.detect_student_confusion(
+        #     preprocessed_message,
+        #     conversation_history
+        # )
+        #
+        # # Define available explanation strategies for LP
+        # available_strategies = [
+        #     "step-by-step", "example-based", "conceptual",
+        #     "visual", "formal-mathematical", "comparative"
+        # ]
+        #
+        # # Get previously used strategies from context
+        # previous_strategies = get_explanation_strategies_from_context(context)
+        #
+        # # Select the appropriate explanation strategy
+        # knowledge_level = context.get("student", {}).get("knowledge_level", "beginner")
+        # selected_strategy = self.select_explanation_strategy(
+        #     confusion_level=confusion_analysis["level"],
+        #     knowledge_level=knowledge_level,
+        #     previous_strategies=previous_strategies,
+        #     all_available_strategies=available_strategies
+        # )
+        #
+        # # Build adaptive prompt section
+        # adaptive_prompt = self.build_adaptive_prompt_section(
+        #     confusion_analysis=confusion_analysis,
+        #     selected_strategy=selected_strategy,
+        #     context=context
+        # )
+        #
+        # # Get base system prompt
+        # base_system_prompt = self.get_system_prompt(context)
+        #
+        # # Inject adaptive instructions if needed
+        # if adaptive_prompt:
+        #     enhanced_system_prompt = base_system_prompt + "\n\n" + adaptive_prompt
+        # else:
+        #     enhanced_system_prompt = base_system_prompt
+        #
+        # # Build messages list
+        # messages = conversation_history.copy()
+        # messages.append({"role": "user", "content": preprocessed_message})
+
+        components = self._prepare_generation_components(
+            preprocessed_message=preprocessed_message,
+            conversation_history=conversation_history,
+            context=context,
         )
-
-        # Define available explanation strategies for LP
-        available_strategies = [
-            "step-by-step", "example-based", "conceptual",
-            "visual", "formal-mathematical", "comparative"
-        ]
-
-        # Get previously used strategies from context
-        previous_strategies = get_explanation_strategies_from_context(context)
-
-        # Select the appropriate explanation strategy
-        knowledge_level = context.get("student", {}).get("knowledge_level", "beginner")
-        selected_strategy = self.select_explanation_strategy(
-            confusion_level=confusion_analysis["level"],
-            knowledge_level=knowledge_level,
-            previous_strategies=previous_strategies,
-            all_available_strategies=available_strategies
-        )
-
-        # Build adaptive prompt section
-        adaptive_prompt = self.build_adaptive_prompt_section(
-            confusion_analysis=confusion_analysis,
-            selected_strategy=selected_strategy,
-            context=context
-        )
-
-        # Get base system prompt
-        base_system_prompt = self.get_system_prompt(context)
-
-        # Inject adaptive instructions if needed
-        if adaptive_prompt:
-            enhanced_system_prompt = base_system_prompt + "\n\n" + adaptive_prompt
-        else:
-            enhanced_system_prompt = base_system_prompt
-
-        # Build messages list
-        messages = conversation_history.copy()
-        messages.append({"role": "user", "content": preprocessed_message})
 
         # Generate response with enhanced prompt (async)
         try:
             response = await self.llm_service.a_generate_response(
-                messages=messages,
-                system_prompt=enhanced_system_prompt
+                messages=components["messages"],
+                system_prompt=components["system_prompt"]
             )
         except Exception as e:
             logger.error(f"Error in {self.agent_name} async response generation: {str(e)}")
@@ -475,27 +543,14 @@ class LinearProgrammingAgent(BaseAgent):
             return format_error_message(e)
 
         # Postprocess
-        final_response = self.postprocess_response(response)
-
-        # Add the feedback request if appropriate
-        if self.should_add_feedback_request(
-            response_text=final_response,
+        return self._postprocess_with_feedback(
+            raw_response=response,
             conversation_history=conversation_history,
             context=context,
-            confusion_detected=confusion_analysis["detected"]
-        ):
-            final_response = self.add_feedback_request_to_response(
-                response=final_response,
-                confusion_level=confusion_analysis["level"],
-                selected_strategy=selected_strategy
-            )
-
-        logger.info(
-            f"Generated async LP response with strategy={selected_strategy}, "
-            f"confusion={confusion_analysis['level']}"
+            confusion_analysis=components["confusion_analysis"],
+            selected_strategy=components["selected_strategy"],
+            async_mode=True
         )
-
-        return final_response
 
 # Global agent instance
 _lp_agent: Optional[LinearProgrammingAgent] = None
