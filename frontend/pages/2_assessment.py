@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 # Add the parent directory to the path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.api_client import get_api_client
+from utils.constants import TOPIC_OPTIONS
 """
 Assessment page - Practice problems and quizzes.
 """
@@ -74,7 +75,7 @@ def generate_assessment(topic: str, difficulty: str,
         "difficulty": difficulty.lower()
     }
     if conversation_id:
-        payload["conversation_id"] = conversation_id
+        payload["conversation_id"] = str(conversation_id)
 
     success, data = api_client.post("assessments/generate", json_data=payload)
     if not success:
@@ -185,7 +186,7 @@ with tab1:
             st.subheader("📚 Topics Covered")
             # Display as badges
             topic_html = " ".join([
-                f'<span style="background-color: #e0e7ff; padding: 0.3rem 0.7rem; '
+                f'<span style="background-color: #0d0d0d; padding: 0.3rem 0.7rem; ' # #e0e7ff
                 f'border-radius: 1rem; margin: 0.2rem; display: inline-block;">{topic}</span>'
                 for topic in topics_covered
             ])
@@ -255,10 +256,15 @@ with tab2:
         if st.button("🔄 Refresh", key="refresh_history"):
             st.rerun()
 
+    # Convert display name to API enum value
+    topic_value = None
+    if topic_filter != "All Topics":
+        topic_value = TOPIC_OPTIONS.get(topic_filter, topic_filter.lower().replace(" ", "_"))
+
     # Fetch assessments
     assessments = fetch_assessments(
         st.session_state.student_id,
-        topic=topic_filter if topic_filter != "All Topics" else None
+        topic=topic_value
     )
 
     if assessments:
@@ -283,10 +289,23 @@ with tab2:
             graded_at = assessment.get("graded_at")
             student_answer = assessment.get("student_answer")
 
-            # Determine status
+            # Determine the status with the grading source
+            graded_by = assessment.get("graded_by")
+            overridden_at = assessment.get("overridden_at")
+
             if graded_at:
-                status = "✅ Graded"
-                status_color = "green"
+                if overridden_at:
+                    status = "✅ Reviewed by Admin"
+                    status_color = "green"
+                elif graded_by == "admin":
+                    status = "✅ Graded by Admin"
+                    status_color = "green"
+                elif graded_by == "auto":
+                    status = "✅ Auto-graded"
+                    status_color = "green"
+                else:
+                    status = "✅ Graded"
+                    status_color = "green"
             elif submitted_at:
                 status = "📝 Submitted"
                 status_color = "blue"
@@ -314,6 +333,14 @@ with tab2:
                     st.info(student_answer)
 
                 if graded_at:
+                    # Show grading source indicator
+                    if overridden_at:
+                        st.info("🔍 **Reviewed by Admin** - Original auto-grade was manually reviewed and updated")
+                    elif graded_by == "auto":
+                        st.info("🤖 **Automatically Graded** - Graded instantly by AI")
+                    elif graded_by == "admin":
+                        st.info("👨‍🏫 **Manually Graded** - Graded by an administrator")
+
                     if score is not None:
                         percentage = (score / max_score) * 100 if max_score > 0 else 0
                         st.metric("Score", f"{score}/{max_score}", f"{percentage:.1f}%")
@@ -322,12 +349,17 @@ with tab2:
                         st.markdown(f"**Feedback:**")
                         st.success(feedback)
 
+                    rubric = assessment.get("rubric")
+                    if rubric:
+                        st.markdown(f"**Grading Rubric:**")
+                        st.info(rubric)
+
                     correct_answer = assessment.get("correct_answer")
                     if correct_answer:
                         st.markdown(f"**Correct Answer:**")
-                        st.code(correct_answer)
+                        st.markdown(correct_answer)
                 elif submitted_at:
-                    st.warning("Assessment submitted. Waiting for grading...")
+                    st.warning("⏳ Assessment submitted but not yet graded. This is unusual - grading should be instant.")
                 else:
                     # Allow submission
                     st.warning("Assessment not yet submitted.")
@@ -383,9 +415,11 @@ with tab3:
 
     if st.button("Generate Assessment", type="primary", key="generate_btn"):
         with st.spinner("Generating assessment..."):
+            # Convert display name to API enum value
+            topic_value = TOPIC_OPTIONS.get(new_topic, new_topic.lower().replace(" ", "_"))
             # student_id extracted from the auth token automatically
             result = generate_assessment(
-                new_topic,
+                topic_value,
                 new_difficulty
             )
 
@@ -408,6 +442,11 @@ with tab3:
         st.markdown("**Question:**")
         st.markdown(question)
 
+        rubric = current.get("rubric")
+        if rubric:
+            st.markdown("**Grading Rubric:**")
+            st.info(rubric)
+
         # Check if already submitted
         if current.get("submitted_at"):
             st.info("This assessment has already been submitted.")
@@ -417,6 +456,17 @@ with tab3:
                 st.info(current.get("student_answer"))
 
             if current.get("graded_at"):
+                # Show grading source indicator
+                graded_by = current.get("graded_by")
+                overridden_at = current.get("overridden_at")
+
+                if overridden_at:
+                    st.info("🔍 **Reviewed by Admin** - Original auto-grade was manually reviewed and updated")
+                elif graded_by == "auto":
+                    st.info("🤖 **Automatically Graded** - Graded instantly by AI")
+                elif graded_by == "admin":
+                    st.info("👨‍🏫 **Manually Graded** - Graded by an administrator")
+
                 score = current.get("score")
                 max_score = current.get("max_score", 100)
                 feedback = current.get("feedback")
@@ -428,6 +478,8 @@ with tab3:
                 if feedback:
                     st.markdown("**Feedback:**")
                     st.success(feedback)
+            else:
+                st.warning("⏳ Assessment submitted but not yet graded. This is unusual - grading should be instant.")
         else:
             # Answer input
             answer = st.text_area(
