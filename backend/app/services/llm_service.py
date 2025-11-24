@@ -9,7 +9,7 @@ from ..config import settings
 
 """
 LLM Service - Abstraction layer for different LLM providers.
-Supports both OpenAI and Anthropic with easy switching via configuration.
+Supports both Gemini, OpenAI and Anthropic with easy switching via configuration.
 """
 
 logger = logging.getLogger(__name__)
