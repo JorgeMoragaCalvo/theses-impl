@@ -31,6 +31,22 @@ if not api_client.is_authenticated():
 # Get student_id from the session
 student_id = st.session_state.get("student_id")
 
+# ============================================================================
+# API HELPER FUNCTIONS
+# ============================================================================
+
+def fetch_student_progress(student_id: int):
+    """Fetch comprehensive student progress metrics."""
+    success, data = api_client.get(f"students/{student_id}/progress")
+    if not success:
+        st.error(f"Error fetching progress: {data.get('error', 'Unknown error')}")
+        return None
+    return data
+
+# ============================================================================
+# MAIN PAGE
+# ============================================================================
+
 # Fetch student data using the authenticated API
 success, student_data = api_client.get(f"students/{student_id}")
 if success:
@@ -107,20 +123,44 @@ if success:
 
         st.divider()
 
-        # Placeholder for future metrics
+        # Learning Statistics
         st.subheader("📈 Learning Statistics")
-        st.info("🚧 Detailed statistics coming in Week 3-4!")
 
-        col1, col2, col3, col4 = st.columns(4)
+        # Fetch progress data
+        progress_data = fetch_student_progress(student_id)
 
-        with col1:
-            st.metric("Total Messages", "-", help="Coming soon")
-        with col2:
-            st.metric("Practice Problems", "-", help="Coming soon")
-        with col3:
-            st.metric("Average Score", "-", help="Coming soon")
-        with col4:
-            st.metric("Study Time", "-", help="Coming soon")
+        if progress_data is not None:
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                st.metric(
+                    "Total Messages",
+                    progress_data.get("total_messages", 0)
+                )
+
+            with col2:
+                st.metric(
+                    "Practice Problems",
+                    progress_data.get("total_assessments", 0)
+                )
+
+            with col3:
+                avg_score = progress_data.get("average_score")
+                if avg_score is not None:
+                    st.metric(
+                        "Average Score",
+                        f"{avg_score:.1f}"
+                    )
+                else:
+                    st.metric("Average Score", "N/A")
+
+            with col4:
+                st.metric(
+                    "Total Conversations",
+                    progress_data.get("total_conversations", 0)
+                )
+        else:
+            st.error("Unable to load learning statistics.")
 else:
     error_msg = student_data.get("error", student_data.get("detail", "Failed to load student data"))
     st.error(f"Error: {error_msg}")
