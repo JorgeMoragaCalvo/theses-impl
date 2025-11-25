@@ -38,10 +38,13 @@ Avanzando en la página, es posible ver los `temas cubiertos` y las `actividades
 <img width="1885" height="772" alt="Image" src="https://github.com/user-attachments/assets/79c1feb3-ce89-46a0-9b90-2a5194b980e2" />
 
 # Pantalla Evaluaciones Historicas
-Esta pantalla permite filtrar por tema y muestra el detalle de las evaluaciones. Haciendo `click` en la evaluación, se despliega el contenido de la pregunta, la respuesta del estudiante, el `feedback`, la nota obtenida y la respuesta correcta a la pregunta.
+Esta pantalla permite filtrar por tema y muestra el detalle de las evaluaciones. Haciendo `click` en la evaluación, se despliega el contenido de la pregunta, la respuesta del estudiante,  `feedback` de parte del modelo, la nota obtenida y la respuesta correcta a la pregunta.
 <img width="1906" height="828" alt="Image" src="https://github.com/user-attachments/assets/970a262f-a57a-4f3e-9b05-55f9361fad51" />
-Pantalla Pregunta
 
+<p align="center">
+  <img width="1888" height="867" alt="Image" src="https://github.com/user-attachments/assets/f3b6ac63-3e7c-4f79-aced-3331c7ac67f2" /><br>
+  <em>Detalle Pregunta del Modelo</em>
+</p>
 
 Pantalla Respuesta / Resultado / Feedback
 
