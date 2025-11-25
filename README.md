@@ -56,20 +56,16 @@ Esta pantalla permite filtrar por tema y muestra el detalle de las evaluaciones.
   <em>Detalle Rúbrica - Respuesta Correcta</em>
 </p>
 
-Pantalla Respuesta / Resultado / Feedback
+<p align="center">
+  <img width="1882" height="918" alt="Image" src="https://github.com/user-attachments/assets/7bce2cd0-7a5f-4d55-895e-076c26eecc11" /><br>
+  <em>Detalle Respuesta Correcta</em>
+</p>
 
 
-Pantalla Respuesta Correcta
+# Pantalla Creacion Evaluaciones
 
 
-Pantalla Respuesta Correcta II
+# Pantalla Progreso
 
 
-Pantalla Creacion Evaluaciones
-
-
-Pantalla Progreso
-
-
-Pantalla Conversaciones Historicas
-
+# Pantalla Conversaciones Historicas
