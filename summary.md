@@ -183,7 +183,7 @@ Flujo completo:
     topic_value = chat_request.topic.value
     agent = get_agent_for_topic(topic_value)
     ```
-7. `Usa conversation_service` para:
+7. Usa `conversation_service` para:
    - Obtener histórico de la conversación.
    - Obtener contexto del estudiante para ese topic.
 8. Llama a `agent.generate_response(...)` para producir el texto de IA.
@@ -338,7 +338,9 @@ En pocas palabras, el `main.py`:
   - Seguimiento de progreso,
   - Generación y corrección (auto y manual) de evaluaciones.
 - Se apoya en:
-  - Modelos Pydantic para requests/responses limpios.
+  - Modelos Pydantic para `requests/responses` limpios.
   - SQLAlchemy para persistencia.
   - Servicios (`conversation_service`, `assessment_service`, `grading_service`) para encapsular lógica compleja.
   - Agentes LLM para generar respuestas y evaluaciones personalizadas.
+
+![Resumen conceptual](resources/static/01_app.png)
