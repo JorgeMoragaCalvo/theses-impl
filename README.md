@@ -21,39 +21,39 @@ Una vez `logeado`, se muestra el nombre y el email del estudiante, junto con el 
   - Integer Programming
   - Nonlinear Programming
 
-Actualmente se encuentran habilitados `Mathematical Modeling` y `Linear Programming`. Falta implementar los otros agentes.
+Actualmente, se encuentran habilitados `Mathematical Modeling` y `Linear Programming`. Falta implementar los otros agentes.
 
 <img width="1857" height="907" alt="Image" src="https://github.com/user-attachments/assets/759658b3-3371-434d-ae2c-e21e094b91aa" />
 
-![Imagen 5](resources/static/05_app.png)
+# Pantalla de Prácticas y Evaluaciones
+Está compuesta de tres secciones:
+1. `Progress`.
+2. `Assessment History`
+3. `New Assessment`
+
+Como se ve en la imagen, se cuenta con una conversación, una evaluación y el promedio de una nota de 1.0 a 7.0.
+<img width="1905" height="861" alt="Image" src="https://github.com/user-attachments/assets/a971ec6b-2708-4f6f-a958-ec66ebf52ff5" />
 
 Pantalla Evaluaciones Historicas
 
-![Imagen 6](resources/static/06_app.png)
 
 Pantalla Pregunta
 
-![Imagen 7](resources/static/07_app.png)
 
 Pantalla Respuesta / Resultado / Feedback
 
-![Imagen 8](resources/static/08_app.png)
 
 Pantalla Respuesta Correcta
 
-![Imagen 9](resources/static/09_app.png)
 
 Pantalla Respuesta Correcta II
 
-![Imagen 10](resources/static/10_app.png)
 
 Pantalla Creacion Evaluaciones
 
-![Imagen 11](resources/static/11_app.png)
 
 Pantalla Progreso
 
-![Imagen 12](resources/static/12_app.png)
 
 Pantalla Conversaciones Historicas
 
