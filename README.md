@@ -1,8 +1,16 @@
-Pantalla principal
+# Pantalla principal
+A la izquierda se encuentra el `login` o `register`. El `register` cuenta con los campos:
+  - Nombre
+  - Email
+  - Password
+  - Repetir Password
 
-<img width="1885" height="916" alt="Image" src="https://github.com/user-attachments/assets/b9145666-fa43-4b8e-8fe3-0fe58681591d" />
+Como ya estoy registrado. Paso al `login`.
 
-Pantalla de ingreso
+<img width="1885" height="916" alt="Image" src="https://github.com/user-attachments/assets/b9145666-fa43-4b8e-8fe3-0fe58681591d" />á
+
+# Pantalla de ingreso
+Una vez `logeado`, se muestra el nombre y el email del estudiante, junto con el `Chat` del Tutor. El `logout` se encuentra disponible.
 <img width="1877" height="710" alt="Image" src="https://github.com/user-attachments/assets/47734593-56b6-4902-a5dc-1192e7a9969a" />
 
 Pantalla de chat
