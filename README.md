@@ -72,6 +72,12 @@ Muestra:
   - Nivel de conocimiento por tema (por defecto `beginner`).
   - Conversaciones recientes.
   - Estadísticas de aprendizaje
+  - Consejos de aprendizaje.
 
 <img width="1910" height="916" alt="Image" src="https://github.com/user-attachments/assets/7111ad46-5271-410c-a345-6381a09255bd" />
 
+
+<p align="center">
+  <img width="1888" height="865" alt="Image" src="https://github.com/user-attachments/assets/d099f3ed-6393-4f34-bf26-745567aece34" /><br>
+  <em>Detalle Conversaciones Recientes - Estadisticas - Tips de Aprendizaje</em>
+</p>
