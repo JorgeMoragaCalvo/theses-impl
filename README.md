@@ -67,6 +67,11 @@ Permite crear evaluaciones por tema (restringido a los temas ya mencionados) y p
 <img width="1897" height="757" alt="Image" src="https://github.com/user-attachments/assets/1c91f49a-260c-4d64-b8cb-d8e86b0adc00" />
 
 # Pantalla Progreso
+Muestra:
+  - nombre, email, fecha de ingreso.
+  - Nivel de conocimiento por tema (por defecto `beginner`).
+  - Conversaciones recientes.
+  - Estadísticas de aprendizaje
 
+<img width="1910" height="916" alt="Image" src="https://github.com/user-attachments/assets/7111ad46-5271-410c-a345-6381a09255bd" />
 
-# Pantalla Conversaciones Historicas
