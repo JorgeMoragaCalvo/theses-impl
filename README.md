@@ -4,7 +4,7 @@ Pantalla principal
 
 Pantalla de ingreso
 
-![Imagen 2](resources/static/02_app.png)
+![Imagen 2](resources/02_app.png)
 
 Pantalla de chat
 
