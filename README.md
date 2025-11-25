@@ -46,6 +46,12 @@ Esta pantalla permite filtrar por tema y muestra el detalle de las evaluaciones.
   <em>Detalle Pregunta del Modelo</em>
 </p>
 
+<p align="center">
+  <img width="1878" height="773" alt="Image" src="https://github.com/user-attachments/assets/b0792d36-2b58-4a9a-8db7-fcd75ead020d" /><br>
+  <em>Detalle Respuesta Estudiante - Nota - Feedback</em>
+</p>
+
+
 Pantalla Respuesta / Resultado / Feedback
 
 
