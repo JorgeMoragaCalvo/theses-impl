@@ -1,6 +1,6 @@
 Pantalla principal
 
-![Imagen 1](resources/static/01_app.png)
+![Imagen 1](resources/01_app.png)
 
 Pantalla de ingreso
 

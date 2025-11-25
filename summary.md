@@ -343,4 +343,4 @@ En pocas palabras, el `main.py`:
   - Servicios (`conversation_service`, `assessment_service`, `grading_service`) para encapsular lógica compleja.
   - Agentes LLM para generar respuestas y evaluaciones personalizadas.
 
-![Resumen conceptual](resources/static/01_app.png)
+![Resumen conceptual](resources/01_app.png)
