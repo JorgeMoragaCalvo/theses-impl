@@ -1,6 +1,6 @@
 Pantalla principal
 
-![Imagen 1](resources/01_app.png)
+<img width="1885" height="916" alt="Image" src="https://github.com/user-attachments/assets/b9145666-fa43-4b8e-8fe3-0fe58681591d" />
 
 Pantalla de ingreso
 
