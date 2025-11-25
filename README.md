@@ -63,7 +63,8 @@ Esta pantalla permite filtrar por tema y muestra el detalle de las evaluaciones.
 
 
 # Pantalla Creacion Evaluaciones
-
+Permite crear evaluaciones por tema (restringido a los temas ya mencionados) y por dificultad. Actualmente, viene por defecto la dificultad `beginner`. Falta implementar `intermedia` y `avanzada`.
+<img width="1897" height="757" alt="Image" src="https://github.com/user-attachments/assets/1c91f49a-260c-4d64-b8cb-d8e86b0adc00" />
 
 # Pantalla Progreso
 
