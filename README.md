@@ -21,7 +21,7 @@ Una vez `logeado`, se muestra el nombre y el email del estudiante, junto con el 
   - Integer Programming
   - Nonlinear Programming
 
-Actualmente, se encuentran habilitados `Mathematical Modeling` y `Linear Programming`. Falta implementar los otros agentes.
+Actualmente, se encuentran habilitados `Mathematical Modeling`, `Operations Research` y `Linear Programming`. Falta implementar los otros agentes.
 
 <img width="1857" height="907" alt="Image" src="https://github.com/user-attachments/assets/759658b3-3371-434d-ae2c-e21e094b91aa" />
 
