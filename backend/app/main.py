@@ -37,6 +37,7 @@ from .auth import (
 )
 from .agents.linear_programming_agent import get_linear_programming_agent
 from .agents.mathematical_modeling_agent import get_mathematical_modeling_agent
+from .agents.operations_research_agent import get_operations_research_agent
 from .services.conversation_service import get_conversation_service
 from .services.assessment_service import get_assessment_service
 from .services.grading_service import get_grading_service
@@ -56,6 +57,7 @@ logger = logging.getLogger(__name__)
 
 # Agent Registry - Maps topic names to agent getter functions
 AGENT_REGISTRY = {
+    "operations_research": get_operations_research_agent,
     "linear_programming": get_linear_programming_agent,
     "mathematical_modeling": get_mathematical_modeling_agent,
 }
