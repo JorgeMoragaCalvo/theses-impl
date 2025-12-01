@@ -1,4 +1,36 @@
-# Pantalla principal
+# Project Overview
+Plataforma educativa que utiliza múltiples agentes de IA para enseñar temas de optimización matemática e investigación de operaciones. El sistema ofrece tutoría personalizada, aprendizaje adaptativo, evaluaciones automatizadas y seguimiento del progreso.
+
+**Dominio**: Educación en Investigación Operativa
+
+**Stack Tecnológico**:
+- **Backend**: FastAPI, SQLAlchemy, Pydantic, LangChain.
+- **Frontend**: Streamlit.
+- **Database**: PostgreSQL (con respaldo de SQLite), ChromaDB.
+- **AI/ML**: proveedores de LLM, vector embeddings, semantic search
+- **Auth**: python-jose, bcrypt, JWT
+
+## Principales Características y Funcionalidades
+1. Sistema de tutoría multi-agente con cinco agentes de IA especializados en:
+    - Investigación de Operaciones
+    - Modelado Matemático
+    - Programación Lineal
+    - Programación Entera
+    - Programación No Lineal
+2. Interfaz de aprendizaje conversacional
+    - Respuestas conscientes del contexto que utilizan el historial de conversaciones de los estudiantes.
+3. Características de aprendizaje adaptativo:
+    - Detección de confusión mediante análisis de palabras clave.
+    - Explicaciones alternativas cuando se detecta confusión.
+4. Sistema de Evaluación
+    - Consciente del contexto, utilizando el nivel de conocimiento del estudiante y el historial de conversaciones.
+    - Tres niveles de dificultad: `principiante`, `intermedio` y `avanzando`.
+    - Generación de `feedback` detallado para cada envío de ejercicios.
+5. Seguimiento y métricas de progreso del estudiante.
+6. Gestión y autenticación de usuarios.
+
+# Vistas del Sistema
+## Pantalla principal
 A la izquierda se encuentra `login` o `register` que cuenta con los campos:
   - Nombre
   - Email
@@ -9,11 +41,11 @@ Como ya estoy registrado. Paso al `login`.
 
 <img width="1885" height="916" alt="Image" src="https://github.com/user-attachments/assets/b9145666-fa43-4b8e-8fe3-0fe58681591d" />
 
-# Pantalla de ingreso
+## Pantalla de ingreso
 Una vez `logeado`, se muestra el nombre y el email del estudiante, junto con el `Chat` del Tutor. La funcionalidad de `logout` se encuentra disponible.
 <img width="1877" height="710" alt="Image" src="https://github.com/user-attachments/assets/47734593-56b6-4902-a5dc-1192e7a9969a" />
 
-# Pantalla de chat
+## Pantalla de chat
 `Chat` del tutor donde se pueden realizar preguntas. Se debe elegir el tema. La barra lateral izquierda permite elegir entre los siguientes agentes:
   - Operations Research
   - Mathematical Modeling
@@ -25,7 +57,7 @@ Actualmente, se encuentran habilitados todos los agentes.
 
 <img width="1857" height="907" alt="Image" src="https://github.com/user-attachments/assets/759658b3-3371-434d-ae2c-e21e094b91aa" />
 
-# Pantalla de Prácticas y Evaluaciones
+## Pantalla de Prácticas y Evaluaciones
 Está compuesta de tres secciones:
 1. `Progress`.
 2. `Assessment History`
@@ -37,7 +69,7 @@ Como se ve en la imagen, se cuenta con una conversación, una evaluación y el p
 Avanzando en la página, es posible ver los `temas cubiertos` y las `actividades recientes`.
 <img width="1885" height="772" alt="Image" src="https://github.com/user-attachments/assets/79c1feb3-ce89-46a0-9b90-2a5194b980e2" />
 
-# Pantalla Evaluaciones Historicas
+## Pantalla Evaluaciones Historicas
 Esta pantalla permite filtrar por tema y muestra el detalle de las evaluaciones. Haciendo `click` en la evaluación, se despliega el contenido de la pregunta, la respuesta del estudiante,  `feedback` de parte del modelo, la nota obtenida y la respuesta correcta a la pregunta.
 <img width="1906" height="828" alt="Image" src="https://github.com/user-attachments/assets/970a262f-a57a-4f3e-9b05-55f9361fad51" />
 
@@ -62,11 +94,11 @@ Esta pantalla permite filtrar por tema y muestra el detalle de las evaluaciones.
 </p>
 
 
-# Pantalla Creacion Evaluaciones
+## Pantalla Creacion Evaluaciones
 Permite crear evaluaciones por tema (restringido a los temas ya mencionados) y por dificultad. Actualmente, viene por defecto la dificultad `beginner`. Falta implementar `intermedia` y `avanzada`.
 <img width="1897" height="757" alt="Image" src="https://github.com/user-attachments/assets/1c91f49a-260c-4d64-b8cb-d8e86b0adc00" />
 
-# Pantalla Progreso
+## Pantalla Progreso
 Muestra:
   - nombre, email, fecha de ingreso.
   - Nivel de conocimiento por tema (por defecto `beginner`).
