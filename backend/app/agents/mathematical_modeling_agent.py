@@ -127,92 +127,91 @@ class MathematicalModelingAgent(BaseAgent):
         # Adjust based on knowledge level
         if knowledge_level == "beginner":
             level_specific = """
-            Student Knowledge Level: BEGINNER
+            Nivel de conocimiento del estudiante: PRINCIPIANTE
 
-            This student is new to mathematical modeling. Your approach should:
-            - Start with the absolute basics of what a "model" means
-            - Use very simple examples with clear, concrete scenarios
-            - Focus heavily on translating word problems step-by-step
-            - Explain terminology carefully (decision variable, objective, constraint)
-            - Use small problems with 1-3 decision variables
-            - Provide lots of guided practice with hints
-            - Build confidence through successful simple formulations
-            - Connect to everyday optimization decisions
+            Este estudiante es nuevo en el modelado matemático. Tu enfoque debe:
+            - Comenzar con los fundamentos de lo que significa un "modelo"
+            - Usar ejemplos muy sencillos con escenarios claros y concretos
+            - Enfocarse en la traducción paso a paso de los problemas de texto
+            - Explicar la terminología cuidadosamente (variable de decisión, objetivo, restricción)
+            - Usar problemas pequeños con 1 a 3 variables de decisión
+            - Proporcionar mucha práctica guiada con sugerencias
+            - Desarrollar confianza mediante formulaciones sencillas y exitosas
+            - Conectar con las decisiones de optimización cotidianas
 
-            Teaching progression:
-            1. What is mathematical modeling? Why do we need it?
-            2. The three key questions: What can we control? What do we want? What limits us?
-            3. Simple examples: diet problems, production planning with one product
-            4. How to read problem statements and identify key information
-            5. Writing constraints from sentences
-            6. Distinguishing between objective and constraints
+            Progresión de la enseñanza:
+            1. ¿Qué es el modelado matemático? ¿Por qué lo necesitamos?
+            2. Las tres preguntas clave: ¿Qué podemos controlar? ¿Qué queremos? ¿Qué nos limita?
+            3. Ejemplos sencillos: problemas de dieta, planificación de la producción con un solo producto
+            4. Cómo interpretar enunciados de problemas e identificar información clave
+            5. Redacción de restricciones a partir de oraciones
+            6. Distinguir entre objetivo y restricciones
 
-            Example problems to start with:
-            - Simple diet problem (minimize cost, meet nutrition requirements)
-            - Single product production (maximize profit, limited resources)
-            - Simple scheduling (assign tasks, meet deadlines)
+            Ejemplos de problemas para empezar:
+            - Problema de dieta simple (minimizar costos, satisfacer las necesidades nutricionales)
+            - Producción de un solo producto (maximizar ganancias, recursos limitados)
+            - Programación simple (asignar tareas, cumplir plazos)
             """
         elif knowledge_level == "intermediate":
             level_specific = """
-            Student Knowledge Level: INTERMEDIATE
+            Nivel de conocimiento del estudiante: INTERMEDIO
 
-            This student understands basic modeling. Your approach should:
-            - Assume familiarity with decision variables, objectives, constraints
-            - Focus on more complex real-world scenarios
-            - Introduce multi-variable and multi-constraint problems
-            - Teach modeling patterns and when to apply them
-            - Discuss model types (LP vs IP vs NLP) and selection
-            - Include problems requiring logical conditions
-            - Emphasize efficient formulation techniques
-            - Connect to specific optimization methods (LP, IP, NLP)
+            Este estudiante comprende los fundamentos del modelado. Su enfoque debe:
+            - Asumir familiaridad con las variables de decisión, los objetivos y las restricciones
+            - Centrarse en escenarios reales más complejos
+            - Introducir problemas multivariables y con múltiples restricciones
+            - Enseñar patrones de modelado y cuándo aplicarlos
+            - Analizar los tipos de modelos (LP vs. IP vs. NLP) y su selección
+            - Incluir problemas que requieren condiciones lógicas
+            - Enfatizar técnicas de formulación eficientes
+            - Conectar con métodos de optimización específicos (LP, IP, NLP)
 
-            Topics to emphasize:
-            - Recognizing problem types and standard formulation patterns
-            - Using binary variables for logical conditions
-            - Modeling either-or constraints, if-then conditions
-            - Multi-period models (production over time)
-            - Network and flow problems
-            - Choosing between model types based on problem structure
-            - Validating formulations before solving
+            Temas a destacar:
+            - Reconocimiento de tipos de problemas y patrones de formulación estándar
+            - Uso de variables binarias para condiciones lógicas
+            - Modelado de restricciones condicionales, if-then condiciones
+            - Modelos multiperiodo (producción a lo largo del tiempo)
+            - Problemas de red y flujo
+            - Elección entre tipos de modelos según la estructura del problema
+            - Validación de formulaciones antes de resolver
 
-            Example problems:
-            - Multi-product production planning
-            - Transportation/distribution networks
-            - Facility location decisions
-            - Project scheduling with precedence
-            - Blending problems with multiple components
+            Ejemplos de problemas:
+            - Planificación de la producción multiproducto
+            - Redes de transporte/distribución
+            - Decisiones sobre la ubicación de las instalaciones
+            - Problemas de combinación con múltiples componentes
             """
         else:  # advanced
             level_specific = """
-            Student Knowledge Level: ADVANCED
+            Nivel de conocimiento del estudiante: AVANZADO
 
-            This student is proficient in modeling. Your approach should:
-            - Use sophisticated real-world scenarios
-            - Discuss modeling trade-offs and design decisions
-            - Explore advanced formulation techniques
-            - Address computational considerations in model design
-            - Cover stochastic and dynamic aspects
-            - Discuss model approximations and reformulations
-            - Connect to optimization theory and algorithmic implications
-            - Challenge with complex, realistic problems
+            Este estudiante es competente en modelado. Su enfoque debe:
+            - Utilizar escenarios reales sofisticados
+            - Analizar las ventajas y desventajas del modelado y las decisiones de diseño
+            - Explorar técnicas avanzadas de formulación
+            - Abordar las consideraciones computacionales en el diseño de modelos
+            - Abordar aspectos estocásticos y dinámicos
+            - Analizar las aproximaciones y reformulaciones de modelos
+            - Conectar con la teoría de optimización y las implicaciones algorítmicas
+            - Afrontar problemas complejos y realistas
 
-            Topics to emphasize:
-            - Advanced linearization techniques (piecewise linear, absolute values)
-            - Reformulation strategies for better computational performance
-            - Handling uncertainty (robust optimization, stochastic programming)
-            - Multi-objective optimization and Pareto frontiers
-            - Model decomposition for large-scale problems
-            - Integer programming formulation tricks
-            - Valid inequalities and cutting planes
-            - Rolling horizon and approximation strategies
+            Temas a destacar:
+            - Técnicas avanzadas de linealización (lineal por partes, valores absolutos)
+            - Estrategias de reformulación para un mejor rendimiento computacional
+            - Manejo de la incertidumbre (optimización robusta, programación estocástica)
+            - Optimización multiobjetivo y fronteras de Pareto
+            - Descomposición de modelos para problemas a gran escala
+            - Trucos de formulación de programación entera
+            - Desigualdades válidas y planos de corte
+            - Horizonte móvil y estrategias de aproximación
 
-            Example problems:
-            - Large-scale supply chain optimization
-            - Portfolio optimization with risk measures
-            - Workforce scheduling with complex rules
-            - Revenue management and pricing
-            - Network design under uncertainty
-            - Multi-stage planning problems
+            Ejemplos de problemas:
+            - Optimización de la cadena de suministro a gran escala
+            - Optimización de la cartera con medidas de riesgo
+            - Programación de la fuerza laboral con reglas complejas
+            - Gestión de ingresos y fijación de precios
+            - Diseño de red bajo incertidumbre
+            - Problemas de planificación multietapa
             """
 
         # Add course materials reference if available
