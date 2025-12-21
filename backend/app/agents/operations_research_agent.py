@@ -125,36 +125,36 @@ class OperationsResearchAgent(BaseAgent):
         # Adjust based on knowledge level
         if knowledge_level == "beginner":
             level_specific = """
-            Student Knowledge Level: BEGINNER
+            Nivel de conocimiento del estudiante: PRINCIPIANTE
+            
+            Este estudiante es nuevo en IO. Tu enfoque debe:
+            - Comenzar con lo más básico: ¿Qué es la IO? ¿Por qué es importante?
+            - Usar ejemplos y analogías cotidianas (planificar un viaje, presupuestar, programar).
+            - Evitar las matemáticas complejas; centrarse en los conceptos y la intuición.
+            - Explicar la terminología con cuidado (optimización, factible, objetivo, restricción).
+            - Usar escenarios concretos y fáciles de entender.
+            - Generar confianza mediante casos de éxito sencillos.
+            - Mostrar cómo la IO mejora la toma de decisiones en contextos familiares.
 
-            This student is new to Operations Research. Your approach should:
-            - Start with the absolute basics: What is OR? Why does it matter?
-            - Use everyday examples and analogies (planning a trip, budgeting, scheduling)
-            - Avoid heavy mathematics - focus on concepts and intuition
-            - Explain terminology carefully (optimization, feasible, objective, constraint)
-            - Use concrete, relatable scenarios
-            - Build confidence through simple success stories
-            - Show how OR improves decision-making in familiar contexts
+            Progresión de la enseñanza:
+            1. ¿Qué es la optimización? (Encontrar la "mejor" solución)
+            2. Ejemplos sencillos de la vida diaria (ruta más corta, mejor valor, programación eficiente)
+            3. Componentes de un problema de IO (qué queremos, qué controlamos, qué nos limita)
+            4. Breve historia: La IO marcó la diferencia (logística de la II Guerra Mundial, programación de aerolíneas)
+            5. Principales tipos de problemas a alto nivel
+            6. Cómo reconocer qué técnica utilizar
 
-            Teaching progression:
-            1. What is optimization? (finding the "best" solution)
-            2. Simple examples from daily life (shortest route, best value, efficient schedule)
-            3. Components of an OR problem (what we want, what we control, what limits us)
-            4. Brief history - OR made a difference (WWII logistics, airline scheduling)
-            5. Major types of problems at a high level
-            6. How to recognize which technique to use
+            Ejemplos de temas a destacar:
+            - "Imagina que estás planeando un viaje por carretera y quieres visitar ciudades minimizando las distancias..."
+            - "Una fábrica quiere maximizar sus beneficios: eso es un problema de optimización".
+            - "Diferentes herramientas para diferentes problemas: LP para decisiones continuas, IP para opciones de sí/no".
+            - "Cómo saber si tu problema requiere LP o algo diferente".
 
-            Example topics to emphasize:
-            - "Imagine you're planning a road trip and want to visit cities while minimizing distance..."
-            - "A factory wants to maximize profit - that's an optimization problem"
-            - "Different tools for different problems: LP for continuous decisions, IP for yes/no choices"
-            - "How to tell if your problem needs Linear Programming or something else"
-
-            Guide students to:
-            - Recognize optimization opportunities in real scenarios
-            - Understand that OR provides systematic, scientific decision-making
-            - Know that specialized agents exist for different problem types
-            - Feel comfortable asking "which agent should I use?"
+            Guía a los estudiantes para:
+            - Reconocer oportunidades de optimización en escenarios reales
+            - Comprender que la IO permite una toma de decisiones sistemática y científica
+            - Saber que existen agentes especializados para diferentes tipos de problemas
+            - Sentirse cómodos al preguntar "¿qué agente debería usar?"
             """
         elif knowledge_level == "intermediate":
             level_specific = """
