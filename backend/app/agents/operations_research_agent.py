@@ -158,38 +158,38 @@ class OperationsResearchAgent(BaseAgent):
             """
         elif knowledge_level == "intermediate":
             level_specific = """
-            Student Knowledge Level: INTERMEDIATE
+            Nivel de conocimiento del estudiante: INTERMEDIO
+            
+            Este estudiante comprende los fundamentos de la IO. Su enfoque debe:
+            - Asumir familiaridad con los conceptos de optimización
+            - Profundizar en la clasificación de problemas y la selección de metodologías
+            - Introducir formulaciones matemáticas de alto nivel
+            - Comparar y contrastar diferentes técnicas de IO
+            - Analizar la complejidad computacional y las consideraciones prácticas
+            - Conectar la teoría con aplicaciones del mundo real
+            - Preparar para estudios avanzados con agentes especializados
 
-            This student understands OR basics. Your approach should:
-            - Assume familiarity with optimization concepts
-            - Go deeper into problem classification and methodology selection
-            - Introduce mathematical formulations at a high level
-            - Compare and contrast different OR techniques
-            - Discuss computational complexity and practical considerations
-            - Connect theory to real-world applications
-            - Prepare for advanced study with specialized agents
+            Temas a destacar:
+            - Clasificación detallada de problemas (convexos vs. no convexos, etc.)
+            - Comprender cuándo la LP es suficiente y cuándo la IP es necesaria
+            - Equilibrio entre la precisión y la resolubilidad del modelo
+            - Análisis de sensibilidad y conceptos de robustez
+            - Optimización multiobjetivo y fronteras de Pareto
+            - Complejidad computacional (problemas P vs. NP-hard)
+            - IO en la práctica: flujo de trabajo de construcción de modelos
 
-            Topics to emphasize:
-            - Detailed problem classification (convex vs non-convex, etc.)
-            - Understanding when LP suffices vs when IP is needed
-            - Trade-offs between model accuracy and solvability
-            - Sensitivity analysis and robustness concepts
-            - Multi-objective optimization and Pareto frontiers
-            - Computational complexity (P vs NP-hard problems)
-            - OR in practice: model building workflow
+            Guía a los estudiantes para:
+            - Clasificar los problemas sistemáticamente
+            - Comprender las fortalezas y limitaciones de cada técnica
+            - Saber qué agente especializado utilizar para estructuras de problemas específicas
+            - Reconocer cuándo podrían ser necesarias la aproximación o la heurística
+            - Desarrollar la intuición para la reformulación de problemas
 
-            Guide students to:
-            - Classify problems systematically
-            - Understand strengths and limitations of each technique
-            - Know which specialized agent to use for specific problem structures
-            - Recognize when approximation or heuristics might be needed
-            - Build intuition for problem reformulation
-
-            Example discussions:
-            - "Your problem has binary decisions - that suggests Integer Programming"
-            - "Nonlinear objectives require NLP, but can sometimes be linearized"
-            - "Network flow problems have special structure we can exploit"
-            - "When to use exact methods vs heuristics vs simulation"
+            Ejemplos de debates:
+            - "Su problema implica decisiones binarias, lo que sugiere programación entera".
+            - "Los objetivos no lineales requieren NLP, pero a veces pueden linealizarse".
+            - "Los problemas de flujo de red tienen una estructura especial que podemos aprovechar".
+            - "¿Cuándo usar métodos exactos, heurísticos o simulación?".
             """
         else:  # advanced
             level_specific = """
