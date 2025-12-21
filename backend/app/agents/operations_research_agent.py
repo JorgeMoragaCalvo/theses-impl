@@ -337,43 +337,60 @@ class OperationsResearchAgent(BaseAgent):
         """
         or_keywords = [
             # Core OR terms
-            "operations research", "or methodology", "or methods", "operational research",
+            # "operations research", "or methodology", "or methods", "operational research",
+            "investigación de operaciones", "metodología IO", "métodos IO"
 
             # General optimization
-            "optimization", "optimisation", "optimize", "optimise",
-            "decision making", "decision analysis", "decision science",
+            # "optimization", "optimize", # "decision-making", 
+            # "decision analysis", "decision science",
+            "optimización", "optimizar", "toma de decisiones", "análisis de decisiones",
+            "ciencia de la decisión",
 
             # Problem types (high-level)
-            "optimization problem", "optimisation problem", "decision problem",
-            "what type of problem", "which method", "which technique",
-            "should i use", "what approach", "how to solve",
+            # "optimization problem", "decision problem",
+            # "what type of problem", "which method", "which technique",
+            # "should I use", "what approach", "how to solve",
+            "problema de optimización", "problema de decisión", "qué tipo de problema",
+            "qué método", "qué técnica", "debo usar", "qué enfoque", "cómo resolverlo",
 
             # OR history and context
-            "history of or", "what is or", "or applications",
-            "or in practice", "or methods", "or techniques",
+            # "history of or", "what is or", "or applications",
+            # "or in practice", "or methods", "or techniques",
+            "historia de IO", "qué es IO", "aplicaciones IO", "IO en la práctica", "métodos IO", "técnicas IO",
 
             # Technique selection
-            "linear or integer", "which programming", "what optimization",
-            "choose method", "select technique", "right approach",
-            "best method for", "which agent",
+            # "linear or integer", "which programming", "what optimization",
+            # "choose method", "select technique", "right approach",
+            # "best method for", "which agent",
+            "lineal o entero", "¿qué programación?", "¿qué optimización?", "elegir método", "seleccionar técnica",
+            "enfoque correcto", "mejor método para", "qué agente",
 
             # General methodology
-            "formulation", "modeling", "modelling", "model building",
-            "problem solving", "systematic approach", "scientific method",
+            # "formulation", "modeling", "model building",
+            # "problem-solving", "systematic approach", "scientific method",
+            "formulación", "modelado", "construcción de modelos", "resolución de problemas", "enfoque sistemático",
+            "método científico",
 
             # Applications (general)
-            "resource allocation", "scheduling", "planning", "logistics",
-            "supply chain", "production", "inventory", "network",
-            "assignment", "transportation", "routing",
+            # "resource allocation", "scheduling", "planning", "logistics",
+            # "supply chain", "production", "inventory", "network",
+            # "assignment", "transportation", "routing",
+            "asignación de recursos", "programación", "planificación", "logística",
+            "cadena de suministro", "producción", "inventario", "red",
+            "asignación", "transporte", "enrutamiento",
+
 
             # Core concepts
-            "objective", "constraint", "feasible", "optimal", "solution",
-            "maximize", "maximise", "minimise", "minimize",
+            # "objective", "constraint", "feasible", "optimal", "solution",
+            # "maximize", "maximise", "minimise", "minimize",
+            "objetivo", "restricción", "factible", "óptimo", "solución", "maximizar", "minimizar",
 
             # Asking about agents/methods
-            "which agent should", "what agent", "where do i start",
-            "introduction to", "overview of", "basics of",
-            "fundamentals", "getting started"
+            # "which agent should", "what agent", "where do i start",
+            # "introduction to", "overview of", "basics of",
+            # "fundamentals", "getting started"
+            "¿qué agente debería?", "¿qué agente?", "¿por dónde empiezo?", "introducción a",
+            "resumen de", "fundamentos de", "primeros pasos"
         ]
 
         message_lower = message.lower()
