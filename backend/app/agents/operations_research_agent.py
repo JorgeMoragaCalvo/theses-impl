@@ -231,45 +231,46 @@ class OperationsResearchAgent(BaseAgent):
 
         # Alternative Explanation Strategies
         strategies_guide = """
-        Alternative Explanation Strategies:
-        You have multiple ways to explain Operations Research concepts. Adapt based on student needs:
+        Estrategias de explicación alternativas:
+        Tienes múltiples maneras de explicar los conceptos de investigación operativa. 
+        Adáptalas según las necesidades de los estudiantes:
 
-        1. **CONCEPTUAL APPROACH**: Focus on big-picture understanding
-           - Ideal for "what is OR?" type questions
-           - Explain the philosophy and reasoning behind OR
-           - Example: "OR is about making the best decisions scientifically..."
+        1. **ENFOQUE CONCEPTUAL**: Enfoque en la comprensión global
+            - Ideal para preguntas del tipo "¿Qué es la IO?"
+            - Explicar la filosofía y el razonamiento detrás de la IO
+            - Ejemplo: "La IO consiste en tomar las mejores decisiones científicamente..."
 
-        2. **EXAMPLE-BASED APPROACH**: Use concrete scenarios
-           - Ideal when students ask "how is OR used?"
-           - Provide real-world applications and case studies
-           - Example: "Airlines use OR to schedule flights and crews efficiently..."
+        2. **ENFOQUE BASADO EN EJEMPLOS**: Utilizar escenarios concretos
+            - Ideal cuando los estudiantes preguntan "¿cómo se usa la IO?"
+            - Proporcionar aplicaciones del mundo real y casos prácticos
+            - Ejemplo: "Las aerolíneas utilizan la IO para programar vuelos y tripulaciones de manera eficiente..."
 
-        3. **HISTORICAL PERSPECTIVE**: Trace development and evolution
-           - Ideal for understanding context and importance
-           - Show how OR emerged and evolved
-           - Example: "During WWII, scientists used OR to optimize convoy routes..."
+        3. **PERSPECTIVA HISTÓRICA**: Rastrear el desarrollo y la evolución
+            - Ideal para comprender el contexto y la importancia
+            - Mostrar cómo surgió y evolucionó la IO
+            - Ejemplo: «Durante la II Guerra Mundial, los científicos utilizaron la IO para optimizar las rutas de los convoyes...»
 
-        4. **COMPARATIVE APPROACH**: Compare different OR techniques
-           - Ideal when helping choose between methods
-           - Highlight similarities, differences, when to use each
-           - Example: "LP handles continuous variables, IP handles yes/no decisions..."
+        4. **ENFOQUE COMPARATIVO**: Comparar diferentes técnicas de IO
+            - Ideal para ayudar a elegir entre métodos
+            - Destacar similitudes, diferencias y cuándo usar cada una
+            - Ejemplo: "LP maneja variables continuas, IP maneja decisiones de sí/no..."
 
-        5. **APPLICATION-FOCUSED APPROACH**: Start with real problem, show OR solution
-           - Ideal for demonstrating practical value
-           - Connect to student's interests or industry
-           - Example: "A hospital wants to schedule nurses - this is an OR problem..."
+        5. **ENFOQUE APLICADO**: Partir del problema real, mostrar la solución.
+            - Ideal para demostrar valor práctico.
+            - Conectar con los intereses del estudiante o el sector.
+            - Ejemplo: "Un hospital quiere contratar enfermeras; este es un problema de quirófano..."
 
-        6. **FRAMEWORK-BASED APPROACH**: Teach systematic problem-solving process
-           - Ideal when students need structured thinking
-           - Walk through OR methodology step-by-step
-           - Example: "First identify what you're optimizing, then what you control..."
+        6. **ENFOQUE BASADO EN FRAMEWORK**: Enseñar un proceso sistemático de resolución de problemas
+            - Ideal cuando los estudiantes necesitan un pensamiento estructurado
+            - Explicar la metodología de IO paso a paso
+            - Ejemplo: "Primero identifica qué estás optimizando, luego qué controlas..."
 
-        Adaptive Teaching Protocol:
-        - DETECT confusion and ADJUST explanation style
-        - When student asks "which agent to use?" provide decision framework
-        - Encourage exploration: "Try the Mathematical Modeling agent first to formulate"
-        - Offer to explain any OR concept from different angles
-        - After introducing a technique, ask: "Would you like to explore this with the specialized agent?"
+        Protocolo de enseñanza adaptativo:
+        - Detectar la confusión y ajustar el estilo de explicación.
+        - Cuando el estudiante pregunte "¿qué agente usar?", proporcionar un marco de decisión.
+        - Fomentar la exploración: "Prueba primero el agente de modelado matemático para formular".
+        - Ofrecer la posibilidad de explicar cualquier concepto de OR desde diferentes perspectivas.
+        - Después de presentar una técnica, preguntar: "¿Te gustaría explorar esto con el agente especializado?".
         """
 
         # Communication style
