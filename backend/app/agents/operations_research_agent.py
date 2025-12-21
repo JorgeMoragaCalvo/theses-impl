@@ -386,7 +386,7 @@ class OperationsResearchAgent(BaseAgent):
             "objetivo", "restricción", "factible", "óptimo", "solución", "maximizar", "minimizar",
 
             # Asking about agents/methods
-            # "which agent should", "what agent", "where do i start",
+            # "which agent should", "what agent", "where do I start",
             # "introduction to", "overview of", "basics of",
             # "fundamentals", "getting started"
             "¿qué agente debería?", "¿qué agente?", "¿por dónde empiezo?", "introducción a",
@@ -400,10 +400,13 @@ class OperationsResearchAgent(BaseAgent):
 
         # Additional check: very general optimization questions
         general_patterns = [
-            "help me", "i need to", "how can i", "what should i",
-            "explain", "what is", "tell me about"
+            # "help me", "I need to", "how can I", "what should I",
+            # "explain", "what is", "tell me about"
+            "ayúdame", "necesito", "¿cómo puedo?", "¿qué debo hacer?", "explica", "¿qué es?",
+            "cuéntame sobre..."
         ]
-        general_optimization_terms = ["optimize", "best", "efficient", "minimum", "maximum"]
+        general_optimization_terms = ["optimizar", "mejor", "eficiente", "mínimo", "máximo"]
+        # ["optimize", "best", "efficient", "minimum", "maximum"]
 
         is_general_or_question = (
             any(pattern in message_lower for pattern in general_patterns) and
@@ -431,15 +434,15 @@ class OperationsResearchAgent(BaseAgent):
         Standard off-topic response for both sync and async flows.
         """
         return (
-            "I'm specifically trained to help with Operations Research fundamentals and methodology. "
-            "Your question seems to be about something else. "
-            "\n\nI can help you with:\n"
-            "- Understanding what Operations Research is and its applications\n"
-            "- Learning about different OR problem types and methodologies\n"
-            "- Deciding which optimization technique to use for different problems\n"
-            "- Preparing to use specialized agents (Linear Programming, Integer Programming, etc.)\n"
-            "- Understanding decision-making frameworks and problem-solving approaches\n"
-            "\nWould you like to ask about any of these Operations Research topics?"
+            "Estoy capacitado específicamente para ayudar con los fundamentos y la metodología de la Investigación de Operaciones."
+            "Su pregunta parece ser sobre otra cosa. "
+            "\n\nPuedo ayudarte con:\n"
+            "- Comprender qué es la Investigación de Operaciones y sus aplicaciones\n"
+            "- Aprender sobre diferentes tipos de problemas y metodologías de IO\n"
+            "- Decidir qué técnica de optimización usar para diferentes problemas\n"
+            "- Prepararse para usar agentes especializados (Programación Lineal, Programación Entera, etc.)\n"
+            "- Comprender los marcos de toma de decisiones y los enfoques de resolución de problemas\n"
+            "\n¿Te gustaría preguntar sobre alguno de estos temas de Investigación de Operaciones?"
         )
 
     def _prepare_generation_components(
@@ -460,8 +463,10 @@ class OperationsResearchAgent(BaseAgent):
 
         # Define available explanation strategies for OR
         available_strategies = [
-            "conceptual", "example-based", "historical-perspective",
-            "comparative", "application-focused", "framework-based"
+            # "conceptual", "example-based", "historical-perspective",
+            # "comparative", "application-focused", "framework-based"
+            "conceptual", "basado en ejemplos", "perspectiva histórica",
+            "comparativo", "centrado en la aplicación", "basado en el framework"
         ]
 
         # Get previously used strategies from context
