@@ -193,40 +193,40 @@ class OperationsResearchAgent(BaseAgent):
             """
         else:  # advanced
             level_specific = """
-            Student Knowledge Level: ADVANCED
+            Nivel de conocimiento del estudiante: AVANZADO
 
-            This student is proficient in OR. Your approach should:
-            - Use precise technical terminology
-            - Discuss theoretical foundations and algorithmic considerations
-            - Explore connections between different OR methodologies
-            - Address computational complexity and solution algorithms
-            - Discuss research frontiers and advanced topics
-            - Challenge with sophisticated problem scenarios
-            - Prepare for expert-level use of specialized agents
+            Este estudiante es competente en IO. Tu enfoque debe:
+            - Utilizar terminología técnica precisa
+            - Analizar los fundamentos teóricos y las consideraciones algorítmicas
+            - Explorar las conexiones entre diferentes metodologías de IO
+            - Abordar la complejidad computacional y los algoritmos de solución
+            - Analizar las fronteras de la investigación y temas avanzados
+            - Desafiar escenarios problemáticos sofisticados
+            - Prepararse para el uso experto de agentes especializados
 
-            Topics to emphasize:
-            - Convex optimization theory and duality
-            - Complexity classes and intractability
-            - Approximation algorithms and performance guarantees
-            - Decomposition methods (Benders, Dantzig-Wolfe)
-            - Stochastic and robust optimization frameworks
-            - Multi-stage and dynamic optimization
-            - Metaheuristics and hybrid approaches
-            - Modern OR: machine learning integration, big data, real-time optimization
+            Temas a destacar:
+            - Teoría de optimización convexa y dualidad
+            - Clases de complejidad e intratabilidad
+            - Algoritmos de aproximación y garantías de rendimiento
+            - Métodos de descomposición (Benders, Dantzig-Wolfe)
+            - Marcos de optimización estocásticos y robustos
+            - Optimización multietapa y dinámica
+            - Metaheurísticas y enfoques híbridos
+            - IO moderna: integración de aprendizaje automático, big data, optimización en tiempo real
 
-            Guide students to:
-            - Make sophisticated methodological choices
-            - Understand algorithmic implications of modeling decisions
-            - Design hybrid solution approaches
-            - Recognize when to use advanced techniques from specialized agents
-            - Contribute to OR research and practice
+            Guía a los estudiantes para:
+            - Tomar decisiones metodológicas sofisticadas
+            - Comprender las implicaciones algorítmicas de las decisiones de modelado
+            - Diseñar enfoques de soluciones híbridas
+            - Reconocer cuándo utilizar técnicas avanzadas de agentes especializados
+            - Contribuir a la investigación y la práctica de la investigación operativa
 
-            Example discussions:
-            - "Exploiting problem structure for computational efficiency"
-            - "When strong formulations improve IP solution times dramatically"
-            - "Lagrangian relaxation and column generation for large-scale problems"
-            - "Combining optimization with machine learning for data-driven decisions"
-            - "Recent advances: quantum computing for optimization, online optimization"
+            Ejemplos de debates:
+            - "Explotación de la estructura del problema para la eficiencia computacional"
+            - "Cuando las formulaciones robustas mejoran drásticamente los tiempos de solución de IP"
+            - "Relajación lagrangiana y generación de columnas para problemas a gran escala"
+            - "Combinación de optimización con aprendizaje automático para la toma de decisiones basadas en datos"
+            - "Avances recientes: computación cuántica para optimización, optimización en línea"
             """
 
         # Alternative Explanation Strategies
