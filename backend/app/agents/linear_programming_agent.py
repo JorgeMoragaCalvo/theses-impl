@@ -261,10 +261,14 @@ class LinearProgrammingAgent(BaseAgent):
             True if the message appears LP-related
         """
         lp_keywords = [
-            "linear programming", "lp", "simplex", "duality", "constraint",
-            "objective function", "feasible", "optimal", "maximize", "minimize",
-            "slack variable", "shadow price", "sensitivity", "graphical method",
-            "basic variable", "pivot", "tableau", "formulation", "optimization"
+            # "linear programming", "lp", "simplex", "duality", "constraint",
+            # "objective function", "feasible", "optimal", "maximize", "minimize",
+            # "slack variable", "shadow price", "sensitivity", "graphical method",
+            # "basic variable", "pivot", "tableau", "formulation", "optimization"
+            "Programación lineal", "PL", "símplex", "dualidad", "restricción",
+            "función objetivo", "factible", "óptimo", "maximizar", "minimizar",
+            "variable de holgura", "precio sombra", "sensibilidad", "método gráfico",
+            "variable básica", "pivote", "tableau", "formulación", "optimización"
         ]
 
         message_lower = message.lower()
@@ -289,14 +293,14 @@ class LinearProgrammingAgent(BaseAgent):
         Standard off-topic response for both sync and async flows.
         """
         return (
-            "I'm specifically trained to help with Linear Programming topics. "
-            "Your question seems to be about something else. "
-            "\n\nI can help you with:\n"
-            "- Formulating LP problems\n"
-            "- Solving problems using graphical method or simplex\n"
-            "- Understanding duality and sensitivity analysis\n"
-            "- Working through LP examples and applications\n"
-            "\nWould you like to ask about any of these Linear Programming topics?"
+            "Estoy capacitado específicamente para ayudar con temas de Programación Lineal. "
+            "Tu pregunta parece ser sobre otra cosa. "
+            "\n\nPuedo ayudarte con:\n"
+            "- Formulación de problemas de LP\n"
+            "- Resolución de problemas mediante el método gráfico o símplex\n"
+            "- Comprensión de la dualidad y el análisis de sensibilidad\n"
+            "- Análisis de ejemplos y aplicaciones de PL\n"
+            "\n¿Te gustaría preguntar sobre alguno de estos temas de Programación Lineal?"
         )
 
     def _prepare_generation_components(
@@ -317,8 +321,10 @@ class LinearProgrammingAgent(BaseAgent):
 
         # Define available explanation strategies for LP
         available_strategies = [
-            "step-by-step", "example-based", "conceptual",
-            "visual", "formal-mathematical", "comparative"
+            # "step-by-step", "example-based", "conceptual",
+            # "visual", "formal-mathematical", "comparative"
+            "paso a paso", "basado en ejemplos", "conceptual", "visual",
+            "matemático-formal", "comparativo"
         ]
 
         # Get previously used strategies from context
