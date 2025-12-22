@@ -1,64 +1,64 @@
 """
-Shared constants for the frontend application.
-Ensures consistency with backend Topic enum values.
+Constantes compartidas para la aplicación frontend.
+Asegura consistencia con los valores enum de Topic del backend.
 """
 
-# Topic mappings: backend enum value -> display name
+# Mapeo de temas: valor enum del backend -> nombre para mostrar
 TOPIC_DISPLAY_NAMES = {
-    "operations_research": "Operations Research",
-    "mathematical_modeling": "Mathematical Modeling",
-    "linear_programming": "Linear Programming",
-    "integer_programming": "Integer Programming",
-    "nonlinear_programming": "Nonlinear Programming"
+    "operations_research": "Investigación de Operaciones",
+    "mathematical_modeling": "Modelado Matemático",
+    "linear_programming": "Programación Lineal",
+    "integer_programming": "Programación Entera",
+    "nonlinear_programming": "Programación No Lineal"
 }
 
-# Topic options for dropdowns/selectors: display name -> backend enum value
+# Opciones de temas para selectores: nombre para mostrar -> valor enum del backend
 TOPIC_OPTIONS = {
-    "Operations Research": "operations_research",
-    "Mathematical Modeling": "mathematical_modeling",
-    "Linear Programming": "linear_programming",
-    "Integer Programming": "integer_programming",
-    "Nonlinear Programming": "nonlinear_programming"
+    "Investigación de Operaciones": "operations_research",
+    "Modelado Matemático": "mathematical_modeling",
+    "Programación Lineal": "linear_programming",
+    "Programación Entera": "integer_programming",
+    "Programación No Lineal": "nonlinear_programming"
 }
 
-# Ordered the list of topics for display (human-readable)
+# Lista ordenada de temas para mostrar (legible)
 TOPICS_LIST = [
-    "Operations Research",
-    "Mathematical Modeling",
-    "Linear Programming",
-    "Integer Programming",
-    "Nonlinear Programming"
+    "Investigación de Operaciones",
+    "Modelado Matemático",
+    "Programación Lineal",
+    "Programación Entera",
+    "Programación No Lineal"
 ]
 
-# Topic descriptions for the welcome screen
+# Descripciones de temas para la pantalla de bienvenida
 TOPIC_DESCRIPTIONS = {
-    "Operations Research": [
-        "Introduction to optimization",
-        "Problem formulation basics",
-        "Decision-making frameworks"
+    "Investigación de Operaciones": [
+        "Introducción a la optimización",
+        "Fundamentos de formulación de problemas",
+        "Marcos de toma de decisiones"
     ],
-    "Mathematical Modeling": [
-        "Translating real problems to math",
-        "Variable and constraint identification",
-        "Objective function design"
+    "Modelado Matemático": [
+        "Traducción de problemas reales a matemáticas",
+        "Identificación de variables y restricciones",
+        "Diseño de función objetivo"
     ],
-    "Linear Programming": [
-        "LP formulation and solution",
-        "Simplex method",
-        "Duality theory"
+    "Programación Lineal": [
+        "Formulación y solución de PL",
+        "Método Simplex",
+        "Teoría de dualidad"
     ],
-    "Integer Programming": [
-        "Binary and integer variables",
-        "Branch and bound methods",
-        "Combinatorial optimization"
+    "Programación Entera": [
+        "Variables binarias y enteras",
+        "Métodos de ramificación y acotamiento",
+        "Optimización combinatoria"
     ],
-    "Nonlinear Programming": [
-        "Unconstrained optimization",
-        "Constrained optimization",
-        "KKT conditions",
-        "Gradient methods"
+    "Programación No Lineal": [
+        "Optimización sin restricciones",
+        "Optimización con restricciones",
+        "Condiciones KKT",
+        "Métodos de gradiente"
     ]
 }
 
-# Default topic for new sessions
-DEFAULT_TOPIC = "Linear Programming"
+# Tema predeterminado para nuevas sesiones
+DEFAULT_TOPIC = "Programación Lineal"
