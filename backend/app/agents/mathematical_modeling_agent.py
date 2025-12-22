@@ -338,16 +338,16 @@ class MathematicalModelingAgent(BaseAgent):
             True if the message appears modeling-related
         """
         modeling_keywords = [
-            "mathematical model", "modeling", "modelling", "formulation", "formulate",
-            "decision variable", "objective function", "constraint",
-            "optimization model", "problem formulation", "model building",
-            "translate", "word problem", "real-world problem",
-            "how to model", "how do i formulate", "what are the variables",
-            "what should i optimize", "what are the constraints",
-            "resource allocation", "production planning", "scheduling",
-            "transportation problem", "assignment problem",
-            "integer variable", "binary variable", "continuous variable",
-            "maximize", "minimize", "optimal", "feasible"
+            "modelo matemático", "modelado", "formulación", "formular",
+            "variable de decisión", "función objetivo", "restricción",
+            "modelo de optimización", "formulación del problema", "construcción del modelo",
+            "traducir", "problema de enunciado", "problema del mundo real",
+            "cómo modelar", "cómo formular", "¿cuáles son las variables?",
+            "qué debo optimizar", "¿cuáles son las restricciones?",
+            "asignación de recursos", "planificación de la producción", "programación",
+            "problema de transporte", "problema de asignación",
+            "variable entera", "variable binaria", "variable continua",
+            "maximizar", "minimizar", "óptimo", "factible"
         ]
 
         message_lower = message.lower()
