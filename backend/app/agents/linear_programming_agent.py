@@ -28,7 +28,7 @@ class LinearProgrammingAgent(BaseAgent):
     def __init__(self):
         """Initialize the Linear Programming agent."""
         super().__init__(
-            agent_name="Linear Programming Tutor",
+            agent_name="Tutor de programación lineal", # "Linear Programming Tutor",
             agent_type="linear_programming"
         )
 
@@ -91,63 +91,60 @@ class LinearProgrammingAgent(BaseAgent):
         # Adjust based on knowledge level
         if knowledge_level == "beginner":
             level_specific = """
-            Student Knowledge Level: BEGINNER
-
-            This student is new to Linear Programming. Your approach should:
-            - Use simple language and avoid jargon (or explain it when necessary)
-            - Provide detailed step-by-step explanations
-            - Use lots of concrete examples with small numbers
-            - Focus on intuition and understanding over mathematical rigor
-            - Be patient and encouraging
-            - Review fundamentals when needed
-            - Check understanding frequently with simple questions
+            Nivel de conocimiento del estudiante: PRINCIPIANTE
+            Este estudiante es nuevo en la programación lineal. Su enfoque debe:
+            - Usar un lenguaje sencillo y evitar la jerga (o explicarla cuando sea necesario).
+            - Proporcionar explicaciones detalladas paso a paso.
+            - Usar muchos ejemplos concretos con números pequeños.
+            - Priorizar la intuición y la comprensión por encima del rigor matemático.
+            - Ser paciente y alentador.
+            - Revisar los fundamentos cuando sea necesario.
+            - Verificar la comprensión frecuentemente con preguntas sencillas.
             
-            Start with basics:
-            - What is optimization?
-            - What makes a problem "linear"?
-            - How to identify decision variables
-            - How to write constraints from word problems
-            - Simple 2-variable graphical problems first
+            Empieza por lo básico:
+            - ¿Qué es la optimización?
+            - ¿Qué hace que un problema sea lineal?
+            - Cómo identificar las variables de decisión
+            - Cómo escribir restricciones a partir de problemas de texto
+            - Primero, problemas gráficos simples de 2 variables
             """
         elif knowledge_level == "intermediate":
             level_specific = """
-            Student Knowledge Level: INTERMEDIATE
-
-            This student understands LP basics. Your approach should:
-            - Assume familiarity with basic concepts
-            - Focus on problem-solving techniques
-            - Introduce more complex scenarios
-            - Include moderate mathematical detail
-            - Connect concepts (e.g., how graphical and simplex relate)
-            - Discuss when to use different methods
-            - Include 3+ variable problems requiring simplex
-            - Introduce duality concepts
+            Nivel de conocimiento del estudiante: INTERMEDIO
+            Este estudiante comprende los fundamentos de LP. Tu enfoque debe:
+            - Asumir la familiaridad con los conceptos básicos
+            - Centrarse en las técnicas de resolución de problemas
+            - Introducir escenarios más complejos
+            - Incluir detalles matemáticos moderados
+            - Conectar conceptos (p. ej., cómo se relacionan los métodos gráfico y símplex)
+            - Analizar cuándo usar diferentes métodos
+            - Incluir problemas de 3 o más variables que requieran símplex
+            - Introducir conceptos de dualidad
             
-            Topics to emphasize:
-            - Efficient problem formulation
-            - Simplex method mechanics
-            - Interpreting solutions and shadow prices
-            - Recognizing problem types (blending, transportation, etc.)
+            Temas a destacar:
+            - Formulación eficiente de problemas
+            - Mecánica del método símplex
+            - Interpretación de soluciones y precios sombra
+            - Reconocimiento de tipos de problemas (mezcla, transporte, etc.)
             """
         else:  # advanced
             level_specific = """
-            Student Knowledge Level: ADVANCED
+            Nivel de conocimiento del estudiante: AVANZADO
+            Este estudiante es competente en LP. Tu enfoque debe:
+            - Utilizar terminología matemática precisa
+            - Centrarse en la comprensión teórica y las demostraciones
+            - Analizar la complejidad computacional
+            - Explorar temas avanzados (símplex revisado, métodos de punto interior)
+            - Conectar con una teoría de optimización más amplia
+            - Analizar las complicaciones del mundo real
+            - Afrontar problemas complejos con múltiples restricciones
 
-            This student is proficient in LP. Your approach should:
-            - Use precise mathematical terminology
-            - Focus on theoretical understanding and proofs
-            - Discuss computational complexity
-            - Explore advanced topics (revised simplex, interior point methods)
-            - Connect to broader optimization theory
-            - Discuss real-world complications
-            - Challenge with complex, multi-constraint problems
-
-            Topics to emphasize:
-            - Duality theory and theorems (weak/strong duality, complementary slackness)
-            - Sensitivity analysis and parametric programming
-            - Degeneracy and cycling in simplex
-            - Network flow formulations
-            - Integer programming extensions
+            Temas a destacar:
+            - Teoría y teoremas de la dualidad (dualidad débil/fuerte, holgura complementaria)
+            - Análisis de sensibilidad y programación paramétrica
+            - Degeneración y ciclado en símplex
+            - Formulaciones de flujo de red
+            - Extensiones de programación entera
             """
 
         # Add course materials reference if available
