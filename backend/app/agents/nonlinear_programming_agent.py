@@ -106,68 +106,68 @@ class NonlinearProgrammingAgent(BaseAgent):
         # Adjust based on knowledge level
         if knowledge_level == "beginner":
             level_specific = """
-            Student Knowledge Level: BEGINNER
+            Nivel de conocimiento del estudiante: PRINCIPIANTE
 
-            This student is new to Nonlinear Programming. Your approach should:
-            - Start with intuitive explanations before mathematical formalism
-            - Use simple unconstrained problems first (1D or 2D)
-            - Explain concepts geometrically when possible
-            - Focus on basic gradient descent before advanced methods
-            - Introduce Lagrange multipliers with simple examples
-            - Avoid heavy mathematical proofs initially
-            - Use small numerical examples that can be solved by hand
-            - Check understanding frequently
+            Este estudiante es nuevo en programación no lineal. Tu enfoque debe:
+            - Comenzar con explicaciones intuitivas antes del formalismo matemático.
+            - Utilizar primero problemas simples sin restricciones (1D o 2D).
+            - Explicar los conceptos geométricamente cuando sea posible.
+            - Centrarse en el descenso de gradiente básico antes de los métodos avanzados.
+            - Introducir los multiplicadores de Lagrange con ejemplos sencillos.
+            - Evitar demostraciones matemáticas complejas al principio.
+            - Utilizar ejemplos numéricos pequeños que puedan resolverse manualmente.
+            - Verificar la comprensión con frecuencia.
 
-            Start with basics:
-            - What makes a problem "nonlinear"?
-            - How to find minima/maxima using calculus
-            - Basic gradient descent intuition
-            - Simple constrained problems (equality constraints first)
-            - Geometric interpretation of Lagrange multipliers
-            - Why optimization is important (real-world motivation)
+            Empezar por lo básico:
+            - ¿Qué hace que un problema sea "no lineal"?
+            - Cómo encontrar mínimos/máximos mediante cálculo
+            - Intuición básica del descenso de gradiente
+            - Problemas simples con restricciones (primero las restricciones de igualdad)
+            - Interpretación geométrica de los multiplicadores de Lagrange
+            - Por qué es importante la optimización (motivación en el mundo real)
             """
         elif knowledge_level == "intermediate":
             level_specific = """
-            Student Knowledge Level: INTERMEDIATE
+            Nivel de conocimiento del estudiante: INTERMEDIO
 
-            This student understands basic optimization. Your approach should:
-            - Assume familiarity with calculus and linear algebra
-            - Introduce KKT conditions with detailed explanations
-            - Cover various numerical methods and their trade-offs
-            - Discuss convergence properties (without rigorous proofs)
-            - Include problems with inequality constraints
-            - Explain when to use different optimization algorithms
-            - Connect methods to real applications
+            Este estudiante comprende los conceptos básicos de optimización. Tu enfoque debe:
+            - Asumir familiaridad con el cálculo y el álgebra lineal
+            - Introducir las condiciones KKT con explicaciones detalladas
+            - Abordar diversos métodos numéricos y sus ventajas y desventajas
+            - Analizar las propiedades de convergencia (sin demostraciones rigurosas)
+            - Incluir problemas con restricciones de desigualdad
+            - Explicar cuándo utilizar diferentes algoritmos de optimización
+            - Conectar los métodos con aplicaciones reales
 
-            Topics to emphasize:
-            - Optimality conditions (necessary vs sufficient)
-            - Newton's method and its advantages
-            - KKT conditions and constraint qualifications
-            - Convexity and why it matters
-            - Penalty and barrier methods
-            - Choosing the right algorithm for a problem
+            Temas a destacar:
+            - Condiciones de optimalidad (necesarias vs. suficientes)
+            - El método de Newton y sus ventajas
+            - Condiciones KKT y requisitos de restricción
+            - Convexidad y su importancia
+            - Métodos de penalización y barrera
+            - Elección del algoritmo adecuado para un problema
             """
         else:  # advanced
             level_specific = """
-            Student Knowledge Level: ADVANCED
+            Nivel de conocimiento del estudiante: AVANZADO
 
-            This student is proficient in optimization. Your approach should:
-            - Use rigorous mathematical treatment
-            - Provide convergence proofs and complexity analysis
-            - Discuss advanced algorithms (SQP, interior point methods)
-            - Explore duality theory in nonlinear programming
-            - Cover numerical stability and conditioning issues
-            - Discuss large-scale optimization techniques
-            - Address cutting-edge research topics
+            Este estudiante es competente en optimización. Tu enfoque debe:
+            - Utilizar un tratamiento matemático riguroso
+            - Proporcionar pruebas de convergencia y análisis de complejidad
+            - Analizar algoritmos avanzados (SQP, métodos de punto interior)
+            - Explorar la teoría de la dualidad en programación no lineal
+            - Abordar problemas de estabilidad numérica y condicionamiento
+            - Analizar técnicas de optimización a gran escala
+            - Abordar temas de investigación de vanguardia
 
-            Topics to emphasize:
-            - Rigorous optimality theory and constraint qualifications
-            - Convergence rates (linear, superlinear, quadratic)
-            - Advanced quasi-Newton methods and limited-memory variants
-            - Primal-dual interior point methods
-            - Nonconvex optimization challenges and approaches
-            - Stochastic optimization methods
-            - Computational complexity considerations
+            Temas a destacar:
+            - Teoría rigurosa de optimalidad y requisitos de restricciones
+            - Tasas de convergencia (lineal, superlineal, cuadrática)
+            - Métodos cuasi-Newton avanzados y variantes de memoria limitada
+            - Métodos de punto interior primal-dual
+            - Desafíos y enfoques de optimización no convexa
+            - Métodos de optimización estocástica
+            - Consideraciones sobre la complejidad computacional
             """
 
         # Alternative Explanation Strategies
