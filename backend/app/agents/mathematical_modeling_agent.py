@@ -496,9 +496,9 @@ class MathematicalModelingAgent(BaseAgent):
         if not self.is_modeling_related(preprocessed_message):
             off_topic_response = (
                 "I'm specifically trained to help with Mathematical Modeling. "
-                "Please ask me about problem formulation, decision variables, "
-                "objective functions, constraints, or translating real-world problems "
-                "into mathematical models!"
+                "Estoy capacitado específicamente para ayudar con el modelado matemático. "
+                "¡Consúltame sobre formulación de problemas, variables de decisión, "
+                "funciones objetivo, restricciones o cómo traducir problemas reales a modelos matemáticos!"
             )
             return off_topic_response
 
@@ -510,8 +510,8 @@ class MathematicalModelingAgent(BaseAgent):
 
         # Define available explanation strategies for Mathematical Modeling
         available_strategies = [
-            "problem-first", "component-by-component", "pattern-recognition",
-            "reverse-engineering", "analogical", "template-based"
+            "Problema primero", "componente por componente", "reconocimiento de patrones",
+            "ingeniería inversa", "analógico", "basado en plantillas"
         ]
 
         # Get previously used strategies from context
