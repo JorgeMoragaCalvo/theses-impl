@@ -227,45 +227,46 @@ class MathematicalModelingAgent(BaseAgent):
 
         # Alternative Explanation Strategies
         strategies_guide = """
-        Alternative Explanation Strategies:
-        You have multiple ways to explain Mathematical Modeling concepts. Adapt your approach based on student needs:
+        Estrategias de explicación alternativas:
+        Existen múltiples maneras de explicar los conceptos de modelado matemático. 
+        Adapta tu enfoque según las necesidades de los estudiantes:
 
-        1. **PROBLEM-FIRST APPROACH**: Start with real problem, build model gradually
-           - Ideal for beginners or when student asks "how to model"
-           - Present scenario, then systematically build each part
-           - Example: "Imagine a factory... what can the manager decide? That's our variables..."
+        1. **ENFOQUE PRIMERO EN EL PROBLEMA**: Comienza con un problema real y construye el modelo gradualmente.
+            - Ideal para principiantes o cuando un estudiante pregunta cómo modelar.
+            - Presenta el escenario y luego construye sistemáticamente cada parte.
+            - Ejemplo: "Imagina una fábrica... ¿qué puede decidir el gerente? Esas son nuestras variables..."
 
-        2. **COMPONENT-BY-COMPONENT APPROACH**: Variables → Objective → Constraints separately
-           - Ideal when student is stuck on specific part
-           - Focus deeply on one component before moving to next
-           - Example: "Let's just focus on identifying decision variables first..."
+        2. **ENFOQUE COMPONENTE POR COMPONENTE**: Variables → Objetivo → Restricciones por separado
+            - Ideal cuando un estudiante se atasca en una parte específica
+            - Concéntrate en un componente antes de pasar al siguiente
+            - Ejemplo: "Primero, centrémonos en identificar las variables de decisión..."
 
-        3. **PATTERN RECOGNITION APPROACH**: Show this is like problem type X
-           - Ideal for intermediate students learning to recognize types
-           - Compare to standard problems (diet, transportation, scheduling)
-           - Example: "This is a classic resource allocation problem, like..."
+        3. **ENFOQUE DE RECONOCIMIENTO DE PATRONES**: Demuestra que esto se parece al problema tipo X.
+            - Ideal para estudiantes de nivel intermedio que están aprendiendo a reconocer tipos.
+            - Compáralo con problemas estándar (dieta, transporte, programación).
+            - Ejemplo: "Este es un problema clásico de asignación de recursos, como...".
 
-        4. **REVERSE ENGINEERING APPROACH**: Start with solution, work backwards
-           - Ideal when student doesn't know where to start
-           - Show what answer would look like, then how to get there
-           - Example: "The solution would tell us how many of each to make. So we need variables for..."
+        4. **ENFOQUE DE INGENIERÍA INVERSA**: Comienza con una solución y trabaja a la inversa.
+            - Ideal cuando un estudiante no sabe por dónde empezar.
+            - Muestra cómo se vería la solución y luego cómo llegar a ella.
+            - Ejemplo: "La solución nos indicaría cuántas unidades de cada una debemos fabricar...".
 
-        5. **ANALOGICAL APPROACH**: Compare to everyday decision-making
-           - Ideal for building intuition
-           - Relate to familiar situations
-           - Example: "It's like planning your weekly budget - you decide how much to spend (variables)..."
+        5. **ENFOQUE ANALÓGICO**: Comparar con la toma de decisiones cotidiana
+            - Ideal para desarrollar la intuición
+            - Relacionar con situaciones familiares
+            - Ejemplo: "Es como planificar tu presupuesto semanal: tú decides cuánto gastar (variables)..."
 
-        6. **TEMPLATE-BASED APPROACH**: Provide formulation template to fill in
-           - Ideal when student knows concepts but needs structure
-           - Give framework with blanks to complete
-           - Example: "Maximize [what?] Subject to: [what limits you?]..."
+        6. **ENFOQUE BASADO EN TEMPLATES**: Proporcionar una plantilla de formulación para completar.
+            - Ideal cuando un estudiante conoce los conceptos pero necesita estructura.
+            - Proporcionar un marco con espacios en blanco para completar.
+            - Ejemplo: "Maximizar [¿qué?] Sujeto a: [¿qué te limita?]..."
 
-        Adaptive Teaching Protocol:
-        - DETECT confusion from student messages ("I don't know where to start", "how do I find variables?")
-        - When confusion detected: ACKNOWLEDGE and SIMPLIFY
-        - For repeated questions: Try COMPLETELY DIFFERENT approach (e.g., switch from abstract to concrete example)
-        - After showing formulation: ASK "Does this model capture the problem?" or "Would you like me to explain any part differently?"
-        - When student is stuck: Offer choices: "I can show an example, give you a template, or walk through step-by-step"
+        Protocolo de Enseñanza Adaptativa:
+        - DETECTAR la confusión en los mensajes de los estudiantes ("No sé por dónde empezar", "¿Cómo encuentro las variables?")
+        - Cuando se detecte confusión: RECONOCER y SIMPLIFICAR
+        - Para preguntas repetidas: intentar un enfoque COMPLETAMENTE DIFERENTE (por ejemplo, cambiar de un ejemplo abstracto a uno concreto)
+        - Después de mostrar la formulación: PREGUNTAR: "¿Este modelo capta el problema?" o "¿Quieres que explique alguna parte de forma diferente?"
+        - Cuando un estudiante se bloquea, ofrecer opciones: "puedo mostrar un ejemplo, darte una plantilla o explicarte paso a paso".
         """
 
         # Communication style
@@ -367,7 +368,7 @@ class MathematicalModelingAgent(BaseAgent):
             Generated response with adaptive explanations
         """
 
-        # Preprocess message
+        # Preprocess the message
         if not self.validate_message(user_message):
             return "I didn't receive a valid message. Could you please try again?"
 
