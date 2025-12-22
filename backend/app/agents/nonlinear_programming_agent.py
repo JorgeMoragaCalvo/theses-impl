@@ -272,19 +272,16 @@ class NonlinearProgrammingAgent(BaseAgent):
             True if the message appears NLP-related
         """
         nlp_keywords = [
-            "nonlinear programming", "nlp", "nonlinear optimization",
-            "gradient descent", "newton's method", "newton method",
-            "lagrange multiplier", "lagrangian", "kkt", "karush",
-            "convex", "concave", "convexity",
-            "constrained optimization", "unconstrained optimization",
-            "optimal", "optimality", "optimize", "optimization",
-            "penalty method", "barrier method", "interior point",
-            "sequential quadratic", "sqp",
-            "steepest descent", "line search", "trust region",
-            "quasi-newton", "bfgs", "hessian",
-            "objective function", "constraint", "feasible",
-            "local minimum", "global minimum", "stationary point",
-            "gradient", "derivative", "calculus optimization"
+            "Programación no lineal", "NLP", "optimización no lineal",
+            "descenso de gradiente", "método de Newton", "multiplicador de Lagrange",
+            "Lagarganiano", "KKT", "Karush", "convexo", "cóncavo", "convexidad", "optimización con restricciones",
+            "optimización sin restricciones", "Óptimo", "optimalidad", "optimizar", "optimización",
+            "método de penalización", "método de barrera", "punto interior",
+            "cuadrática secuencial", "SQP", "descenso más pronunciado", "búsqueda de línea", "región de confianza",
+            "Cuasi-Newton", "BFGS", "Hessiano",
+            "función objetivo", "restricción", "factible",
+            "mínimo local", "mínimo global", "punto estacionario",
+            "gradiente", "derivada", "optimización de cálculo"
         ]
 
         message_lower = message.lower()
@@ -309,15 +306,15 @@ class NonlinearProgrammingAgent(BaseAgent):
         Standard off-topic response for both sync and async flows.
         """
         return (
-            "I'm specifically trained to help with Nonlinear Programming topics. "
-            "Your question seems to be about something else. "
-            "\n\nI can help you with:\n"
-            "- Unconstrained optimization (gradient descent, Newton's method)\n"
-            "- Constrained optimization (KKT conditions, Lagrange multipliers)\n"
-            "- Convexity and optimality conditions\n"
-            "- Numerical optimization methods\n"
-            "- Applications in machine learning, engineering, and finance\n"
-            "\nWould you like to ask about any of these Nonlinear Programming topics?"
+            "Estoy capacitado específicamente para ayudar con temas de programación no lineal. "
+            "Tu pregunta parece ser sobre otra cosa. "
+            "\n\nPuedo ayudarte con:\n"
+            "- Optimización sin restricciones (descenso de gradiente, método de Newton)\n"
+            "- Optimización con restricciones (condiciones KKT, multiplicadores de Lagrange)\n"
+            "- Condiciones de convexidad y optimalidad\n"
+            "- Métodos de optimización numérica\n"
+            "- Aplicaciones en aprendizaje automático, ingeniería y finanzas\n"
+            "- ¿Te gustaría preguntar sobre alguno de estos temas de programación no lineal?"
         )
 
     def _prepare_generation_components(
@@ -338,8 +335,10 @@ class NonlinearProgrammingAgent(BaseAgent):
 
         # Define available explanation strategies for NLP
         available_strategies = [
-            "algorithmic", "geometric-visual", "calculus-based",
-            "example-driven", "conceptual-intuitive", "comparative"
+            # "algorithmic", "geometric-visual", "calculus-based",
+            # "example-driven", "conceptual-intuitive", "comparative"
+            "algorítmico", "geométrico-visual", "basado en cálculo",
+            "basado en ejemplos", "conceptual-intuitivo", "comparativo"
         ]
 
         # Get previously used strategies from context
@@ -430,7 +429,7 @@ class NonlinearProgrammingAgent(BaseAgent):
             Generated response with adaptive explanations
         """
 
-        # Preprocess message
+        # Preprocess the message
         preprocessed_message, error_message = self._validate_and_preprocess(user_message)
         if error_message:
             return error_message
