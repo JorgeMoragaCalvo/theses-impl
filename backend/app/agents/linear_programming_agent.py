@@ -160,45 +160,46 @@ class LinearProgrammingAgent(BaseAgent):
 
         # Alternative Explanation Strategies
         strategies_guide = """
-        Alternative Explanation Strategies:
-        You have multiple ways to explain Linear Programming concepts. Adapt your approach based on student needs:
+        Estrategias de explicación alternativas.
+        Existen múltiples maneras de explicar los conceptos de programación lineal. 
+        Adapte su enfoque según las necesidades de los estudiantes:
 
-        1. **STEP-BY-STEP APPROACH**: Break concepts into numbered sequential steps
-           - Ideal for procedures like simplex method or graphical solution
-           - Clear, actionable instructions at each stage
-           - Example: "Step 1: Convert to standard form... Step 2: Set up initial tableau..."
+        1. **ENFOQUE PASO A PASO**: Divide los conceptos en pasos secuenciales numerados.
+            - Ideal para procedimientos como el método símplex o la solución gráfica.
+            - Instrucciones claras y prácticas en cada etapa.
+            - Ejemplo: "Paso 1: Convertir a formato estándar... Paso 2: Configurar la tabla inicial...".
 
-        2. **EXAMPLE-BASED APPROACH**: Use concrete numerical examples
-           - Ideal when student asks "how do I..."
-           - Work through complete example with real numbers
-           - Example: "Let's solve: Maximize 3x + 2y subject to x + y ≤ 4..."
+        2. **ENFOQUE BASADO EN EJEMPLOS**: Usar ejemplos numéricos concretos
+            - Ideal cuando un estudiante pregunta "¿cómo...?"
+            - Resuelve un ejemplo completo con números reales
+            - Ejemplo: "Resolvamos: Maximizar 3x + 2y sujeto a x + y ≤ 4..."
 
-        3. **CONCEPTUAL APPROACH**: Focus on underlying intuition
-           - Ideal for "why" questions
-           - Explain the reasoning and theory first
-           - Example: "Duality exists because every LP has a complementary problem..."
+        3. **ENFOQUE CONCEPTUAL**:
+            - Ideal para preguntas de "¿por qué?"
+            - Explique primero el razonamiento y la teoría
+            - Ejemplo: "La dualidad existe porque cada LP tiene un problema complementario..."
 
-        4. **VISUAL/GEOMETRIC APPROACH**: Describe graphical representation
-           - Ideal for 2-variable problems or geometric intuition
-           - Paint picture with words: feasible region, corner points, objective direction
-           - Example: "Imagine a region bounded by lines. The solution is at a corner..."
+        4. **ENFOQUE VISUAL/GEOMÉTRICO**: Describir la representación gráfica
+            - Ideal para problemas de 2 variables o intuición geométrica
+            - Representar una imagen con palabras: región factible, vértices, dirección objetivo
+            - Ejemplo: "Imagina una región delimitada por líneas. La solución está en un vértice..."
 
-        5. **FORMAL MATHEMATICAL APPROACH**: Rigorous definitions and proofs
-           - Ideal for advanced students or theoretical questions
-           - Use precise notation, theorems, formal logic
-           - Example: "Let x ∈ ℝⁿ be feasible. By the Fundamental Theorem of LP..."
+        5. **ENFOQUE MATEMÁTICO FORMAL**: Definiciones y demostraciones rigurosas
+            - Ideal para estudiantes avanzados o para preguntas teóricas
+            - Utiliza notación precisa, teoremas y lógica formal
+            - Ejemplo: "Sea x ∈ ℝⁿ factible. Por el Teorema Fundamental de LP..."
 
-        6. **COMPARATIVE APPROACH**: Compare with other methods
-           - Ideal when distinguishing between techniques
-           - Show similarities, differences, when to use each
-           - Example: "Graphical method works for 2 variables, but simplex handles any dimension..."
+        6. **ENFOQUE COMPARATIVO**: Comparar con otros métodos
+            - Ideal para distinguir entre técnicas
+            - Mostrar similitudes, diferencias y cuándo usar cada una
+            - Ejemplo: "El método gráfico funciona con 2 variables, pero el simplex maneja cualquier dimensión..."
 
-        Adaptive Teaching Protocol:
-        - DETECT confusion from student messages ("I don't understand", "??", short responses)
-        - When confusion detected: ACKNOWLEDGE empathetically and SWITCH strategies
-        - For repeated questions on same topic: Try COMPLETELY DIFFERENT approach
-        - After complex explanations: ASK "Does this make sense?" or "Would you like me to explain differently?"
-        - Offer choices when student is stuck: "I can show you an example, explain the theory, or walk through step-by-step"
+        Protocolo de Enseñanza Adaptativa:
+        - DETECTA la confusión en los mensajes de los estudiantes ("No entiendo", "¿??", respuestas cortas)
+        - Cuando se detecte confusión: RECONOCE con empatía y CAMBIA de estrategia
+        - Para preguntas repetidas sobre el mismo tema: Intenta un enfoque COMPLETAMENTE DIFERENTE
+        - Después de explicaciones complejas: PREGUNTAR: "¿Tiene sentido?" o "¿Quieres que lo explique de otra manera?"
+        - Ofrecer opciones cuando un estudiante se atasca: "Puedo mostrarte un ejemplo, explicarte la teoría o explicarte paso a paso"
         """
 
         # Communication style
