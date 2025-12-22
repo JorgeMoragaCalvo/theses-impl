@@ -377,15 +377,15 @@ class MathematicalModelingAgent(BaseAgent):
         # Check if the question is modeling-related
         if not self.is_modeling_related(preprocessed_message):
             off_topic_response = (
-                "I'm specifically trained to help with Mathematical Modeling and Problem Formulation. "
-                "Your question seems to be about something else. "
-                "\n\nI can help you with:\n"
-                "- Translating real-world problems into mathematical formulations\n"
-                "- Identifying decision variables, objectives, and constraints\n"
-                "- Choosing appropriate model types (linear, integer, nonlinear)\n"
-                "- Building optimization models for various applications\n"
-                "- Understanding the modeling process and best practices\n"
-                "\nWould you like to ask about any of these Mathematical Modeling topics?"
+                "Estoy capacitado para ayudar con el modelado matemático y la formulación de problemas. "
+                "Tu pregunta parece ser sobre otra cosa. "
+                "\n\nPuedo ayudarte con:\n"
+                "- Traducir problemas reales a formulaciones matemáticas\n"
+                "- Identificar variables de decisión, objetivos y restricciones\n"
+                "- Elegir los tipos de modelos adecuados (lineales, enteros, no lineales)\n"
+                "- Crear modelos de optimización para diversas aplicaciones\n"
+                "- Comprender el proceso de modelado y las mejores prácticas\n"
+                "\n¿Te gustaría preguntar sobre alguno de estos temas de modelado matemático?"
             )
             return off_topic_response
 
@@ -397,8 +397,10 @@ class MathematicalModelingAgent(BaseAgent):
 
         # Define available explanation strategies for Mathematical Modeling
         available_strategies = [
-            "problem-first", "component-by-component", "pattern-recognition",
-            "reverse-engineering", "analogical", "template-based"
+            # "problem-first", "component-by-component", "pattern-recognition",
+            # "reverse-engineering", "analogical", "template-based"
+            "Problema primero", "componente por componente", "reconocimiento de patrones",
+            "ingeniería inversa", "analógico", "basado en plantillas"
         ]
 
         # Get previously used strategies from context
