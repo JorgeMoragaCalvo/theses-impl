@@ -20,19 +20,19 @@ api_client = get_api_client(BACKEND_URL)
 
 st.set_page_config(page_title="Chat - AI Tutor", page_icon="💬", layout="wide")
 
-st.title("💬 Chat with AI Tutor")
+st.title("💬 Chatea con el tutor de IA")
 
 # Check if the user is authenticated
 if not api_client.is_authenticated():
-    st.warning("Please login from the home page first!")
-    st.info("Click the link in the sidebar to go to the home page.")
+    st.warning("¡Primero inicia sesión desde la página de inicio!")
+    st.info("Haga clic en el enlace de la barra lateral para ir a la página de inicio.")
     st.stop()
 
 st.sidebar.header("🎯 Select Topic")
 # TODO: Implement auto-detect topic feature in the future
 
 selected_topic = st.sidebar.selectbox(
-    "Focus on specific topic:",
+    "Elige un tema específico:",
     options=TOPICS_LIST
 )
 
@@ -49,7 +49,7 @@ for message in st.session_state.chat_messages:
             st.caption(f"Agent: {message['agent_type']}")
 
 # Chat input
-if prompt := st.chat_input("Ask your question..."):
+if prompt := st.chat_input("Haz tu pregunta..."):
     # Add the user message
     st.session_state.chat_messages.append({"role": "user", "content": prompt})
 
@@ -58,7 +58,7 @@ if prompt := st.chat_input("Ask your question..."):
 
     # Get AI response
     with st.chat_message("assistant"):
-        with st.spinner("AI Tutor is thinking..."):
+        with st.spinner("El Tutor de IA está pensando..."):
             # Use the authenticated API client (student_id extracted from token)
             success, data = api_client.post("/chat", json_data={
                 "message": prompt,
@@ -84,7 +84,7 @@ if prompt := st.chat_input("Ask your question..."):
 with st.sidebar:
     st.divider()
 
-    if st.button("🗑️ Clear Conversation"):
+    if st.button("🗑️ Limpiar conversación"):
         st.session_state.chat_messages = []
         st.session_state.chat_conversation_id = None
         st.rerun()
@@ -93,8 +93,8 @@ with st.sidebar:
 
     st.subheader("💡 Tips")
     st.markdown("""
-    - Be specific in your questions
-    - Ask for examples or step-by-step solutions
-    - Request different explanation styles if needed
-    - You can ask follow-up questions
+    - Se específico en tus preguntas
+    - Pide ejemplos o soluciones paso a paso
+    - Solicita diferentes estilos de explicación si es necesario
+    - Puedes hacer preguntas de seguimiento
     """)
