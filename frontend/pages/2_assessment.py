@@ -20,13 +20,13 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 # Get API client
 api_client = get_api_client(BACKEND_URL)
 
-st.set_page_config(page_title="Assessment - AI Tutor", page_icon="📝", layout="wide")
+st.set_page_config(page_title="Evaluación - Tutor de IA", page_icon="📝", layout="wide")
 
 
 # Check if the user is authenticated
 if not api_client.is_authenticated():
-    st.warning("Please login from the home page first!")
-    st.info("Click the link in the sidebar to go to the home page.")
+    st.warning("¡Primero inicia sesión desde la página de inicio!")
+    st.info("Haga clic en el enlace de la barra lateral para ir a la página de inicio.")
     st.stop()
 
 # Get student_id from the session
@@ -111,10 +111,10 @@ if "show_assessment_form" not in st.session_state:
 # MAIN PAGE
 # ============================================================================
 
-st.title("📝 Practice & Assessment")
+st.title("📝 Práctica y Evaluación")
 
 # Create tabs for different sections
-tab1, tab2, tab3 = st.tabs(["📊 Progress", "📚 Assessment History", "➕ New Assessment"])
+tab1, tab2, tab3 = st.tabs(["📊 Progreso", "📚 Historial de evaluación", "➕ Nueva evaluación"])
 
 
 # ============================================================================
@@ -122,7 +122,7 @@ tab1, tab2, tab3 = st.tabs(["📊 Progress", "📚 Assessment History", "➕ New
 # ============================================================================
 
 with tab1:
-    st.subheader("📊 Your Progress")
+    st.subheader("📊 Tu Progreso")
 
     progress_data = fetch_student_progress(st.session_state.student_id)
 
@@ -132,19 +132,19 @@ with tab1:
 
         with col1:
             st.metric(
-                "Total Conversations",
+                "Conversaciones totales",
                 progress_data.get("total_conversations", 0)
             )
 
         with col2:
             st.metric(
-                "Total Messages",
+                "Total de mensajes",
                 progress_data.get("total_messages", 0)
             )
 
         with col3:
             st.metric(
-                "Total Assessments",
+                "Evaluaciones totales",
                 progress_data.get("total_assessments", 0)
             )
 
@@ -152,12 +152,12 @@ with tab1:
             avg_score = progress_data.get("average_score")
             if avg_score is not None:
                 st.metric(
-                    "Average Score",
+                    "Puntuación media",
                     f"{avg_score:.1f}",
                     delta=None
                 )
             else:
-                st.metric("Average Score", "N/A")
+                st.metric("Puntuación media", "N/A")
 
         st.divider()
 
@@ -183,7 +183,7 @@ with tab1:
         # Topics Covered
         topics_covered = progress_data.get("topics_covered", [])
         if topics_covered:
-            st.subheader("📚 Topics Covered")
+            st.subheader("📚 Temas tratados")
             # Display as badges
             topic_html = " ".join([
                 f'<span style="background-color: #0d0d0d; padding: 0.3rem 0.7rem; ' # #e0e7ff
@@ -196,7 +196,7 @@ with tab1:
         # Recent Activity Timeline
         recent_activity = progress_data.get("recent_activity", [])
         if recent_activity:
-            st.subheader("📅 Recent Activity")
+            st.subheader("📅 Actividad reciente")
 
             for activity in recent_activity[:10]:  # Show the last 10 activities
                 activity_type = activity.get("type", "unknown")
@@ -213,24 +213,24 @@ with tab1:
                 if activity_type == "conversation":
                     message_count = activity.get("message_count", 0)
                     st.markdown(
-                        f"💬 **Conversation** - {topic} - {message_count} messages - *{time_str}*"
+                        f"💬 **Conversación** - {topic} - {message_count} mensajes - *{time_str}*"
                     )
                 elif activity_type == "assessment":
                     score = activity.get("score")
                     status = activity.get("status", "unknown")
 
                     status_emoji = {
-                        "graded": "✅",
-                        "submitted": "📝",
-                        "pending": "⏳"
+                        "calificado/a": "✅",
+                        "enviado": "📝",
+                        "pendiente": "⏳"
                     }.get(status, "❓")
 
-                    score_str = f"Score: {score}" if score is not None else status.capitalize()
+                    score_str = f"Puntaje: {score}" if score is not None else status.capitalize()
                     st.markdown(
-                        f"{status_emoji} **Assessment** - {topic} - {score_str} - *{time_str}*"
+                        f"{status_emoji} **Evaluación** - {topic} - {score_str} - *{time_str}*"
                     )
         else:
-            st.info("No activity yet. Start a conversation or take an assessment!")
+            st.info("Aún no hay actividad. ¡Inicia una conversación o realiza una evaluación!")
     else:
         st.error("Unable to load progress data.")
 
@@ -240,25 +240,25 @@ with tab1:
 # ============================================================================
 
 with tab2:
-    st.subheader("📚 Assessment History")
+    st.subheader("📚 Historial de evaluación")
 
     # Topic filter
     col1, col2 = st.columns([3, 1])
     with col1:
         topic_filter = st.selectbox(
-            "Filter by topic:",
-            ["All Topics", "Operations Research", "Mathematical Modeling",
-             "Linear Programming", "Integer Programming", "Nonlinear Programming"],
+            "Filtrar por tema:",
+            ["Todos los temas", "Investigación de operaciones", "Modelado matemático",
+             "Programación lineal", "Programación entera", "Programación no lineal"],
             key="history_topic_filter"
         )
 
     with col2:
-        if st.button("🔄 Refresh", key="refresh_history"):
+        if st.button("🔄 Refrescar", key="refresh_history"):
             st.rerun()
 
     # Convert display name to API enum value
     topic_value = None
-    if topic_filter != "All Topics":
+    if topic_filter != "All Topics": # Todos los temas
         topic_value = TOPIC_OPTIONS.get(topic_filter, topic_filter.lower().replace(" ", "_"))
 
     # Fetch assessments
@@ -268,7 +268,7 @@ with tab2:
     )
 
     if assessments:
-        st.info(f"Found {len(assessments)} assessment(s)")
+        st.info(f"Encontradas {len(assessments)} evaluacion(es)")
 
         # Sort by created_at descending
         assessments_sorted = sorted(
@@ -325,63 +325,63 @@ with tab2:
                 f"{status} - {topic} - {date_str}" +
                 (f" - Score: {score}/{max_score}" if score is not None else "")
             ):
-                st.markdown(f"**Question:**")
+                st.markdown(f"**Pregunta:**")
                 st.markdown(question)
 
                 if student_answer:
-                    st.markdown(f"**Your Answer:**")
+                    st.markdown(f"**Tu respuesta:**")
                     st.info(student_answer)
 
                 if graded_at:
                     # Show grading source indicator
                     if overridden_at:
-                        st.info("🔍 **Reviewed by Admin** - Original auto-grade was manually reviewed and updated")
+                        st.info("🔍 **Revisado por el administrador**: la calificación automática original se revisó y actualizó manualmente.")
                     elif graded_by == "auto":
-                        st.info("🤖 **Automatically Graded** - Graded instantly by AI")
+                        st.info("🤖 **Calificación automática** - Calificado/a instantáneamente por la IA")
                     elif graded_by == "admin":
-                        st.info("👨‍🏫 **Manually Graded** - Graded by an administrator")
+                        st.info("👨‍🏫 ** Calificado/a manualmente ** - Calificado/a por un administrador")
 
                     if score is not None:
                         percentage = (score / max_score) * 100 if max_score > 0 else 0
                         st.metric("Score", f"{score}/{max_score}", f"{percentage:.1f}%")
 
                     if feedback:
-                        st.markdown(f"**Feedback:**")
+                        st.markdown(f"**Comentario:**")
                         st.success(feedback)
 
                     rubric = assessment.get("rubric")
                     if rubric:
-                        st.markdown(f"**Grading Rubric:**")
+                        st.markdown(f"**Rúbrica de calificación:**")
                         st.info(rubric)
 
                     correct_answer = assessment.get("correct_answer")
                     if correct_answer:
-                        st.markdown(f"**Correct Answer:**")
+                        st.markdown(f"**Respuesta correcta:**")
                         st.markdown(correct_answer)
                 elif submitted_at:
-                    st.warning("⏳ Assessment submitted but not yet graded. This is unusual - grading should be instant.")
+                    st.warning("⏳ Evaluación enviada, pero aún no calificada. Esto es inusual; la calificación debería ser instantánea..")
                 else:
                     # Allow submission
-                    st.warning("Assessment not yet submitted.")
+                    st.warning("Evaluación aún no enviada.")
 
                     answer_key = f"answer_{assessment_id}"
                     answer = st.text_area(
-                        "Your Answer:",
+                        "Tu respuesta:",
                         key=answer_key,
                         height=150,
                         value=student_answer or ""
                     )
 
-                    if st.button(f"Submit Answer", key=f"submit_{assessment_id}"):
+                    if st.button(f"Enviar respuesta", key=f"submit_{assessment_id}"):
                         if answer.strip():
                             result = submit_assessment(assessment_id, answer.strip())
                             if result is not None:
-                                st.success("Answer submitted successfully!")
+                                st.success("¡Respuesta enviada exitosamente!")
                                 st.rerun()
                         else:
-                            st.error("Please provide an answer before submitting.")
+                            st.error("Por favor proporcione una respuesta antes de enviar.")
     else:
-        st.info("No assessments yet. Generate your first assessment in the 'New Assessment' tab!")
+        st.info("Aún no hay evaluaciones. ¡Genera tu primera evaluación en la pestaña 'Nueva evaluación'!")
 
 
 # ============================================================================
@@ -389,7 +389,7 @@ with tab2:
 # ============================================================================
 
 with tab3:
-    st.subheader("➕ Generate New Assessment")
+    st.subheader("➕ Generar nueva evaluación")
 
     col1, col2 = st.columns(2)
 
@@ -397,24 +397,24 @@ with tab3:
         new_topic = st.selectbox(
             "Select a topic:",
             [
-                "Operations Research",
-                "Mathematical Modeling",
-                "Linear Programming",
-                "Integer Programming",
-                "Nonlinear Programming"
+                "Investigación de Operaciones",
+                "Modelado Matemático",
+                "Programación Lineal",
+                "Programación Entera",
+                "Programación No Lineal"
             ],
             key="new_topic"
         )
 
     with col2:
         new_difficulty = st.selectbox(
-            "Select difficulty:",
-            ["Beginner", "Intermediate", "Advanced"],
+            "Selecciona dificultad:",
+            ["Principiante", "Intermedio", "Avanzado"],
             key="new_difficulty"
         )
 
-    if st.button("Generate Assessment", type="primary", key="generate_btn"):
-        with st.spinner("Generating assessment..."):
+    if st.button("Generar evaluación", type="primary", key="generate_btn"):
+        with st.spinner("Generando evaluación..."):
             # Convert display name to API enum value
             topic_value = TOPIC_OPTIONS.get(new_topic, new_topic.lower().replace(" ", "_"))
             # student_id extracted from the auth token automatically
@@ -426,7 +426,7 @@ with tab3:
             if result is not None:
                 st.session_state.current_assessment = result
                 st.session_state.show_assessment_form = True
-                st.success("Assessment generated successfully!")
+                st.success("¡Evaluación generada exitosamente!")
                 st.rerun()
 
     # Display current assessment if available
@@ -438,21 +438,21 @@ with tab3:
         question = current.get("question", "")
         topic = current.get("topic", "")
 
-        st.subheader(f"📝 Assessment: {topic}")
-        st.markdown("**Question:**")
+        st.subheader(f"📝 Evaluación: {topic}")
+        st.markdown("**Pregunta:**")
         st.markdown(question)
 
         rubric = current.get("rubric")
         if rubric:
-            st.markdown("**Grading Rubric:**")
+            st.markdown("**Rúbrica de calificación:**")
             st.info(rubric)
 
         # Check if already submitted
         if current.get("submitted_at"):
-            st.info("This assessment has already been submitted.")
+            st.info("Esta evaluación ya ha sido enviada.")
 
             if current.get("student_answer"):
-                st.markdown("**Your Answer:**")
+                st.markdown("**Tu respuesta:**")
                 st.info(current.get("student_answer"))
 
             if current.get("graded_at"):
@@ -476,17 +476,17 @@ with tab3:
                     st.metric("Score", f"{score}/{max_score}", f"{percentage:.1f}%")
 
                 if feedback:
-                    st.markdown("**Feedback:**")
+                    st.markdown("**Comentario:**")
                     st.success(feedback)
             else:
-                st.warning("⏳ Assessment submitted but not yet graded. This is unusual - grading should be instant.")
+                st.warning("⏳ Evaluación enviada, pero aún no calificada. Esto es inusual; la calificación debería ser instantánea..")
         else:
             # Answer input
             answer = st.text_area(
-                "Your Answer:",
+                "Tu respuesta:",
                 height=200,
                 key="current_assessment_answer",
-                placeholder="Type your answer here..."
+                placeholder="Escribe tu respuesta aquí..."
             )
 
             col1, col2 = st.columns([1, 4])
@@ -496,14 +496,14 @@ with tab3:
                     if answer.strip():
                         result = submit_assessment(assessment_id, answer.strip())
                         if result is not None:
-                            st.success("Answer submitted successfully!")
+                            st.success("¡Respuesta enviada exitosamente!")
                             st.session_state.current_assessment = result
                             st.rerun()
                     else:
-                        st.error("Please provide an answer before submitting.")
+                        st.error("Por favor proporcione una respuesta antes de enviar.")
 
             with col2:
-                if st.button("Cancel", key="cancel_current"):
+                if st.button("Cancelar", key="cancel_current"):
                     st.session_state.current_assessment = None
                     st.session_state.show_assessment_form = False
                     st.rerun()
@@ -514,4 +514,4 @@ with tab3:
 # ============================================================================
 
 st.divider()
-st.caption("💡 Tip: Complete assessments to track your progress and identify areas for improvement!")
+st.caption("💡 Tip: ¡Realiza evaluaciones para seguir tu progreso e identificar áreas de mejora!")
