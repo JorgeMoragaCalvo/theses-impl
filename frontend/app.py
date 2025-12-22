@@ -19,7 +19,7 @@ api_client = get_api_client(BACKEND_URL)
 
 # Page configuration
 st.set_page_config(
-    page_title="AI Tutor - Optimization Methods",
+    page_title="Tutor de IA - Métodos de optimización",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -61,9 +61,9 @@ def main():
     """Main application entry point."""
 
     # Header
-    st.markdown('<p class="main-header">🎓 AI Tutor for Optimization Methods</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-header">🎓 Tutor de IA para métodos de optimización</p>', unsafe_allow_html=True)
     st.markdown(
-        '<p class="sub-header">Your personalized assistant for learning optimization techniques</p>',
+        '<p class="sub-header">Tu asistente personalizado para aprender técnicas de optimización</p>',
         unsafe_allow_html=True
     )
 
@@ -72,7 +72,7 @@ def main():
 
     # Sidebar - Student Profile
     with st.sidebar:
-        st.header("👤 Student Profile")
+        st.header("👤 Perfil del estudiante")
 
         # Backend status indicator
         if is_healthy:
@@ -89,7 +89,7 @@ def main():
         # Authentication section
         if not api_client.is_authenticated():
             # Show login/register tabs
-            auth_tab = st.radio("Choose action:", ["Login", "Register"], horizontal=True)
+            auth_tab = st.radio("Elige una acción:", ["Login", "Register"], horizontal=True)
 
             if auth_tab == "Login":
                 st.subheader("Login")
@@ -101,38 +101,38 @@ def main():
                         with st.spinner("Logging in..."):
                             success, data = api_client.login(login_email, login_password)
                             if success:
-                                st.success(f"Welcome back, {data['user']['name']}!")
+                                st.success(f"Bienvenido de nuevo, {data['user']['name']}!")
                                 st.rerun()
                             else:
                                 error_msg = data.get("detail", "Login failed")
                                 st.error(f"Error: {error_msg}")
                     else:
-                        st.warning("Please enter your email and password!")
+                        st.warning("¡Por favor ingresa tu email y contraseña!")
 
             else:  # Register
-                st.subheader("Register")
-                register_name = st.text_input("Name", key="register_name")
+                st.subheader("Registro")
+                register_name = st.text_input("Nombre", key="register_name")
                 register_email = st.text_input("Email", key="register_email")
                 register_password = st.text_input("Password", type="password", key="register_password", help="Minimum 8 characters")
-                register_password_confirm = st.text_input("Confirm Password", type="password", key="register_password_confirm")
+                register_password_confirm = st.text_input("Confirmar Password", type="password", key="register_password_confirm")
 
-                if st.button("Register", type="primary", key="register_btn"):
+                if st.button("Registro", type="primary", key="register_btn"):
                     if register_name and register_email and register_password:
                         if register_password != register_password_confirm:
-                            st.error("Passwords do not match!")
+                            st.error("¡Las contraseñas no coinciden!")
                         elif len(register_password) < 8:
-                            st.error("Password must be at least 8 characters!")
+                            st.error("¡La contraseña debe tener al menos 8 caracteres!")
                         else:
-                            with st.spinner("Creating account..."):
+                            with st.spinner("Creando cuenta..."):
                                 success, data = api_client.register(register_name, register_email, register_password)
                                 if success:
-                                    st.success(f"Welcome, {data['user']['name']}! Your account has been created.")
+                                    st.success(f"Bienvenido, {data['user']['name']}! Tu cuenta ha sido creada.")
                                     st.rerun()
                                 else:
                                     error_msg = data.get("detail", "Registration failed")
                                     st.error(f"Error: {error_msg}")
                     else:
-                        st.warning("Please fill in all fields!")
+                        st.warning("¡Por favor, rellena todos los campos!")
 
         else:
             # Show logged-in user
@@ -140,37 +140,37 @@ def main():
             user_email = st.session_state.get("student_email", "")
             user_role = st.session_state.get("user_role", "user")
 
-            st.success(f"Logged in as: **{user_name}**")
+            st.success(f"Inició sesión como: **{user_name}**")
             st.text(f"Email: {user_email}")
             if user_role == "admin":
-                st.info("Role: Administrator")
+                st.info("Rol: Administrador")
 
             if st.button("Logout", key="logout_btn"):
                 api_client.logout()
-                st.success("Logged out successfully!")
+                st.success("¡Cierre de sesión exitoso!")
                 st.rerun()
 
             st.divider()
 
             # Topic selector for logged-in users
-            st.subheader("🎯 Select Topic")
+            st.subheader("🎯 Seleccionar tema")
 
             # Initialize the topic in the session state if not present
             if "selected_topic" not in st.session_state:
                 st.session_state.selected_topic = DEFAULT_TOPIC
 
             selected_topic = st.selectbox(
-                "Choose your learning focus:",
+                "Elige tu enfoque de aprendizaje:",
                 options=TOPICS_LIST,
                 index=TOPICS_LIST.index(st.session_state.selected_topic),
                 key="home_topic_selector",
-                help="Select which optimization topic you want to learn about"
+                help="Selecciona el tema de optimización sobre el que deseas aprender"
             )
             st.session_state.selected_topic = selected_topic
 
         st.divider()
 
-        st.subheader("📚 Topics Covered")
+        st.subheader("📚 Temas tratados")
         for topic in TOPICS_LIST:
             st.text(f"• {topic}")
 
@@ -206,40 +206,40 @@ def main():
 
     if not api_client.is_authenticated():
         # Welcome screen
-        st.markdown("### Welcome to the AI Tutoring System! 👋")
+        st.markdown("### ¡Bienvenido al sistema de tutoría de IA! 👋")
 
         col1, col2, col3 = st.columns(3)
 
         with col1:
             st.markdown("#### 💬 Chat")
-            st.write("Interact with AI tutors specialized in different optimization topics")
-            st.info("Ask questions, get explanations, and work through problems")
+            st.write("Interactúa con tutores de IA especializados en diferentes temas de optimización.")
+            st.info("Haz preguntas, obtén explicaciones y resuelve problemas.")
         with col2:
-            st.markdown("#### 📝 Assessments")
-            st.write("Test your knowledge with AI-generated practice problems")
-            st.info("Get instant feedback and personalized suggestions")
+            st.markdown("#### 📝 Evaluaciones")
+            st.write("Pon a prueba tus conocimientos con problemas de práctica generados por IA")
+            st.info("Obtén comentarios instantáneos y sugerencias personalizadas")
         with col3:
-            st.markdown("#### 📊 Progress")
-            st.write("Track your learning journey across all topics")
-            st.info("See your improvement and indentify areas to focus on")
+            st.markdown("#### 📊 Progreso")
+            st.write("Realiza un seguimiento de tu recorrido de aprendizaje en todos los temas")
+            st.info("Vea tu mejora e identifica áreas en las que centrarte")
 
         st.divider()
 
-        st.markdown("### 🚀 Getting Started")
+        st.markdown("### 🚀 Empezando")
         st.markdown("""
-        1. **Login or Register** in the sidebar to access your account
-           - New users: Click 'Register' and create an account
-           - Existing users: Click 'Login' with your credentials
-        2. **Start learning** with AI tutors
-        3. **Navigate to pages** using the sidebar menu:
-           - **Chat**: Talk with AI tutors about optimization methods
-           - **Assessment**: Take practice quizzes and get instant feedback
-           - **Progress**: View your learning statistics and improvement
-           - **Admin** (admins only): Manage users and view system stats
+        1. **Inicia sesión o regístrate** en la barra lateral para acceder a tu cuenta
+            - Nuevos usuarios: Haz clic en "Registrarse" y crea una cuenta
+            - Usuarios existentes: Haz clic en "Iniciar sesión" con tus credenciales
+        2. **Empieza a aprender** con tutores de IA
+        3. **Navega a las páginas** usando el menú lateral:
+            - **Chat**: Habla con tutores de IA sobre métodos de optimización
+            - **Evaluación**: Realiza cuestionarios de práctica y obtén retroalimentación instantánea
+            - **Progreso**: Consulta tus estadísticas de aprendizaje y mejoras
+            - **Administrador** (solo administradores): Gestiona usuarios y consulta las estadísticas del sistema
         """)
         st.divider()
 
-        st.markdown("### 📚 What You'll Learn")
+        st.markdown("### 📚 Lo que aprenderás")
 
         col1, col2 = st.columns(2)
 
@@ -263,8 +263,8 @@ def main():
 
     else:
         # Show the main chat interface for logged-in users
-        st.markdown(f"### 💬 Chat with AI Tutor")
-        st.markdown("Ask questions about any optimization method topic!")
+        st.markdown(f"### 💬 Chatea con un tutor de IA")
+        st.markdown("¡Haga preguntas sobre cualquier tema relacionado con el método de optimización!")
 
         # Initialize chat history
         if "messages" not in st.session_state:
@@ -276,14 +276,14 @@ def main():
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-        if prompt := st.chat_input("Ask a question about optimization methods..."):
+        if prompt := st.chat_input("Haz una pregunta sobre métodos de optimización..."):
             # Add the user message to chat
             st.session_state.messages.append({"role": "user", "content": prompt})
             with st.chat_message("user"):
                 st.markdown(prompt)
 
             with st.chat_message("assistant"):
-                with st.spinner("Thinking..."):
+                with st.spinner("Pensando..."):
                     # Get selected topic from session state
                     selected_topic = st.session_state.get("selected_topic", DEFAULT_TOPIC)
                     topic_value = TOPIC_OPTIONS[selected_topic]
