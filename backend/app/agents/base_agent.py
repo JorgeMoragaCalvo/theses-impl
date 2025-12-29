@@ -1,15 +1,15 @@
-from typing import Any
-from abc import ABC, abstractmethod
 import logging
 import os
 import random
+from abc import ABC, abstractmethod
+from typing import Any
 
 from ..services.llm_service import get_llm_service
 from ..utils import (
-    format_error_message,
     detect_confusion_signals,
     detect_repeated_topic,
-    should_request_feedback
+    format_error_message,
+    should_request_feedback,
 )
 
 """
