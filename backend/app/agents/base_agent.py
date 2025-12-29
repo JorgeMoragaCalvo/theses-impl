@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional
+from typing import Any
 from abc import ABC, abstractmethod
 import logging
 import os
@@ -35,7 +35,7 @@ class BaseAgent(ABC):
         self.agent_name = agent_name
         self.agent_type = agent_type
         self.llm_service = get_llm_service()
-        self.course_materials: Optional[str] = None
+        self.course_materials: str | None = None
 
         logger.info(f"Initialized {self.agent_name} ({self.agent_type})")
 
@@ -111,7 +111,7 @@ class BaseAgent(ABC):
 
     def generate_response(self, user_message: str,
                           conversation_history: list[dict[str, str]],
-                          context: Dict[str, Any]) -> str:
+                          context: dict[str, Any]) -> str:
         """
         Generate agent response to the user message.
 
@@ -151,8 +151,8 @@ class BaseAgent(ABC):
 
     async def a_generate_response(self,
                                   user_message: str,
-                                  conversation_history: List[Dict[str, str]],
-                                  context: Dict[str, Any]) -> str:
+                                  conversation_history: list[dict[str, str]],
+                                  context: dict[str, Any]) -> str:
         """
         Async version of generate_response.
 
@@ -188,7 +188,7 @@ class BaseAgent(ABC):
             logger.error(f"Error in {self.agent_name} (async) response generation: {str(e)}")
             return format_error_message(e)
 
-    def get_agent_info(self) -> Dict[str, Any]:
+    def get_agent_info(self) -> dict[str, Any]:
         """
         Get information about this agent.
 
@@ -261,8 +261,8 @@ class BaseAgent(ABC):
     @staticmethod
     def detect_student_confusion(
         user_message: str,
-        conversation_history: List[Dict[str, str]]
-    ) -> Dict[str, Any]:
+        conversation_history: list[dict[str, str]]
+    ) -> dict[str, Any]:
         """
         Detect if the student is confused based on the current message and conversation history.
 
@@ -304,8 +304,8 @@ class BaseAgent(ABC):
     def select_explanation_strategy(
         confusion_level: str,
         knowledge_level: str,
-        previous_strategies: List[str],
-        all_available_strategies: List[str]
+        previous_strategies: list[str],
+        all_available_strategies: list[str]
     ) -> str:
         """
         Select the most appropriate explanation strategy based on context.
@@ -359,9 +359,9 @@ class BaseAgent(ABC):
 
     @staticmethod
     def build_adaptive_prompt_section(
-        confusion_analysis: Dict[str, Any],
+        confusion_analysis: dict[str, Any],
         selected_strategy: str,
-        context: Dict[str, Any]
+        context: dict[str, Any]
     ) -> str:
         """
         Build adaptive instructions to inject into system prompt based on confusion analysis.
@@ -462,8 +462,8 @@ class BaseAgent(ABC):
     @staticmethod
     def should_add_feedback_request(
         response_text: str,
-        conversation_history: List[Dict[str, str]],
-        context: Dict[str, Any],
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any],
         confusion_detected: bool
     ) -> bool:
         """
