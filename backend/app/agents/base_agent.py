@@ -40,7 +40,7 @@ class BaseAgent(ABC):
         logger.info(f"Initialized {self.agent_name} ({self.agent_type})")
 
     @abstractmethod
-    def get_system_prompt(self, context: Dict[str, Any]) -> str:
+    def get_system_prompt(self, context: dict[str, Any]) -> str:
         """
         Generate system prompt for this agent.
         Must be implemented by subclasses.
@@ -77,7 +77,7 @@ class BaseAgent(ABC):
             logger.error(f"Error loading course materials: {str(e)}")
             return False
 
-    def format_context_for_prompt(self, context: Dict[str, Any]) -> str:
+    def format_context_for_prompt(self, context: dict[str, Any]) -> str:
         """
         Format context information for inclusion in prompts.
 
@@ -110,7 +110,7 @@ class BaseAgent(ABC):
         return "\n\n".join(context_parts)
 
     def generate_response(self, user_message: str,
-                          conversation_history: List[Dict[str, str]],
+                          conversation_history: list[dict[str, str]],
                           context: Dict[str, Any]) -> str:
         """
         Generate agent response to the user message.
