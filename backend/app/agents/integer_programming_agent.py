@@ -495,7 +495,7 @@ class IntegerProgrammingAgent(BaseAgent):
             Generated response with adaptive explanations
         """
 
-        # Preprocess message
+        # Preprocess the message
         preprocessed_message, error_message = self._validate_and_preprocess(user_message)
         if error_message:
             return error_message

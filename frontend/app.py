@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from utils.api_client import get_api_client
 from utils.constants import TOPIC_OPTIONS, TOPICS_LIST, TOPIC_DESCRIPTIONS, DEFAULT_TOPIC
 """
-Main application page - AI Tutor for Optimization Methods.
+Página principal de la aplicación - Tutor de IA para métodos de optimización.
 """
 
 # Load environment variables
@@ -311,7 +311,7 @@ def main():
         with st.sidebar:
             st.divider()
             if st.session_state.messages:
-                if st.button("🗑️ Clear Chat"):
+                if st.button("🗑️ Limpiar Chat"):
                     st.session_state.messages = []
                     st.session_state.conversation_id = None
                     st.rerun()

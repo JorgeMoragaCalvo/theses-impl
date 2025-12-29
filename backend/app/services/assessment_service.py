@@ -6,6 +6,7 @@ import json
 from ..services.llm_service import get_llm_service
 from ..services.conversation_service import ConversationService
 from ..database import Topic
+from .llm_response_parser import parse_llm_json_response
 
 """
 Assessment Service - Handles personalized assessment generation.
@@ -91,7 +92,7 @@ class AssessmentService:
             response = self.llm_service.generate_response(
                 messages=messages,
                 system_prompt=system_prompt,
-                temperature=0.7,  # Moderate creativity for varied questions
+                temperature=0.3,  # Moderate creativity for varied questions
                 max_tokens=4000  # Allow longer responses for complete assessments
             )
 
@@ -266,22 +267,8 @@ class AssessmentService:
             Dictionary with parsed components
         """
         try:
-            # Try to extract JSON from the response
-            # Remove Markdown code blocks if present
-            response_text = llm_response.strip()
-            if "```json" in response_text:
-                # Extract content between ```json and ```
-                start = response_text.find("```json") + 7
-                end = response_text.find("```", start)
-                response_text = response_text[start:end].strip()
-            elif "```" in response_text:
-                # Extract content between ``` and ```
-                start = response_text.find("```") + 3
-                end = response_text.find("```", start)
-                response_text = response_text[start:end].strip()
-
-            # Parse JSON
-            parsed = json.loads(response_text)
+            # Use the shared parser to get the JSON data
+            parsed = parse_llm_json_response(llm_response)
 
             return {
                 "question": parsed.get("question", ""),
@@ -289,7 +276,7 @@ class AssessmentService:
                 "rubric": parsed.get("rubric", "")
             }
 
-        except json.JSONDecodeError as e:
+        except (json.JSONDecodeError, ValueError) as e:
             logger.error(f"Failed to parse LLM response as JSON: {str(e)}")
             # Fallback: try to extract sections manually
             return self._parse_fallback(llm_response)

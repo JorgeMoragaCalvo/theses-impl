@@ -226,7 +226,7 @@ class BaseAgent(ABC):
     @staticmethod
     def preprocess_message(message: str) -> str:
         """
-        Preprocess user message before sending to LLM.
+        Preprocess the user message before sending to LLM.
 
         Args:
             message: Raw user message

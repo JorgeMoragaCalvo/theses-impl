@@ -6,6 +6,7 @@ import re
 
 from ..services.llm_service import get_llm_service
 from ..database import Assessment
+from .llm_response_parser import parse_llm_json_response
 
 """
 Grading Service - Handles automatic LLM-based grading of student assessments.
@@ -169,21 +170,8 @@ class GradingService:
             Tuple of (score, feedback)
         """
         try:
-            # Try to extract JSON from the response
-            response_text = llm_response.strip()
-
-            # Remove Markdown code blocks if present
-            if "```json" in response_text:
-                start = response_text.find("```json") + 7
-                end = response_text.find("```", start)
-                response_text = response_text[start:end].strip()
-            elif "```" in response_text:
-                start = response_text.find("```") + 3
-                end = response_text.find("```", start)
-                response_text = response_text[start:end].strip()
-
-            # Parse JSON
-            parsed = json.loads(response_text)
+            # Use the shared parser to get the JSON data
+            parsed = parse_llm_json_response(llm_response)
 
             score = float(parsed.get("score", 0))
             feedback = parsed.get("feedback", "No feedback provided.")
