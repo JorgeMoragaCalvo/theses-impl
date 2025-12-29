@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.api_client import get_api_client
 from utils.constants import TOPIC_OPTIONS, TOPICS_LIST
 """
-Chat page - Detailed conversation interface with topic selection.
+Página de chat - Interfaz de conversación detallada con selección de temas.
 """
 
 load_dotenv()

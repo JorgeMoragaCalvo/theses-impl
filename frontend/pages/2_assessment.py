@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.api_client import get_api_client
 from utils.constants import TOPIC_OPTIONS
 """
-Assessment page - Practice problems and quizzes.
+Página de evaluación - Problemas de práctica y cuestionarios.
 """
 
 load_dotenv()
