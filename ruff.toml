@@ -24,6 +24,6 @@ ignore = [
 "__init__.py" = ["F401"]
 
 [format]
-quote_style = "double"  # Use double quotes for strings
+quote-style = "double"  # Use double quotes for strings
 
 indent-style = "space"  # Indent with spaces
