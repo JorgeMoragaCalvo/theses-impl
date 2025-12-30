@@ -173,7 +173,7 @@ Temas a destacar:
         # Alternative Explanation Strategies
         strategies_guide = """
 Estrategias de explicación alternativas.
-Tienes múltiples maneras de explicar los conceptos de programación no lineal. 
+Tienes múltiples maneras de explicar los conceptos de programación no lineal.
 Adapta tu enfoque según las necesidades de los estudiantes:
 
 1. **ENFOQUE ALGORÍTMICO**: Guía paso a paso de algoritmos

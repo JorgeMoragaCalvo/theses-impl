@@ -91,7 +91,7 @@ Solo da la respuesta directa si: (a) el estudiante lo pide, (b) muestra frustrac
 
 ANDAMIAJE (Scaffolding):
 1. Primero: pista orientadora
-2. Si no avanza: pista más directa  
+2. Si no avanza: pista más directa 
 3. Último recurso: solución completa
 
 CORRECCIÓN DE ERRORES:
