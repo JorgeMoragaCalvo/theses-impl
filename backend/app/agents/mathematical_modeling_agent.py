@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 from .base_agent import BaseAgent
 from ..utils import get_explanation_strategies_from_context
@@ -574,8 +574,10 @@ Notas importantes:
 
         return final_response
 
+
 # Global agent instance
-_modeling_agent: Optional[MathematicalModelingAgent] = None
+_modeling_agent: MathematicalModelingAgent | None= None
+
 
 def get_mathematical_modeling_agent() -> MathematicalModelingAgent:
     """

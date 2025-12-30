@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from .base_agent import BaseAgent
 from ..utils import get_explanation_strategies_from_context
@@ -287,7 +287,7 @@ Ejemplo de estructura de respuesta:
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in nlp_keywords)
 
-    def _validate_and_preprocess(self, user_message: str) -> tuple[Optional[str], Optional[str]]:
+    def _validate_and_preprocess(self, user_message: str) -> tuple[str | None, str | None]:
         """
         Validate and preprocess the incoming message.
 
@@ -517,7 +517,7 @@ Ejemplo de estructura de respuesta:
         )
 
 # Global agent instance
-_nlp_agent: Optional[NonlinearProgrammingAgent] = None
+_nlp_agent: NonlinearProgrammingAgent | None = None
 
 def get_nonlinear_programming_agent() -> NonlinearProgrammingAgent:
     """

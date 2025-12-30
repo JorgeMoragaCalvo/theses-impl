@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from .base_agent import BaseAgent
 from ..utils import get_explanation_strategies_from_context
@@ -415,7 +415,7 @@ Estructura de la respuesta:
 
         return keyword_match or is_general_or_question
 
-    def _validate_and_preprocess(self, user_message: str) -> tuple[Optional[str], Optional[str]]:
+    def _validate_and_preprocess(self, user_message: str) -> tuple[str | None, str | None]:
         """
         Validate and preprocess the incoming message.
 
@@ -650,7 +650,7 @@ Estructura de la respuesta:
 
 
 # Global agent instance (singleton pattern)
-_or_agent: Optional[OperationsResearchAgent] = None
+_or_agent: OperationsResearchAgent | None = None
 
 def get_operations_research_agent() -> OperationsResearchAgent:
     """

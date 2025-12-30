@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from .base_agent import BaseAgent
 from ..utils import get_explanation_strategies_from_context
@@ -580,7 +580,7 @@ Example response structure:
         )
 
 # Global agent instance
-_ip_agent: Optional[IntegerProgrammingAgent] = None
+_ip_agent: IntegerProgrammingAgent | None = None
 
 def get_integer_programming_agent() -> IntegerProgrammingAgent:
     """

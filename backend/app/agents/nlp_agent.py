@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from .base_agent import BaseAgent
 from ..utils import get_explanation_strategies_from_context
@@ -295,7 +295,7 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in nlp_keywords)
 
-    def _validate_and_preprocess(self, user_message: str) -> tuple[Optional[str], Optional[str]]:
+    def _validate_and_preprocess(self, user_message: str) -> tuple[str | None, str | None]:
         """Validate and preprocess the incoming message."""
         if not self.validate_message(user_message):
             return None, "No recibí un mensaje válido. ¿Podrías intentar de nuevo?"
@@ -480,7 +480,7 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
         )
 
 # ==================== SINGLETON INSTANCE ====================
-_nlp_agent: Optional[NonLinearProgrammingAgent] = None
+_nlp_agent: NonLinearProgrammingAgent | None = None
 
 def get_nonlinear_programming_agent() -> NonLinearProgrammingAgent:
     """Get or create the global NLP agent instance."""
