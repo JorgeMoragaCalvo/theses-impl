@@ -1,8 +1,9 @@
 import json
-from typing import Optional, Any
+from typing import Any
 
 import streamlit as st
 import requests
+
 """
 API Client for authenticated requests to the backend.
 Handles token management and automatic header injection.

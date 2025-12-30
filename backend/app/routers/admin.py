@@ -167,7 +167,9 @@ async def update_user_role(
     db.commit()
     db.refresh(student)
 
-    logger.info(f"Admin {current_admin.id} changed user {user_id} role to {role}")
+    safe_user_id_for_log = str(user_id)  # Ensure user_id is string for logging
+    safe_role_for_log = str(role).replace("\r", "").replace("\n", "")  # Sanitize role for logging
+    logger.info(f"Admin {current_admin.id} changed user {safe_user_id_for_log} role to {safe_role_for_log}")
 
     return {
         "message": "User role updated successfully",

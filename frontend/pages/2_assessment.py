@@ -210,7 +210,7 @@ with tab1:
                 try:
                     dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
                     time_str = dt.strftime("%Y-%m-%d %H:%M")
-                except:
+                except (ValueError, TypeError):
                     time_str = timestamp
 
                 if activity_type == "conversation":
@@ -320,7 +320,7 @@ with tab2:
             try:
                 dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
                 date_str = dt.strftime("%Y-%m-%d %H:%M")
-            except:
+            except (ValueError, AttributeError, TypeError):
                 date_str = created_at
 
             # Create expander for each assessment
