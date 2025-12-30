@@ -1,49 +1,50 @@
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from fastapi import FastAPI, Depends, HTTPException, status
+
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from .config import settings
-from .database import get_db, init_db, Student, Conversation, Message, Assessment, Feedback, UserRole, GradingSource
-from .models import (
-    HealthResponse,
-    StudentCreate,
-    StudentResponse,
-    StudentUpdate,
-    StudentRegister,
-    StudentLogin,
-    TokenResponse,
-    ChatRequest,
-    ChatResponse,
-    ConversationResponse,
-    MessageResponse,
-    FeedbackResponse,
-    FeedbackCreate,
-    ProgressResponse,
-    AssessmentResponse,
-    AssessmentGenerate,
-    AssessmentAnswerSubmit,
-    AssessmentGradeRequest,
-)
-from .auth import (
-    get_password_hash,
-    authenticate_user,
-    create_access_token,
-    get_current_user,
-    get_current_admin_user
-)
+from .agents.integer_programming_agent import get_integer_programming_agent
 from .agents.linear_programming_agent import get_linear_programming_agent
 from .agents.mathematical_modeling_agent import get_mathematical_modeling_agent
 from .agents.nonlinear_programming_agent import get_nonlinear_programming_agent
 from .agents.operations_research_agent import get_operations_research_agent
-from .agents.integer_programming_agent import get_integer_programming_agent
-from .services.conversation_service import get_conversation_service
-from .services.assessment_service import get_assessment_service
-from .services.grading_service import get_grading_service
+from .auth import (
+    authenticate_user,
+    create_access_token,
+    get_current_user,
+    get_current_admin_user,
+    get_password_hash
+)
+from .config import settings
+from .database import Assessment, Conversation, Feedback, GradingSource, Message, Student, UserRole, get_db, init_db
+from .models import (
+    AssessmentAnswerSubmit,
+    AssessmentGenerate,
+    AssessmentGradeRequest,
+    AssessmentResponse,
+    ChatRequest,
+    ChatResponse,
+    ConversationResponse,
+    FeedbackCreate,
+    FeedbackResponse,
+    HealthResponse,
+    MessageResponse,
+    ProgressResponse,
+    StudentCreate,
+    StudentLogin,
+    StudentRegister,
+    StudentResponse,
+    StudentUpdate,
+    TokenResponse
+)
 from .routers import admin
+from .services.assessment_service import get_assessment_service
+from .services.conversation_service import get_conversation_service
+from .services.grading_service import get_grading_service
 
 """
 FastAPI main application entry point.

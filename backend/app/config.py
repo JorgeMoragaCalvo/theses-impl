@@ -1,6 +1,7 @@
 import logging
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Literal
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 """
 Configuration management for the AI Tutoring System.

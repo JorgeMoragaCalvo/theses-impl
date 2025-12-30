@@ -1,12 +1,13 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from sqlalchemy import func
 from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 from ..auth import get_current_admin_user
 from ..config import settings
-from ..database import get_db, Student, Conversation, Assessment, UserRole
+from ..database import Assessment, Conversation, Student, UserRole, get_db
 from ..models import StudentResponse
 
 """
@@ -151,7 +152,7 @@ async def update_user_role(
     if role not in [UserRole.USER.value, UserRole.ADMIN.value]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid role. Must be 'user' or 'admin'"
+            detail="Invalid role. Must be 'user' or 'admin'"
         )
 
     # Prevent admin from changing their own role
@@ -169,7 +170,7 @@ async def update_user_role(
     logger.info(f"Admin {current_admin.id} changed user {user_id} role to {role}")
 
     return {
-        "message": f"User role updated successfully",
+        "message": "User role updated successfully",
         "user_id": user_id,
         "role": role
     }
@@ -210,7 +211,7 @@ async def get_system_stats(
 
     # Count active users
     active_users = db.query(func.count(Student.id)).filter(
-        Student.is_active == True
+        Student.is_active #Student.is_active == True
     ).scalar()
 
     # Count total conversations

@@ -1,8 +1,9 @@
 # UPDATED: 2025-11-11 23:00 - Added byte truncation for bcrypt 72-byte limit
 import logging
 from datetime import datetime, timedelta, timezone
+
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
