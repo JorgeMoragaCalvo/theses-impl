@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
 
 from utils.api_client import get_api_client
+
 """
 Admin Dashboard - User and system management (Admin only).
 """

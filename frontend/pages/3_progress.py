@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
 
 from utils.api_client import get_api_client
+
 """
 Progress tracking page - Student learning analytics
 """
@@ -114,7 +115,7 @@ if success:
                         st.write(f"**Ended:** {conv['ended_at']}")
 
                     # Load full conversation
-                    if st.button(f"View Details", key=f"view_{conv['id']}"):
+                    if st.button("View Details", key=f"view_{conv['id']}"):
                         detail_success, detail_data = api_client.get(f"conversations/{conv['id']}")
                         if detail_success:
                             st.write(f"**Messages:** {len(detail_data.get('messages', []))}")

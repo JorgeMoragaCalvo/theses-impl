@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
 
 from utils.api_client import get_api_client
 from utils.constants import TOPIC_OPTIONS
+
 """
 Página de evaluación - Problemas de práctica y cuestionarios.
 """
@@ -374,7 +375,7 @@ with tab2:
                         value=student_answer or ""
                     )
 
-                    if st.button(f"Enviar respuesta", key=f"submit_{assessment_id}"):
+                    if st.button("Enviar respuesta", key=f"submit_{assessment_id}"):
                         if answer.strip():
                             result = submit_assessment(assessment_id, answer.strip())
                             if result is not None:

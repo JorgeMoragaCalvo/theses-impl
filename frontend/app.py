@@ -1,8 +1,8 @@
 import os
 
+from dotenv import load_dotenv
 import requests
 import streamlit as st
-from dotenv import load_dotenv
 
 from utils.api_client import get_api_client
 from utils.constants import DEFAULT_TOPIC, TOPIC_DESCRIPTIONS, TOPICS_LIST, TOPIC_OPTIONS
