@@ -1,5 +1,5 @@
-from typing import List, Dict, Any, Optional, Tuple
 import logging
+from typing import Any, Optional
 
 from .base_agent import BaseAgent
 from ..utils import get_explanation_strategies_from_context
@@ -15,7 +15,7 @@ class NonLinearProgrammingAgent(BaseAgent):
             agent_type="nonlinear_programming"
         )
 
-    def get_system_prompt(self, context: Dict[str, Any]) -> str:
+    def get_system_prompt(self, context: dict[str, Any]) -> str:
         """
         Generate optimized system prompt for NLP agent.
 
@@ -295,7 +295,7 @@ La calificaciÃ³n de restricciones (LICQ) garantiza que los multiplicadores son Ã
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in nlp_keywords)
 
-    def _validate_and_preprocess(self, user_message: str) -> Tuple[Optional[str], Optional[str]]:
+    def _validate_and_preprocess(self, user_message: str) -> tuple[Optional[str], Optional[str]]:
         """Validate and preprocess the incoming message."""
         if not self.validate_message(user_message):
             return None, "No recibÃ­ un mensaje vÃ¡lido. Â¿PodrÃ­as intentar de nuevo?"
@@ -317,9 +317,9 @@ La calificaciÃ³n de restricciones (LICQ) garantiza que los multiplicadores son Ã
     def _prepare_generation_components(
             self,
             preprocessed_message: str,
-            conversation_history: List[Dict[str, str]],
-            context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+            conversation_history: list[dict[str, str]],
+            context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Prepare all components needed for response generation."""
 
         # Detect confusion (this should be replaced with LLM-as-judge in production)
@@ -376,9 +376,9 @@ La calificaciÃ³n de restricciones (LICQ) garantiza que los multiplicadores son Ã
     def _postprocess_with_feedback(
             self,
             raw_response: str,
-            conversation_history: List[Dict[str, str]],
-            context: Dict[str, Any],
-            confusion_analysis: Dict[str, Any],
+            conversation_history: list[dict[str, str]],
+            context: dict[str, Any],
+            confusion_analysis: dict[str, Any],
             selected_strategy: str,
             async_mode: bool = False
     ) -> str:
@@ -405,8 +405,8 @@ La calificaciÃ³n de restricciones (LICQ) garantiza que los multiplicadores son Ã
         return final_response
 
     def generate_response(self, user_message: str,
-                          conversation_history: List[Dict[str, str]],
-                          context: Dict[str, Any]) -> str:
+                          conversation_history: list[dict[str, str]],
+                          context: dict[str, Any]) -> str:
         """Generate NLP tutor response (synchronous)."""
         preprocessed_message, error_message = self._validate_and_preprocess(user_message)
         if error_message:
@@ -442,8 +442,8 @@ La calificaciÃ³n de restricciones (LICQ) garantiza que los multiplicadores son Ã
     async def a_generate_response(
             self,
             user_message: str,
-            conversation_history: List[Dict[str, str]],
-            context: Dict[str, Any]
+            conversation_history: list[dict[str, str]],
+            context: dict[str, Any]
     ) -> str:
         """Generate NLP tutor response (asynchronous)."""
 

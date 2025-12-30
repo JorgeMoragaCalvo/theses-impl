@@ -1,6 +1,6 @@
-from typing import List, Dict, Any, Optional
-import os
 import logging
+import os
+from typing import Any, Optional
 
 from .base_agent import BaseAgent
 from ..utils import get_explanation_strategies_from_context
@@ -47,7 +47,7 @@ class MathematicalModelingAgent(BaseAgent):
         else:
             logger.warning(f"Mathematical Modeling course materials not found at {materials_path}")
 
-    def get_system_prompt(self, context: Dict[str, Any]) -> str:
+    def get_system_prompt(self, context: dict[str, Any]) -> str:
         """
         Generate system prompt for Mathematical Modeling agent.
 
@@ -354,8 +354,8 @@ class MathematicalModelingAgent(BaseAgent):
         return any(keyword in message_lower for keyword in modeling_keywords)
 
     def generate_response(self, user_message: str,
-                          conversation_history: List[Dict[str, str]],
-                          context: Dict[str, Any]) -> str:
+                          conversation_history: list[dict[str, str]],
+                          context: dict[str, Any]) -> str:
         """
         Generate Mathematical Modeling tutor response with adaptive preprocessing.
 
@@ -472,8 +472,8 @@ class MathematicalModelingAgent(BaseAgent):
     async def a_generate_response(
             self,
             user_message: str,
-            conversation_history: List[Dict[str, str]],
-            context: Dict[str, Any]
+            conversation_history: list[dict[str, str]],
+            context: dict[str, Any]
     ) -> str:
         """
         Async version with adaptive preprocessing.

@@ -1,5 +1,5 @@
-from typing import Any, Optional
 import logging
+from typing import Any, Optional
 
 from .base_agent import BaseAgent
 from ..utils import get_explanation_strategies_from_context

@@ -1,5 +1,5 @@
-from typing import List, Dict, Any, Optional, Tuple
 import logging
+from typing import Any, Optional
 
 from .base_agent import BaseAgent
 from ..utils import get_explanation_strategies_from_context
@@ -34,7 +34,7 @@ class OperationsResearchAgent(BaseAgent):
         # This agent relies on built-in knowledge only
         logger.info("OR agent initialized (no course materials - agent-only implementation)")
 
-    def get_system_prompt(self, context: Dict[str, Any]) -> str:
+    def get_system_prompt(self, context: dict[str, Any]) -> str:
         """
         Generate system prompt for Operations Research agent.
 
@@ -415,7 +415,7 @@ class OperationsResearchAgent(BaseAgent):
 
         return keyword_match or is_general_or_question
 
-    def _validate_and_preprocess(self, user_message: str) -> Tuple[Optional[str], Optional[str]]:
+    def _validate_and_preprocess(self, user_message: str) -> tuple[Optional[str], Optional[str]]:
         """
         Validate and preprocess the incoming message.
 
@@ -448,9 +448,9 @@ class OperationsResearchAgent(BaseAgent):
     def _prepare_generation_components(
         self,
         preprocessed_message: str,
-        conversation_history: List[Dict[str, str]],
-        context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Prepare all shared components needed to generate a response.
         (Used by both sync and async paths)
@@ -511,9 +511,9 @@ class OperationsResearchAgent(BaseAgent):
     def _postprocess_with_feedback(
         self,
         raw_response: str,
-        conversation_history: List[Dict[str, str]],
-        context: Dict[str, Any],
-        confusion_analysis: Dict[str, Any],
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any],
+        confusion_analysis: dict[str, Any],
         selected_strategy: str,
         async_mode: bool = False
     ) -> str:
@@ -544,8 +544,8 @@ class OperationsResearchAgent(BaseAgent):
     def generate_response(
         self,
         user_message: str,
-        conversation_history: List[Dict[str, str]],
-        context: Dict[str, Any]
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any]
     ) -> str:
         """
         Generate OR tutor response with adaptive preprocessing.
@@ -597,8 +597,8 @@ class OperationsResearchAgent(BaseAgent):
     async def a_generate_response(
         self,
         user_message: str,
-        conversation_history: List[Dict[str, str]],
-        context: Dict[str, Any]
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any]
     ) -> str:
         """
         Async version with adaptive preprocessing.

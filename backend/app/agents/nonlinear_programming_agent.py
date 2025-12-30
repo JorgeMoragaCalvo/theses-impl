@@ -1,5 +1,5 @@
-from typing import List, Dict, Any, Optional, Tuple
 import logging
+from typing import Any, Optional
 
 from .base_agent import BaseAgent
 from ..utils import get_explanation_strategies_from_context
@@ -32,7 +32,7 @@ class NonlinearProgrammingAgent(BaseAgent):
         )
         # No course materials loading (operates on LLM knowledge only)
 
-    def get_system_prompt(self, context: Dict[str, Any]) -> str:
+    def get_system_prompt(self, context: dict[str, Any]) -> str:
         """
         Generate system prompt for Nonlinear Programming agent.
 
@@ -287,7 +287,7 @@ class NonlinearProgrammingAgent(BaseAgent):
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in nlp_keywords)
 
-    def _validate_and_preprocess(self, user_message: str) -> Tuple[Optional[str], Optional[str]]:
+    def _validate_and_preprocess(self, user_message: str) -> tuple[Optional[str], Optional[str]]:
         """
         Validate and preprocess the incoming message.
 
@@ -320,9 +320,9 @@ class NonlinearProgrammingAgent(BaseAgent):
     def _prepare_generation_components(
             self,
             preprocessed_message: str,
-            conversation_history: List[Dict[str, str]],
-            context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+            conversation_history: list[dict[str, str]],
+            context: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Prepare all shared components needed to generate a response
         (used by both sync and async paths).
@@ -383,9 +383,9 @@ class NonlinearProgrammingAgent(BaseAgent):
     def _postprocess_with_feedback(
             self,
             raw_response: str,
-            conversation_history: List[Dict[str, str]],
-            context: Dict[str, Any],
-            confusion_analysis: Dict[str, Any],
+            conversation_history: list[dict[str, str]],
+            context: dict[str, Any],
+            confusion_analysis: dict[str, Any],
             selected_strategy: str,
             async_mode: bool = False
     ) -> str:
@@ -415,8 +415,8 @@ class NonlinearProgrammingAgent(BaseAgent):
         return final_response
 
     def generate_response(self, user_message: str,
-                          conversation_history: List[Dict[str, str]],
-                          context: Dict[str, Any]) -> str:
+                          conversation_history: list[dict[str, str]],
+                          context: dict[str, Any]) -> str:
         """
         Generate NLP tutor response with adaptive preprocessing.
 
@@ -466,8 +466,8 @@ class NonlinearProgrammingAgent(BaseAgent):
     async def a_generate_response(
             self,
             user_message: str,
-            conversation_history: List[Dict[str, str]],
-            context: Dict[str, Any]
+            conversation_history: list[dict[str, str]],
+            context: dict[str, Any]
     ) -> str:
         """
         Async version with adaptive preprocessing.
