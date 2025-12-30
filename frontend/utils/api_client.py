@@ -1,8 +1,8 @@
-import requests
-import streamlit as st
-from typing import Optional, Dict, Any
 import json
+from typing import Optional, Any
 
+import streamlit as st
+import requests
 """
 API Client for authenticated requests to the backend.
 Handles token management and automatic header injection.
@@ -21,7 +21,7 @@ class APIClient:
         self.base_url = base_url.rstrip("/")
 
     @staticmethod
-    def _get_headers() -> Dict[str, str]:
+    def _get_headers() -> dict[str, str]:
         """
         Get headers with authentication token if available.
 
@@ -72,7 +72,7 @@ class APIClient:
         except json.JSONDecodeError:
             return True, None
 
-    def get(self, endpoint: str, params: Optional[Dict] = None) -> tuple[bool, Any]:
+    def get(self, endpoint: str, params: dict | None = None) -> tuple[bool, Any]:
         """
         Make GET request to API.
 
@@ -94,7 +94,7 @@ class APIClient:
         except requests.exceptions.RequestException as e:
             return False, {"error": f"Network error: {str(e)}"}
 
-    def post(self, endpoint: str, data: Optional[Dict] = None, json_data: Optional[Dict] = None) -> tuple[bool, Any]:
+    def post(self, endpoint: str, data: dict | None = None, json_data: dict | None = None) -> tuple[bool, Any]:
         """
         Make POST request to API.
 
@@ -118,7 +118,7 @@ class APIClient:
         except requests.exceptions.RequestException as e:
             return False, {"error": f"Network error: {str(e)}"}
 
-    def put(self, endpoint: str, data: Optional[Dict] = None, json_data: Optional[Dict] = None) -> tuple[bool, Any]:
+    def put(self, endpoint: str, data: dict | None = None, json_data: dict | None = None) -> tuple[bool, Any]:
         """
         Make the PUT request to API.
 
@@ -222,7 +222,7 @@ class APIClient:
         # Clear localStorage
         self._clear_token_from_browser()
 
-    def _store_auth_data(self, data: Dict):
+    def _store_auth_data(self, data: dict):
         """Store authentication data in the session state and browser."""
         st.session_state.access_token = data.get("access_token")
         st.session_state.user = data.get("user")
@@ -244,7 +244,7 @@ class APIClient:
         return self.get("/auth/me")
 
     @staticmethod
-    def _store_token_in_browser(token: str, user: Dict):
+    def _store_token_in_browser(token: str, user: dict):
         """
         Store authentication token in browser localStorage for persistence.
 
@@ -319,3 +319,4 @@ def get_api_client(base_url: str) -> APIClient:
     if "api_client" not in st.session_state:
         st.session_state.api_client = APIClient(base_url)
     return st.session_state.api_client
+

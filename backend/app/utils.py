@@ -1,11 +1,11 @@
-from typing import List, Dict, Any
 import re
+from typing import Any
 
 """
 Utility functions for the AI Tutoring System.
 """
 
-def format_message_for_llm(role: str, content: str) -> Dict[str, str]:
+def format_message_for_llm(role: str, content: str) -> dict[str, str]:
     """
     Format a message for LLM consumption.
 
@@ -18,7 +18,7 @@ def format_message_for_llm(role: str, content: str) -> Dict[str, str]:
     """
     return {"role": role, "content": content}
 
-def format_conversation_history(messages: List[Any]) -> List[Dict[str, str]]:
+def format_conversation_history(messages: list[Any]) -> list[dict[str, str]]:
     """
     Format database messages for LLM context.
 
@@ -49,7 +49,7 @@ def truncate_text(text: str, max_length: int = 2000, suffix: str = "...") -> str
         return text
     return text[:max_length - len(suffix)] + suffix
 
-def extract_code_blocks(text: str) -> List[str]:
+def extract_code_blocks(text: str) -> list[str]:
     """
     Extract code blocks from markdown-formatted text.
 
@@ -174,7 +174,7 @@ def validate_student_knowledge_level(level: str) -> str:
 
 # Alternative Explanations & Adaptive Learning Utilities
 
-def detect_confusion_signals(message: str) -> Dict[str, Any]:
+def detect_confusion_signals(message: str) -> dict[str, Any]:
     """
     Detect confusion signals in a student message.
 
@@ -249,7 +249,7 @@ def detect_confusion_signals(message: str) -> Dict[str, Any]:
         "signals": detected_signals
     }
 
-def detect_repeated_topic(conversation_history: List[Dict[str, str]], lookback: int = 5) -> Dict[str, Any]:
+def detect_repeated_topic(conversation_history: list[dict[str, str]], lookback: int = 5) -> dict[str, Any]:
     """
     Detect if the student is asking about the same topic repeatedly (indicates struggle).
 
@@ -297,7 +297,7 @@ def detect_repeated_topic(conversation_history: List[Dict[str, str]], lookback: 
 
     return {"repeated": False, "topic": None, "count": 0}
 
-def get_explanation_strategies_from_context(context: Dict[str, Any]) -> List[str]:
+def get_explanation_strategies_from_context(context: dict[str, Any]) -> list[str]:
     """
     Extract previously used explanation strategies from the conversation context.
 
@@ -323,8 +323,8 @@ def get_explanation_strategies_from_context(context: Dict[str, Any]) -> List[str
 
     return strategies[-5:] if len(strategies) > 5 else strategies  # Recent 5
 
-def should_request_feedback(response_text: str, conversation_history: List[Dict[str, str]],
-                           context: Dict[str, Any]) -> bool:
+def should_request_feedback(response_text: str, conversation_history: list[dict[str, str]],
+                           context: dict[str, Any]) -> bool:
     """
     Determine if the agent should request understanding feedback from the student.
 

@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
@@ -75,7 +75,7 @@ class LLMService:
                 f"Please set LLM_PROVIDER in .env file to 'gemini', 'openai' or 'anthropic'."
             )
 
-    def _get_llm_with_overrides(self, temperature: Optional[float] = None, max_tokens: int | None = None):
+    def _get_llm_with_overrides(self, temperature: float | None = None, max_tokens: int | None = None):
         """
         Get LLM instance with optional parameter overrides.
 
