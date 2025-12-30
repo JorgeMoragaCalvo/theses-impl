@@ -1,6 +1,6 @@
+import logging
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Literal
-import logging
 
 """
 Configuration management for the AI Tutoring System.
@@ -93,7 +93,7 @@ class Settings(BaseSettings):
             masked_key = "***"
         logger.info(f"Loaded SECRET_KEY: {masked_key}")
 
-        # Warn if using default/insecure key
+        # Warn if using a default/insecure key
         if self.secret_key in [
             "secret",
             "your_secret_key_here",

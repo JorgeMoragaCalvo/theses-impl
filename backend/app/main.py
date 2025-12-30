@@ -1,10 +1,10 @@
+import logging
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
 from sqlalchemy import text
-from typing import List
-from contextlib import asynccontextmanager
-import logging
+from sqlalchemy.orm import Session
 
 from .config import settings
 from .database import get_db, init_db, Student, Conversation, Message, Assessment, Feedback, UserRole, GradingSource
@@ -44,7 +44,6 @@ from .services.conversation_service import get_conversation_service
 from .services.assessment_service import get_assessment_service
 from .services.grading_service import get_grading_service
 from .routers import admin
-from datetime import datetime, timezone
 
 """
 FastAPI main application entry point.
@@ -312,7 +311,7 @@ async def update_student(
     logger.info(f"Updated student: {student_id}")
     return student
 
-@app.get("/students", response_model=List[StudentResponse])
+@app.get("/students", response_model=list[StudentResponse])
 async def list_students(
     skip: int = 0,
     limit: int = 100,
@@ -460,7 +459,7 @@ async def get_conversation(
     conv.messages = [MessageResponse.model_validate(msg) for msg in messages]
     return conv
 
-@app.get("/students/{student_id}/conversations", response_model=List[ConversationResponse])
+@app.get("/students/{student_id}/conversations", response_model=list[ConversationResponse])
 async def get_student_conversations(
     student_id: int,
     db: Session = Depends(get_db),
@@ -555,7 +554,7 @@ async def get_student_progress(
     return progress
 
 # Assessment endpoints
-@app.get("/students/{student_id}/assessments", response_model=List[AssessmentResponse])
+@app.get("/students/{student_id}/assessments", response_model=list[AssessmentResponse])
 async def get_student_assessments(
     student_id: int,
     topic: str = None,

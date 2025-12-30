@@ -1,9 +1,9 @@
+import enum
+from datetime import datetime, timezone
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, JSON, Float, Enum, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-from datetime import datetime, timezone
 from typing import Generator
-import enum
 
 from .config import settings
 

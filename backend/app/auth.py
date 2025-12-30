@@ -6,7 +6,6 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from typing import Optional
 
 from .config import settings
 from .database import get_db, Student, UserRole
@@ -83,7 +82,7 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password_truncated)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """
     Create a JWT access token.
 
@@ -136,7 +135,7 @@ def decode_access_token(token: str) -> dict:
         )
 
 
-def authenticate_user(db: Session, email: str, password: str) -> Optional[Student]:
+def authenticate_user(db: Session, email: str, password: str) -> Student | None:
     """
     Authenticate a user by email and password.
 
