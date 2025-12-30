@@ -1,6 +1,6 @@
-from typing import List, Dict, Optional, Any
-from sqlalchemy.orm import Session
 import logging
+from typing import Any
+from sqlalchemy.orm import Session
 
 from ..database import Message, Conversation, Student, Assessment
 from ..models import ProgressResponse
@@ -21,7 +21,7 @@ class ConversationService:
 
     def get_conversation_history(self, conversation_id: int,
                                  limit: int = 10,
-                                 include_system: bool = False) -> List[Dict[str, str]]:
+                                 include_system: bool = False) -> list[dict[str, str]]:
         """
         Get recent messages from a conversation.
 
@@ -61,8 +61,8 @@ class ConversationService:
             return []
 
     def get_student_context(self, student_id: int,
-                            topic: Optional[str] = None,
-                            include_assessment_data: bool = True) -> Dict[str, Any]:
+                            topic: str | None = None,
+                            include_assessment_data: bool = True) -> dict[str, Any]:
         """
         Get student context for personalization.
 
@@ -129,9 +129,9 @@ class ConversationService:
 
     def get_conversation_context(self, conversation_id: int,
                                  student_id: int,
-                                 topic: Optional[str] = None,
+                                 topic: str | None = None,
                                  history_limit: int = 10,
-                                 include_assessment_data: bool = True) -> Dict[str, Any]:
+                                 include_assessment_data: bool = True) -> dict[str, Any]:
         """
         Get complete context for a conversation.
         Combines conversation history, student information, assessment data, and adaptive learning metadata.
@@ -219,7 +219,7 @@ class ConversationService:
             logger.error(f"Error counting conversation messages: {str(e)}")
             return 0
 
-    def get_recent_topics(self, student_id: int,  limit: int = 5) -> List[str]:
+    def get_recent_topics(self, student_id: int,  limit: int = 5) -> list[str]:
         """
         Get recently discussed topics for a student.
 
@@ -258,7 +258,7 @@ class ConversationService:
         message_count = self.count_conversation_messages(conversation_id)
         return message_count <= 2
 
-    def get_conversation_summary(self, conversation_id: int) -> Optional[str]:
+    def get_conversation_summary(self, conversation_id: int) -> str | None:
         """
         Get a brief summary of what the conversation is about.
 
@@ -301,8 +301,8 @@ class ConversationService:
             return None
 
     def get_student_assessment_history(self, student_id: int,
-                                       topic: Optional[str] = None,
-                                       limit: int = 5) -> List[Assessment]:
+                                       topic: str | None = None,
+                                       limit: int = 5) -> list[Assessment]:
         """
         Get recent assessments for a student.
 
@@ -335,7 +335,7 @@ class ConversationService:
             return []
 
     def get_assessment_performance_summary(self, student_id: int,
-                                           topic: Optional[str] = None) -> Dict[str, Any]:
+                                           topic: str | None = None) -> dict[str, Any]:
         """
         Get aggregate assessment performance statistics for a student.
 
@@ -394,7 +394,7 @@ class ConversationService:
             }
 
     def get_knowledge_gaps_from_assessments(self, student_id: int,
-                                            topic: str) -> List[str]:
+                                            topic: str) -> list[str]:
         """
         Identify knowledge gaps based on assessment feedback and performance.
 
@@ -622,7 +622,7 @@ class ConversationService:
                 Assessment.topic == topic
             ).order_by(Assessment.created_at.desc()).limit(1).all()
 
-            # If no assessments yet and conversation is substantial, suggest
+            # If no assessments yet and conversation is significant, suggest
             if not recent_assessments and message_count >= 10:
                 logger.info(f"Suggesting assessment for student {student_id}: no prior assessments, {message_count} messages")
                 return True
@@ -738,7 +738,7 @@ class ConversationService:
     def analyze_strategy_effectiveness(
         self,
         conversation_id: int
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Analyze which strategies have been most effective in this conversation.
 

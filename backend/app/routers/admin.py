@@ -1,13 +1,13 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from typing import List, Dict, Any
-import logging
+from typing import Any
 
-from ..database import get_db, Student, Conversation, Assessment, UserRole
-from ..models import StudentResponse
 from ..auth import get_current_admin_user
 from ..config import settings
+from ..database import get_db, Student, Conversation, Assessment, UserRole
+from ..models import StudentResponse
 
 """
 Admin-only endpoints for user and system management.
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
-@router.get("/users", response_model=List[Dict[str, Any]])
+@router.get("/users", response_model=list[dict[str, Any]])
 async def list_all_users(
     skip: int = 0,
     limit: int = 100,

@@ -3,12 +3,12 @@ Utility for parsing LLM responses.
 """
 import json
 import logging
-from typing import Dict, Any
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def parse_llm_json_response(llm_response: str) -> Dict[str, Any]:
+def parse_llm_json_response(llm_response: str) -> dict[str, Any]:
     """
     Parse the LLM response to extract a JSON object.
 
@@ -54,4 +54,3 @@ def parse_llm_json_response(llm_response: str) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"An unexpected error occurred while parsing LLM response: {e}")
         raise ValueError("Failed to parse LLM response.") from e
-

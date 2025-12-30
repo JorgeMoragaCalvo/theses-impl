@@ -1,7 +1,7 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List, Any, Dict
 from datetime import datetime
 from enum import Enum
+from pydantic import BaseModel, EmailStr, Field
+from typing import Any
 
 """
 Pydantic models for API request/response validation.
@@ -43,8 +43,8 @@ class StudentCreate(BaseModel):
     """Request the model for creating a new student."""
     name: str = Field(..., min_length=1, max_length=255)
     email: EmailStr
-    knowledge_levels: Optional[Dict[str, str]] = None
-    preferences: Optional[Dict[str, Any]] = None
+    knowledge_levels: dict[str, str] | None = None
+    preferences: dict[str, Any] | None = None
 
 class StudentRegister(BaseModel):
     """Request model for user registration."""
@@ -60,28 +60,28 @@ class StudentLogin(BaseModel):
 class StudentUpdate(BaseModel):
     """Request model for updating student information."""
     name: str = Field(None, min_length=1, max_length=255)
-    email: Optional[EmailStr] = None
-    knowledge_levels: Optional[Dict[str, str]] = None
-    preferences: Optional[Dict[str, Any]] = None
+    email: EmailStr | None = None
+    knowledge_levels: dict[str, str] | None = None
+    preferences: dict[str, Any] | None = None
 
 class MessageCreate(BaseModel):
     """Request model for creating a new message."""
-    conversation_id: Optional[int] = None
+    conversation_id: int | None = None
     content: str = Field(..., min_length=1)
-    topic: Optional[Topic] = None
+    topic: Topic | None = None
 
 class FeedbackCreate(BaseModel):
     """Request the model for creating new feedback."""
     message_id: int
-    rating: Optional[int] = Field(None, ge=1, le=5)
-    is_helpful: Optional[bool] = None
-    comment: Optional[str] = None
+    rating: int | None = Field(None, ge=1, le=5)
+    is_helpful: bool | None = None
+    comment: str | None= None
 
 class AssessmentGenerate(BaseModel):
     """Request the model for generating a new assessment."""
     topic: Topic
-    difficulty: Optional[KnowledgeLevel] = KnowledgeLevel.INTERMEDIATE
-    conversation_id: Optional[int] = None
+    difficulty: KnowledgeLevel | None = KnowledgeLevel.INTERMEDIATE
+    conversation_id: int | None= None
 
 class AssessmentAnswerSubmit(BaseModel):
     """Request model for submitting a student's answer to an assessment."""
@@ -90,8 +90,8 @@ class AssessmentAnswerSubmit(BaseModel):
 class AssessmentGradeRequest(BaseModel):
     """Request model for manually grading an assessment."""
     score: float = Field(..., ge=0)
-    max_score: Optional[float] = Field(None, ge=0)
-    feedback: Optional[str] = None
+    max_score: float | None = Field(None, ge=0)
+    feedback: str | None= None
 
 # Response Models (data output. How the API responds)
 class StudentResponse(BaseModel):
@@ -101,11 +101,11 @@ class StudentResponse(BaseModel):
     email: str
     role: str
     is_active: bool
-    knowledge_levels: Dict[str, str]
-    preferences: Dict[str, Any]
+    knowledge_levels: dict[str, str]
+    preferences: dict[str, Any]
     created_at: datetime
     updated_at: datetime
-    last_login: Optional[datetime] = None
+    last_login: datetime | None = None
 
     class Config:
         from_attributes = True
@@ -123,8 +123,8 @@ class MessageResponse(BaseModel):
     role: str
     content: str
     timestamp: datetime
-    agent_type: Optional[str] = None
-    extra_data: Dict[str, Any]
+    agent_type: str | None = None
+    extra_data: dict[str, Any]
 
     class Config:
         from_attributes = True
@@ -135,10 +135,10 @@ class ConversationResponse(BaseModel):
     student_id: int
     topic: str
     started_at: datetime
-    ended_at: Optional[datetime] = None
+    ended_at: datetime | None = None
     is_active: bool
-    messages: Optional[List[MessageResponse]] = None
-    extra_data: Dict[str, Any]
+    messages: list[MessageResponse] | None = None
+    extra_data: dict[str, Any]
 
     class Config:
         from_attributes = True
@@ -147,21 +147,21 @@ class AssessmentResponse(BaseModel):
     """Response model for assessment data."""
     id: int
     student_id: int
-    conversation_id: Optional[int] = None
+    conversation_id: int | None= None
     topic: str
     question: str
-    student_answer: Optional[str] = None
-    correct_answer: Optional[str] = None
-    rubric: Optional[str] = None
-    score: Optional[float] = None
+    student_answer: str | None = None
+    correct_answer: str | None = None
+    rubric: str | None = None
+    score: float | None = None
     max_score: float
-    feedback: Optional[str] = None
-    graded_by: Optional[str] = None
-    overridden_at: Optional[datetime] = None
+    feedback: str | None = None
+    graded_by: str | None = None
+    overridden_at: datetime | None = None
     created_at: datetime
-    submitted_at: Optional[datetime] = None
-    graded_at: Optional[datetime] = None
-    extra_data: Dict[str, Any]
+    submitted_at: datetime | None = None
+    graded_at: datetime | None = None
+    extra_data: dict[str, Any]
 
     class Config:
         from_attributes = True
@@ -185,11 +185,11 @@ class FeedbackResponse(BaseModel):
     id: int
     message_id: int
     student_id: int
-    rating: Optional[int] = None
-    is_helpful: Optional[bool] = None
-    comment: Optional[str] = None
+    rating: int | None = None
+    is_helpful: bool | None = None
+    comment: str | None = None
     created_at: datetime
-    extra_data: Dict[str, Any]
+    extra_data: dict[str, Any]
 
     class Config:
         from_attributes = True
@@ -198,7 +198,7 @@ class FeedbackResponse(BaseModel):
 class ChatRequest(BaseModel):
     """Request model for chat endpoint."""
     message: str = Field(..., min_length=1)
-    conversation_id: Optional[int] = None
+    conversation_id: int | None = None
     topic: Topic  # The required field - auto-detect feature will be implemented later
 
 class ChatResponse(BaseModel):
@@ -207,7 +207,7 @@ class ChatResponse(BaseModel):
     message_id: int
     response: str
     agent_type: str
-    topic: Optional[str] = None
+    topic: str | None = None
     timestamp: datetime
 
 # Health Check
@@ -222,10 +222,10 @@ class HealthResponse(BaseModel):
 class ProgressResponse(BaseModel):
     """Response model for student progress."""
     student_id: int
-    knowledge_levels: Dict[str, str]
+    knowledge_levels: dict[str, str]
     total_conversations: int
     total_messages: int
     total_assessments: int
-    average_score: Optional[float] = None
-    topics_covered: List[str]
-    recent_activity: List[Dict[str, Any]]
+    average_score: float | None = None
+    topics_covered: list[str]
+    recent_activity: list[dict[str, Any]]

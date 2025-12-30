@@ -1,8 +1,7 @@
-from typing import Tuple
-from sqlalchemy.orm import Session
-import logging
 import json
+import logging
 import re
+from sqlalchemy.orm import Session
 
 from ..services.llm_service import get_llm_service
 from ..database import Assessment
@@ -30,7 +29,7 @@ class GradingService:
         self.db = db
         self.llm_service = get_llm_service()
 
-    def grade_assessment(self, assessment: Assessment) -> Tuple[float, str]:
+    def grade_assessment(self, assessment: Assessment) -> tuple[float, str]:
         """
         Automatically grade an assessment using LLM.
 
@@ -158,7 +157,7 @@ class GradingService:
             """
         return prompt
 
-    def parse_grading_response(self, llm_response: str, max_score: float) -> Tuple[float, str]:
+    def parse_grading_response(self, llm_response: str, max_score: float) -> tuple[float, str]:
         """
         Parse the LLM grading response to extract score and feedback.
 
@@ -187,7 +186,7 @@ class GradingService:
             return self._parse_fallback(llm_response, max_score)
 
     @staticmethod
-    def _parse_fallback(llm_response: str, max_score: float) -> Tuple[float, str]:
+    def _parse_fallback(llm_response: str, max_score: float) -> tuple[float, str]:
         """
         Fallback parser when JSON parsing fails.
 
@@ -247,3 +246,4 @@ def get_grading_service(db: Session) -> GradingService:
         GradingService instance
     """
     return GradingService(db)
+

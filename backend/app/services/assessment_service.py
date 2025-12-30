@@ -1,11 +1,11 @@
-from typing import Dict, Any, Optional
-from sqlalchemy.orm import Session
-import logging
 import json
+import logging
+from typing import Any
+from sqlalchemy.orm import Session
 
-from ..services.llm_service import get_llm_service
-from ..services.conversation_service import ConversationService
 from ..database import Topic
+from ..services.conversation_service import ConversationService
+from ..services.llm_service import get_llm_service
 from .llm_response_parser import parse_llm_json_response
 
 """
@@ -37,8 +37,8 @@ class AssessmentService:
         student_id: int,
         topic: Topic,
         difficulty: str,
-        conversation_id: Optional[int] = None
-    ) -> Dict[str, Any]:
+        conversation_id: int | None = None
+    ) -> dict[str, Any]:
         """
         Generate a personalized assessment question tailored to the student's weaknesses.
 
@@ -120,8 +120,8 @@ class AssessmentService:
 
     @staticmethod
     def build_assessment_prompt(
-        student_context: Dict[str, Any],
-        conversation_context: Optional[Dict[str, Any]],
+        student_context: dict[str, Any],
+        conversation_context: dict[str, Any] | None,
         topic: str,
         difficulty: str
     ) -> str:
@@ -145,14 +145,13 @@ class AssessmentService:
 
         # Build base prompt
         prompt = f"""You are an expert educational assessment designer for optimization methods and operations research.
-
-        Your task is to generate a personalized assessment question for a student learning about {topic}.
+Your task is to generate a personalized assessment question for a student learning about {topic}.
         
-        ## Student Profile:
-        - Knowledge Level: {knowledge_level} ({student_context.get('knowledge_level_description', '')})
-        - Average Score on Past Assessments: {assessment_performance.get('average_score', 'N/A')}
-        - Recent Performance: {recent_scores if recent_scores else 'No prior assessments'}
-        """
+## Student Profile:
+- Knowledge Level: {knowledge_level} ({student_context.get('knowledge_level_description', '')})
+- Average Score on Past Assessments: {assessment_performance.get('average_score', 'N/A')}
+- Recent Performance: {recent_scores if recent_scores else 'No prior assessments'}
+"""
 
         # Add knowledge gaps if available
         if knowledge_gaps:
@@ -231,32 +230,32 @@ class AssessmentService:
 
         # Output format instructions
         prompt += """
-        ## Output Format:
-        Please provide your response in the following JSON format:
+## Output Format:
+Please provide your response in the following JSON format:
 
-        ```json
-        {
-            "question": "The complete problem statement with all necessary information and context",
-            "correct_answer": "Detailed step-by-step solution showing all work and reasoning",
-            "rubric": "Grading rubric with point allocation: e.g., 'Formulation (3 pts), Solution (3 pts), Interpretation (1 pt)'"
-        }
-        ```
+```json
+    {
+        "question": "The complete problem statement with all necessary information and context",
+        "correct_answer": "Detailed step-by-step solution showing all work and reasoning",
+        "rubric": "Grading rubric with point allocation: e.g., 'Formulation (3 pts), Solution (3 pts), Interpretation (1 pt)'"
+    }
+```
 
-        ## Important Guidelines:
-        1. Make the question clear, specific, and complete
-        2. Ensure the problem is solvable with the student's current knowledge level
-        3. Target identified weaknesses while building on strengths
-        4. Provide a comprehensive solution that could serve as a teaching tool
-        5. Create a fair and objective grading rubric (default max score: 7.0 points)
-        6. Use realistic, engaging scenarios when possible
-        7. IMPORTANT: Respond ONLY with the JSON object, no additional text before or after
+## Important Guidelines:
+1. Make the question clear, specific, and complete
+2. Ensure the problem is solvable with the student's current knowledge level
+3. Target identified weaknesses while building on strengths
+4. Provide a comprehensive solution that could serve as a teaching tool
+5. Create a fair and objective grading rubric (default max score: 7.0 points)
+6. Use realistic, engaging scenarios when possible
+7. IMPORTANT: Respond ONLY with the JSON object, no additional text before or after
 
-        Generate the assessment now.
-        """
+Generate the assessment now.
+"""
 
         return prompt
 
-    def parse_assessment_response(self, llm_response: str) -> Dict[str, Any]:
+    def parse_assessment_response(self, llm_response: str) -> dict[str, Any]:
         """
         Parse the LLM response to extract question, answer, and rubric.
 
@@ -282,7 +281,7 @@ class AssessmentService:
             return self._parse_fallback(llm_response)
 
     @staticmethod
-    def _parse_fallback(llm_response: str) -> Dict[str, Any]:
+    def _parse_fallback(llm_response: str) -> dict[str, Any]:
         """
         Fallback parser when JSON parsing fails.
 
@@ -325,7 +324,7 @@ class AssessmentService:
         }
 
     @staticmethod
-    def _get_fallback_assessment(topic: str, difficulty: str) -> Dict[str, Any]:
+    def _get_fallback_assessment(topic: str, difficulty: str) -> dict[str, Any]:
         """
         Get a fallback assessment when the generation fails.
 

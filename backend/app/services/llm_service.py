@@ -1,9 +1,9 @@
-from typing import List, Dict, Any, Optional
+import logging
+from typing import Any, Optional
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
-import logging
 
 from ..config import settings
 
@@ -31,7 +31,7 @@ class LLMService:
         Initialize the appropriate LLM based on configuration.
 
         Returns:
-            LLM instance (ChatGoogleGenerativeAI, ChatOpenAI or ChatAnthropic)
+            LLM instance (ChatGoogleGenerativeAI, ChatOpenAI, or ChatAnthropic)
 
         Raises:
             ValueError: If the provider is not supported, or the API key is missing
@@ -74,7 +74,7 @@ class LLMService:
                 f"Please set LLM_PROVIDER in .env file to 'gemini', 'openai' or 'anthropic'."
             )
 
-    def _get_llm_with_overrides(self, temperature: Optional[float] = None, max_tokens: Optional[int] = None):
+    def _get_llm_with_overrides(self, temperature: Optional[float] = None, max_tokens: int | None = None):
         """
         Get LLM instance with optional parameter overrides.
 
@@ -111,7 +111,7 @@ class LLMService:
             return self.llm
 
     @staticmethod
-    def _convert_message(messages: List[Dict[str, str]]) -> List:
+    def _convert_message(messages: list[dict[str, str]]) -> list:
         """
         Convert message dictionaries to LangChain message objects.
 
@@ -136,10 +136,10 @@ class LLMService:
 
         return langchain_messages
 
-    def generate_response(self, messages: List[Dict[str, str]],
-                          system_prompt: Optional[str] = None,
-                          temperature: Optional[float] = None,
-                          max_tokens: Optional[int] = None) -> str:
+    def generate_response(self, messages: list[dict[str, str]],
+                          system_prompt: str | None = None,
+                          temperature: float | None= None,
+                          max_tokens: int | None = None) -> str:
         """
         Generate a response from the LLM.
 
@@ -178,10 +178,10 @@ class LLMService:
             logger.error(f"Error generating response with {self.provider}: {str(e)}")
             raise
 
-    async def a_generate_response(self, messages: List[Dict[str, str]],
-                                  system_prompt: Optional[str] = None,
-                                  temperature: Optional[float] = None,
-                                  max_tokens: Optional[int] = None) -> str:
+    async def a_generate_response(self, messages: list[dict[str, str]],
+                                  system_prompt: str | None = None,
+                                  temperature: float | None= None,
+                                  max_tokens: int | None = None) -> str:
         """
         Async version of generate_response.
 
@@ -215,7 +215,7 @@ class LLMService:
             logger.error(f"Error generating async response with {self.provider}: {str(e)}")
             raise
 
-    def get_provider_info(self) -> Dict[str, Any]:
+    def get_provider_info(self) -> dict[str, Any]:
         """
         Get information about the current LLM provider.
 
@@ -230,7 +230,7 @@ class LLMService:
         }
 
 # Global LLM service instance
-_llm_service: Optional[LLMService] = None
+_llm_service: LLMService | None = None
 
 def get_llm_service() -> LLMService:
     """
