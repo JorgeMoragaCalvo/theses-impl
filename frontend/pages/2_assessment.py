@@ -8,7 +8,8 @@ import streamlit as st
 from dotenv import load_dotenv
 
 # Add the parent directory to the path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
+
 from utils.api_client import get_api_client
 from utils.constants import TOPIC_OPTIONS
 """
@@ -326,7 +327,7 @@ with tab2:
                 f"{status} - {topic} - {date_str}" +
                 (f" - Score: {score}/{max_score}" if score is not None else "")
             ):
-                st.markdown(f"**Pregunta:**")
+                st.markdown("**Pregunta:**")
                 st.markdown(question)
 
                 if student_answer:

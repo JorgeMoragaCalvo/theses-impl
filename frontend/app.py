@@ -1,7 +1,9 @@
-import streamlit as st
-import requests
 import os
+
+import requests
+import streamlit as st
 from dotenv import load_dotenv
+
 from utils.api_client import get_api_client
 from utils.constants import TOPIC_OPTIONS, TOPICS_LIST, TOPIC_DESCRIPTIONS, DEFAULT_TOPIC
 """
@@ -263,7 +265,7 @@ def main():
 
     else:
         # Show the main chat interface for logged-in users
-        st.markdown(f"### 💬 Chatea con un tutor de IA")
+        st.markdown("### 💬 Chatea con un tutor de IA")
         st.markdown("¡Haga preguntas sobre cualquier tema relacionado con el método de optimización!")
 
         # Initialize chat history
