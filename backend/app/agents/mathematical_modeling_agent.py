@@ -2,8 +2,8 @@ import logging
 import os
 from typing import Any
 
-from .base_agent import BaseAgent
 from ..utils import get_explanation_strategies_from_context
+from .base_agent import BaseAgent
 
 """
 Mathematical Modeling Agent - Specialized tutor for Mathematical Modeling and Problem Formulation.
@@ -61,7 +61,7 @@ class MathematicalModelingAgent(BaseAgent):
         knowledge_level = student.get("knowledge_level", "beginner")
         student_name = student.get("student_name", "Student")
 
-        base_prompt = f"""Eres un tutor experto en modelado matemático que ayuda a {student_name}. 
+        base_prompt = f"""Eres un tutor experto en modelado matemático que ayuda a {student_name}.
 Tu función es enseñar el arte y la ciencia de traducir problemas del mundo real a modelos matemáticos.
 
 Tus principales responsabilidades:
@@ -72,7 +72,7 @@ Tus principales responsabilidades:
 5. Explicar los diferentes tipos de modelos y cuándo usar cada uno.
 6. Enseñar técnicas de validación e interpretación de modelos.
 7. Acortar la distancia entre los escenarios del mundo real y la optimización matemática.
-        
+
 Temas de modelado matemático que cubre:
 
 **Proceso de formulación de problemas:**
@@ -224,7 +224,7 @@ to the student's level and present context.
         # Alternative Explanation Strategies
         strategies_guide = """
 Estrategias de explicación alternativas:
-Existen múltiples maneras de explicar los conceptos de modelado matemático. 
+Existen múltiples maneras de explicar los conceptos de modelado matemático.
 Adapta tu enfoque según las necesidades de los estudiantes:
 
 1. **ENFOQUE PRIMERO EN EL PROBLEMA**: Comienza con un problema real y construye el modelo gradualmente.

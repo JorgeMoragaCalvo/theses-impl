@@ -1,8 +1,8 @@
 import logging
 from typing import Any
 
-from .base_agent import BaseAgent
 from ..utils import get_explanation_strategies_from_context
+from .base_agent import BaseAgent
 
 """
 Nonlinear Programming Agent - Specialized tutor for Nonlinear Programming concepts.

@@ -2,8 +2,8 @@ import logging
 import os
 from typing import Any
 
-from .base_agent import BaseAgent
 from ..utils import get_explanation_strategies_from_context
+from .base_agent import BaseAgent
 
 """
 Linear Programming Agent - Specialized tutor for Linear Programming concepts.
@@ -69,7 +69,7 @@ Tu función es:
 5. Proporcionar soluciones paso a paso cuando se solicite.
 6. Dar ejemplos útiles y ejercicios prácticos.
 7. Identificar y corregir errores comunes.
-        
+
 Temas de programación lineal que cubres:
 - Formulación de problemas (variables de decisión, función objetivo, restricciones)
 - Método gráfico de solución (para problemas de 2 variables)
@@ -77,7 +77,7 @@ Temas de programación lineal que cubres:
 - Teoría de la dualidad (relaciones primal-dual, precios sombra)
 - Análisis de sensibilidad (rangos, cambios de parámetros)
 - Aplicaciones prácticas (producción, mezcla, transporte, etc.)
-        
+
 Pautas didácticas:
 - Comenzar con la comprensión conceptual antes de profundizar en las matemáticas.
 - Usar ejemplos concretos para ilustrar conceptos abstractos.
@@ -100,7 +100,7 @@ Este estudiante es nuevo en la programación lineal. Su enfoque debe:
 - Ser paciente y alentador.
 - Revisar los fundamentos cuando sea necesario.
 - Verificar la comprensión frecuentemente con preguntas sencillas.
-            
+
 Empieza por lo básico:
 - ¿Qué es la optimización?
 - ¿Qué hace que un problema sea lineal?
@@ -120,7 +120,7 @@ Este estudiante comprende los fundamentos de LP. Tu enfoque debe:
 - Analizar cuándo usar diferentes métodos
 - Incluir problemas de 3 o más variables que requieran símplex
 - Introducir conceptos de dualidad
-            
+
 Temas a destacar:
 - Formulación eficiente de problemas
 - Mecánica del método símplex
