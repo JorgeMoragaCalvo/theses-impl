@@ -1,6 +1,7 @@
 import json
 import logging
 from typing import Any
+
 from sqlalchemy.orm import Session
 
 from ..database import Topic
@@ -146,7 +147,7 @@ class AssessmentService:
         # Build base prompt
         prompt = f"""You are an expert educational assessment designer for optimization methods and operations research.
 Your task is to generate a personalized assessment question for a student learning about {topic}.
-        
+
 ## Student Profile:
 - Knowledge Level: {knowledge_level} ({student_context.get('knowledge_level_description', '')})
 - Average Score on Past Assessments: {assessment_performance.get('average_score', 'N/A')}
@@ -155,7 +156,7 @@ Your task is to generate a personalized assessment question for a student learni
 
         # Add knowledge gaps if available
         if knowledge_gaps:
-            prompt += f"\n## Identified Knowledge Gaps:\n"
+            prompt += "\n## Identified Knowledge Gaps:\n"
             for gap in knowledge_gaps:
                 prompt += f"- {gap}\n"
             prompt += "\nPlease design the assessment to target these weak areas.\n"
@@ -178,14 +179,14 @@ Your task is to generate a personalized assessment question for a student learni
             # Add learning preferences
             if strategies_used:
                 most_used = max(set(strategies_used), key=strategies_used.count) if strategies_used else None
-                prompt += f"\n## Learning Preferences:\n"
+                prompt += "\n## Learning Preferences:\n"
                 prompt += f"- Teaching strategies used: {', '.join(set(strategies_used[:5]))}\n"
                 if most_used:
                     prompt += f"- Most frequently used approach: {most_used}\n"
                 if successful_strategies:
                     best_strategy = max(successful_strategies.items(), key=lambda x: x[1])[0]
                     prompt += f"- Most successful strategy: {best_strategy}\n"
-                    prompt += f"Please align the problem presentation with the student's preferred learning style.\n"
+                    prompt += "Please align the problem presentation with the student's preferred learning style.\n"
 
         # Add difficulty-specific guidelines
         difficulty_guidelines = {

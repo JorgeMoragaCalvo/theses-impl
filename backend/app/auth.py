@@ -9,7 +9,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from .config import settings
-from .database import get_db, Student, UserRole
+from .database import Student, UserRole, get_db
 
 """
 Authentication and authorization utilities.

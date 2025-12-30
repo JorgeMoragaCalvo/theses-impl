@@ -1,8 +1,9 @@
 import logging
 from typing import Any
+
 from sqlalchemy.orm import Session
 
-from ..database import Message, Conversation, Student, Assessment
+from ..database import Assessment, Conversation, Message, Student
 from ..models import ProgressResponse
 from ..utils import format_conversation_history, format_knowledge_level_context
 

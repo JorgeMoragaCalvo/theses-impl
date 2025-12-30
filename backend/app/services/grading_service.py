@@ -1,10 +1,11 @@
 import json
 import logging
 import re
+
 from sqlalchemy.orm import Session
 
-from ..services.llm_service import get_llm_service
 from ..database import Assessment
+from ..services.llm_service import get_llm_service
 from .llm_response_parser import parse_llm_json_response
 
 """
@@ -246,4 +247,3 @@ def get_grading_service(db: Session) -> GradingService:
         GradingService instance
     """
     return GradingService(db)
-
