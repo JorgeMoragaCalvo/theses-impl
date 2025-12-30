@@ -1,6 +1,6 @@
 import enum
+from collections.abc import Generator
 from datetime import datetime, timezone
-from typing import Generator
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, Float, Integer, JSON, String, Text, create_engine
 from sqlalchemy.ext.declarative import declarative_base

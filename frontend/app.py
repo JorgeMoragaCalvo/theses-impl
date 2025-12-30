@@ -5,7 +5,8 @@ import streamlit as st
 from dotenv import load_dotenv
 
 from utils.api_client import get_api_client
-from utils.constants import TOPIC_OPTIONS, TOPICS_LIST, TOPIC_DESCRIPTIONS, DEFAULT_TOPIC
+from utils.constants import DEFAULT_TOPIC, TOPIC_DESCRIPTIONS, TOPICS_LIST, TOPIC_OPTIONS
+
 """
 Página principal de la aplicación - Tutor de IA para métodos de optimización.
 """

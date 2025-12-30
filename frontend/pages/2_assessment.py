@@ -331,7 +331,7 @@ with tab2:
                 st.markdown(question)
 
                 if student_answer:
-                    st.markdown(f"**Tu respuesta:**")
+                    st.markdown("**Tu respuesta:**")
                     st.info(student_answer)
 
                 if graded_at:
@@ -348,17 +348,17 @@ with tab2:
                         st.metric("Score", f"{score}/{max_score}", f"{percentage:.1f}%")
 
                     if feedback:
-                        st.markdown(f"**Comentario:**")
+                        st.markdown("**Comentario:**")
                         st.success(feedback)
 
                     rubric = assessment.get("rubric")
                     if rubric:
-                        st.markdown(f"**Rúbrica de calificación:**")
+                        st.markdown("**Rúbrica de calificación:**")
                         st.info(rubric)
 
                     correct_answer = assessment.get("correct_answer")
                     if correct_answer:
-                        st.markdown(f"**Respuesta correcta:**")
+                        st.markdown("**Respuesta correcta:**")
                         st.markdown(correct_answer)
                 elif submitted_at:
                     st.warning("⏳ Evaluación enviada, pero aún no calificada. Esto es inusual; la calificación debería ser instantánea..")
