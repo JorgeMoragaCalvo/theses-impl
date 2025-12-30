@@ -1,9 +1,10 @@
-import streamlit as st
-import sys
 import os
-from pathlib import Path
+import sys
 from datetime import datetime
-from typing import List, Dict, Optional, Any
+from pathlib import Path
+from typing import Any
+
+import streamlit as st
 from dotenv import load_dotenv
 
 # Add the parent directory to the path for imports
@@ -36,7 +37,7 @@ student_id = st.session_state.get("student_id")
 # API HELPER FUNCTIONS
 # ============================================================================
 
-def fetch_student_progress(student_id: int) -> Optional[Dict[str, Any]]:
+def fetch_student_progress(student_id: int) -> dict[str, Any] | None:
     """Fetch comprehensive student progress metrics."""
     success, data = api_client.get(f"students/{student_id}/progress")
     if not success:
@@ -45,7 +46,7 @@ def fetch_student_progress(student_id: int) -> Optional[Dict[str, Any]]:
     return data
 
 
-def fetch_assessments(student_id: int, topic: Optional[str] = None) -> List[Dict[str, Any]]:
+def fetch_assessments(student_id: int, topic: str | None = None) -> list[dict[str, Any]]:
     """Fetch student assessments, optionally filtered by topic."""
     params = {}
     if topic and topic != "All Topics":
@@ -58,7 +59,7 @@ def fetch_assessments(student_id: int, topic: Optional[str] = None) -> List[Dict
     return data
 
 
-def fetch_single_assessment(assessment_id: int) -> Optional[Dict[str, Any]]:
+def fetch_single_assessment(assessment_id: int) -> dict[str, Any] | None:
     """Fetch a single assessment by ID."""
     success, data = api_client.get(f"assessments/{assessment_id}")
     if not success:
@@ -68,7 +69,7 @@ def fetch_single_assessment(assessment_id: int) -> Optional[Dict[str, Any]]:
 
 
 def generate_assessment(topic: str, difficulty: str,
-                       conversation_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
+                       conversation_id: int | None = None) -> dict[str, Any] | None:
     """Generate a new assessment (student_id extracted from token)."""
     payload = {
         "topic": topic,
@@ -84,7 +85,7 @@ def generate_assessment(topic: str, difficulty: str,
     return data
 
 
-def submit_assessment(assessment_id: int, student_answer: str) -> Optional[Dict[str, Any]]:
+def submit_assessment(assessment_id: int, student_answer: str) -> dict[str, Any] | None:
     """Submit an answer to an assessment."""
     success, data = api_client.post(
         f"assessments/{assessment_id}/submit",
