@@ -1,12 +1,12 @@
 # UPDATED: 2025-11-11 23:00 - Added byte truncation for bcrypt 72-byte limit
+import logging
 from datetime import datetime, timedelta, timezone
-from typing import Optional
-from jose import JWTError, jwt
-from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-import logging
+from typing import Optional
 
 from .config import settings
 from .database import get_db, Student, UserRole
@@ -45,7 +45,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         True if the password matches, False otherwise
     """
     # DEBUG: Log password lengths
-    print(f"[DEBUG] verify_password called - UPDATED CODE 2025-11-11 23:00")
+    print("[DEBUG] verify_password called - UPDATED CODE 2025-11-11 23:00")
     print(f"[DEBUG] Original password length: {len(plain_password)} chars, {len(plain_password.encode())} bytes")
 
     # Truncate to 72 BYTES (not characters) to match hashing behavior
@@ -71,7 +71,7 @@ def get_password_hash(password: str) -> str:
         The hashed password
     """
     # DEBUG: Log password lengths
-    print(f"[DEBUG] get_password_hash called - UPDATED CODE 2025-11-11 23:00")
+    print("[DEBUG] get_password_hash called - UPDATED CODE 2025-11-11 23:00")
     print(f"[DEBUG] Original password length: {len(password)} chars, {len(password.encode())} bytes")
 
     # Truncate to 72 BYTES (not characters) to comply with bcrypt's limit

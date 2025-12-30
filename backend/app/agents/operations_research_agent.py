@@ -68,7 +68,7 @@ Temas que cubres de IO:
 - El enfoque científico para la toma de decisiones
 - El papel del modelado matemático en la IO
 - Impacto y aplicaciones en el mundo real
- 
+
 **Tipos y clasificación de problemas de IO:**
 - Problemas de optimización (maximización vs. minimización)
 - Problemas con restricciones vs. sin restricciones
@@ -126,7 +126,7 @@ Filosofía de enseñanza:
         if knowledge_level == "beginner":
             level_specific = """
 Nivel de conocimiento del estudiante: PRINCIPIANTE
-            
+
 Este estudiante es nuevo en IO. Tu enfoque debe:
 - Comenzar con lo más básico: ¿Qué es la IO? ¿Por qué es importante?
 - Usar ejemplos y analogías cotidianas (planificar un viaje, presupuestar, programar).
@@ -159,7 +159,7 @@ Guía a los estudiantes para:
         elif knowledge_level == "intermediate":
             level_specific = """
 Nivel de conocimiento del estudiante: INTERMEDIO
-            
+
 Este estudiante comprende los fundamentos de la IO. Su enfoque debe:
 - Asumir familiaridad con los conceptos de optimización
 - Profundizar en la clasificación de problemas y la selección de metodologías
@@ -232,7 +232,7 @@ Ejemplos de debates:
         # Alternative Explanation Strategies
         strategies_guide = """
 Estrategias de explicación alternativas:
-Tienes múltiples maneras de explicar los conceptos de investigación operativa. 
+Tienes múltiples maneras de explicar los conceptos de investigación operativa.
 Adáptalas según las necesidades de los estudiantes:
 
 1. **ENFOQUE CONCEPTUAL**: Enfoque en la comprensión global
@@ -341,7 +341,7 @@ Estructura de la respuesta:
             "investigación de operaciones", "metodología IO", "métodos IO"
 
             # General optimization
-            # "optimization", "optimize", # "decision-making", 
+            # "optimization", "optimize", # "decision-making",
             # "decision analysis", "decision science",
             "optimización", "optimizar", "toma de decisiones", "análisis de decisiones",
             "ciencia de la decisión",
