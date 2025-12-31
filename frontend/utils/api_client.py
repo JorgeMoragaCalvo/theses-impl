@@ -1,8 +1,8 @@
 import json
 from typing import Any
 
-import streamlit as st
 import requests
+import streamlit as st
 
 """
 API Client for authenticated requests to the backend.
