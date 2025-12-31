@@ -587,12 +587,6 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
             Generated response with adaptive explanations
         """
 
-        # Preprocess a message
-        # if not self.validate_message(user_message):
-        #     return "I didn't receive a valid message. Could you please try again?"
-
-        # preprocessed_message = self.preprocess_message(user_message)
-
         preprocessed_message, error_message = self._validate_and_preprocess(user_message)
         if error_message:
             return error_message
