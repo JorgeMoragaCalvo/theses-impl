@@ -27,3 +27,6 @@ ignore = [
 quote-style = "double"  # Use double quotes for strings
 
 indent-style = "space"  # Indent with spaces
+
+[lint.isort]
+known_first_party = ["utils"]
