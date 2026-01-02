@@ -3,6 +3,11 @@ import os
 from typing import Any
 
 from ..utils import get_explanation_strategies_from_context
+from ..tools.modeling_tools import (
+    ModelValidatorTool,
+    ProblemSolverTool,
+    RegionVisualizerTool,
+)
 from .base_agent import BaseAgent
 
 """
@@ -46,6 +51,14 @@ class MathematicalModelingAgent(BaseAgent):
             logger.info("Mathematical Modeling course materials loaded successfully")
         else:
             logger.warning(f"Mathematical Modeling course materials not found at {materials_path}")
+
+        # Initialize tools for this agent
+        self.tools = [
+            ModelValidatorTool(),
+            ProblemSolverTool(),
+            RegionVisualizerTool(),
+        ]
+        logger.info(f"Mathematical Modeling agent initialized with {len(self.tools)} tools")
 
     def get_system_prompt(self, context: dict[str, Any]) -> str:
         """
@@ -144,7 +157,7 @@ LONGITUD ADAPTATIVA:
 - Problema completo para formular → formulación estructurada paso a paso"""
 
         # ========== SECTION 5: FEW-SHOT EXAMPLES ==========
-        examples = self._get_fewshot_examples(knowledge_level)
+        examples = self._get_few_shot_examples(knowledge_level)
 
         # ========== SECTION 6: RESPONSE GUIDELINES (Compact) ==========
         guidelines = """
@@ -170,6 +183,34 @@ Tienes acceso a materiales de referencia sobre modelado matemático.
 Adapta las explicaciones al nivel del estudiante y contexto presente.
 {self.format_context_for_prompt(context)}
 """
+
+        # ========== SECTION 7: TOOL INSTRUCTIONS ==========
+        tool_instructions = """
+HERRAMIENTAS DISPONIBLES:
+Tienes acceso a herramientas especializadas que puedes usar cuando sea apropiado:
+
+1. **model_validator**: Para validar formulaciones de modelos de optimización.
+   - CUÁNDO USAR: Cuando el estudiante propone una formulación y quieres verificar si es correcta
+   - EJEMPLOS: "¿Está bien mi formulación?", "Revisa mi modelo", formulaciones con errores potenciales
+   - INPUT: JSON con variables, objetivo y restricciones
+
+2. **problem_solver**: Para resolver problemas LP/IP pequeños (máximo 20 variables).
+   - CUÁNDO USAR: Cuando quieras demostrar qué produce una formulación, o verificar una solución
+   - EJEMPLOS: "Resuelve este modelo", "¿Cuál es la solución óptima?", demostrar efectos de cambios
+   - INPUT: JSON con el modelo completo
+
+3. **region_visualizer**: Para visualizar regiones factibles en 2D.
+   - CUÁNDO USAR: Cuando el estudiante tiene un problema con 2 variables y la visualización ayudaría
+   - EJEMPLOS: "Muéstrame la región factible", "No entiendo el método gráfico", problemas de 2 variables
+   - INPUT: JSON con las restricciones del problema
+
+REGLAS DE USO:
+- Si el estudiante tiene un problema de 2 variables y necesita visualización → USA region_visualizer
+- Si el estudiante propone una formulación para revisar → USA model_validator
+- Si quieres mostrar qué resultado da un modelo → USA problem_solver
+- Para explicaciones conceptuales → Responde directamente sin herramientas
+- Integra la información de las herramientas naturalmente en tu respuesta pedagógica"""
+
         # ========== COMBINE ALL SECTIONS ==========
         full_prompt = "\n\n".join([
             identity,
@@ -178,13 +219,14 @@ Adapta las explicaciones al nivel del estudiante y contexto presente.
             pedagogy,
             examples,
             guidelines,
-            materials_section
+            materials_section,
+            tool_instructions
         ])
 
         return full_prompt
 
     @staticmethod
-    def _get_fewshot_examples(knowledge_level: str) -> str:
+    def _get_few_shot_examples(knowledge_level: str) -> str:
         """
         Return few-shot examples appropriate for the knowledge level.
         These teach the model the expected response style.
@@ -542,15 +584,25 @@ Si permites violación con probabilidad ≤ α:
             context=context,
         )
 
+        # Generate response with tools
         try:
-            response = self.llm_service.generate_response(
+            response = self.llm_service.generate_response_with_tools(
                 messages=components["messages"],
+                tools=self.tools,
                 system_prompt=components["system_prompt"]
             )
         except Exception as e:
-            logger.error(f"Error in {self.agent_name} response generation: {str(e)}")
-            from ..utils import format_error_message
-            return format_error_message(e)
+            logger.warning(f"Tool-enabled generation failed, falling back: {e}")
+            # Fallback to non-tool generation
+            try:
+                response = self.llm_service.generate_response(
+                    messages=components["messages"],
+                    system_prompt=components["system_prompt"]
+                )
+            except Exception as fallback_e:
+                logger.error(f"Error in {self.agent_name} response generation: {str(fallback_e)}")
+                from ..utils import format_error_message
+                return format_error_message(fallback_e)
 
         return self._postprocess_with_feedback(
             raw_response=response,
@@ -581,15 +633,25 @@ Si permites violación con probabilidad ≤ α:
             context=context,
         )
 
+        # Generate response with tools (async)
         try:
-            response = await self.llm_service.a_generate_response(
+            response = await self.llm_service.a_generate_response_with_tools(
                 messages=components["messages"],
+                tools=self.tools,
                 system_prompt=components["system_prompt"]
             )
         except Exception as e:
-            logger.error(f"Error in {self.agent_name} async response generation: {str(e)}")
-            from ..utils import format_error_message
-            return format_error_message(e)
+            logger.warning(f"Tool-enabled async generation failed, falling back: {e}")
+            # Fallback to non-tool generation
+            try:
+                response = await self.llm_service.a_generate_response(
+                    messages=components["messages"],
+                    system_prompt=components["system_prompt"]
+                )
+            except Exception as fallback_e:
+                logger.error(f"Error in {self.agent_name} async response generation: {str(fallback_e)}")
+                from ..utils import format_error_message
+                return format_error_message(fallback_e)
 
         return self._postprocess_with_feedback(
             raw_response=response,

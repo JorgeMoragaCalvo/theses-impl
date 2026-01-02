@@ -1,0 +1,361 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2025-01-01",
+    "description": "Operations Research historical timeline, key figures, and eras",
+    "language": "es/en"
+  },
+  "milestones": [
+    {
+      "year": 1939,
+      "title": "Nacimiento de la Programación Lineal",
+      "description": "Leonid Kantorovich formula el primer problema de programación lineal mientras trabajaba en planificación de producción en la Unión Soviética. Desarrolló métodos para optimizar la asignación de recursos en fábricas de madera contrachapada.",
+      "significance": "Primera formulación matemática de optimización de asignación de recursos",
+      "key_figures": ["Leonid Kantorovich"],
+      "tags": ["programación lineal", "orígenes", "Unión Soviética", "planificación de producción", "linear programming", "origins"]
+    },
+    {
+      "year": 1940,
+      "decade": "1940s",
+      "title": "Investigación de Operaciones en la Segunda Guerra Mundial",
+      "description": "El ejército británico establece grupos de 'Operational Research' para optimizar la ubicación de radares, rutas de convoyes y guerra antisubmarina. Patrick Blackett lidera el primer grupo de IO en la RAF.",
+      "significance": "Primer uso organizado de métodos científicos para operaciones militares",
+      "key_figures": ["Patrick Blackett", "Freeman Dyson"],
+      "tags": ["Segunda Guerra Mundial", "WWII", "militar", "orígenes", "británico", "World War II", "military", "origins"]
+    },
+    {
+      "year": 1945,
+      "title": "Fin de la Guerra y Transición a Industria",
+      "description": "Con el fin de la Segunda Guerra Mundial, los científicos de IO comienzan a aplicar sus técnicas a problemas industriales y comerciales. Nacen los primeros departamentos de IO en empresas.",
+      "significance": "Transición de aplicaciones militares a civiles",
+      "key_figures": [],
+      "tags": ["posguerra", "industria", "transición", "post-war", "industry"]
+    },
+    {
+      "year": 1947,
+      "title": "Invención del Método Simplex",
+      "description": "George Dantzig desarrolla el algoritmo Simplex mientras trabajaba para la Fuerza Aérea de Estados Unidos. Este algoritmo revolucionó la programación lineal al proporcionar un método práctico para resolver problemas de optimización lineal.",
+      "significance": "Hizo la programación lineal prácticamente resoluble por primera vez",
+      "key_figures": ["George Dantzig"],
+      "tags": ["simplex", "algoritmo", "Dantzig", "avance", "breakthrough", "algorithm"]
+    },
+    {
+      "year": 1948,
+      "title": "Teoría de la Información de Shannon",
+      "description": "Claude Shannon publica 'A Mathematical Theory of Communication', estableciendo las bases de la teoría de la información que influenciaría muchas áreas de IO.",
+      "significance": "Fundamentos matemáticos para comunicaciones y teoría de colas",
+      "key_figures": ["Claude Shannon"],
+      "tags": ["información", "comunicación", "Shannon", "information theory"]
+    },
+    {
+      "year": 1951,
+      "title": "Fundación de ORSA",
+      "description": "Se funda la Operations Research Society of America (ORSA), la primera sociedad profesional dedicada a la Investigación de Operaciones en Estados Unidos.",
+      "significance": "Profesionalización del campo de IO",
+      "key_figures": [],
+      "tags": ["ORSA", "sociedad", "profesionalización", "society", "professionalization"]
+    },
+    {
+      "year": 1952,
+      "title": "Teoría de Juegos y Comportamiento Económico",
+      "description": "John von Neumann y Oskar Morgenstern expanden la teoría de juegos, proporcionando herramientas para modelar competencia y cooperación en IO.",
+      "significance": "Herramientas para análisis de decisiones competitivas",
+      "key_figures": ["John von Neumann", "Oskar Morgenstern"],
+      "tags": ["teoría de juegos", "von Neumann", "game theory", "economía", "economics"]
+    },
+    {
+      "year": 1954,
+      "title": "Programación Dinámica de Bellman",
+      "description": "Richard Bellman desarrolla la programación dinámica, un método para resolver problemas de optimización secuencial mediante la descomposición en subproblemas más pequeños.",
+      "significance": "Nueva metodología para problemas de decisión multi-etapa",
+      "key_figures": ["Richard Bellman"],
+      "tags": ["programación dinámica", "Bellman", "dynamic programming", "optimización secuencial"]
+    },
+    {
+      "year": 1956,
+      "title": "Algoritmo de Dijkstra",
+      "description": "Edsger Dijkstra desarrolla su famoso algoritmo para encontrar el camino más corto en grafos, fundamental para problemas de redes.",
+      "significance": "Solución eficiente para problemas de ruta más corta",
+      "key_figures": ["Edsger Dijkstra"],
+      "tags": ["Dijkstra", "camino más corto", "grafos", "shortest path", "graphs", "redes", "networks"]
+    },
+    {
+      "year": 1958,
+      "title": "PERT y CPM",
+      "description": "Se desarrollan PERT (Program Evaluation and Review Technique) y CPM (Critical Path Method) para la gestión de proyectos complejos, incluyendo el programa de misiles Polaris.",
+      "significance": "Revolucionó la gestión de proyectos",
+      "key_figures": [],
+      "tags": ["PERT", "CPM", "gestión de proyectos", "project management", "critical path"]
+    },
+    {
+      "year": 1958,
+      "title": "Método de Branch and Bound",
+      "description": "Ailsa Land y Alison Doig desarrollan el método de Branch and Bound para resolver problemas de programación entera.",
+      "significance": "Primer método sistemático para programación entera",
+      "key_figures": ["Ailsa Land", "Alison Doig"],
+      "tags": ["branch and bound", "programación entera", "integer programming", "ramificación y acotación"]
+    },
+    {
+      "year": 1963,
+      "title": "Algoritmo de Ford-Fulkerson",
+      "description": "Ford y Fulkerson publican su trabajo completo sobre flujos en redes, incluyendo el algoritmo de flujo máximo.",
+      "significance": "Fundamentos de optimización en redes",
+      "key_figures": ["Lester Ford", "Delbert Fulkerson"],
+      "tags": ["flujo máximo", "redes", "Ford-Fulkerson", "maximum flow", "networks"]
+    },
+    {
+      "year": 1965,
+      "title": "Métodos de Punto Interior (Precursor)",
+      "description": "Se publican trabajos preliminares que eventualmente llevarían a los métodos de punto interior, una alternativa al Simplex.",
+      "significance": "Semillas de métodos alternativos al Simplex",
+      "key_figures": [],
+      "tags": ["punto interior", "interior point", "alternativa simplex"]
+    },
+    {
+      "year": 1970,
+      "title": "Teorema de Cook y NP-Completitud",
+      "description": "Stephen Cook demuestra el teorema que establece las bases de la teoría de complejidad computacional, crucial para entender los límites de la optimización.",
+      "significance": "Comprensión de qué problemas son computacionalmente difíciles",
+      "key_figures": ["Stephen Cook"],
+      "tags": ["NP-completo", "complejidad", "Cook", "NP-complete", "complexity"]
+    },
+    {
+      "year": 1975,
+      "title": "Premio Nobel a Kantorovich y Koopmans",
+      "description": "Leonid Kantorovich y Tjalling Koopmans reciben el Premio Nobel de Economía por sus contribuciones a la teoría de asignación óptima de recursos.",
+      "significance": "Reconocimiento máximo a la programación lineal",
+      "key_figures": ["Leonid Kantorovich", "Tjalling Koopmans"],
+      "tags": ["Nobel", "Kantorovich", "Koopmans", "premio", "economía", "economics"]
+    },
+    {
+      "year": 1979,
+      "title": "Método Elipsoide de Khachiyan",
+      "description": "Leonid Khachiyan demuestra que la programación lineal es polinomial, aunque el método elipsoide no es práctico.",
+      "significance": "Primer algoritmo polinomial para LP (teórico)",
+      "key_figures": ["Leonid Khachiyan"],
+      "tags": ["elipsoide", "polinomial", "Khachiyan", "ellipsoid", "polynomial"]
+    },
+    {
+      "year": 1984,
+      "title": "Método de Punto Interior de Karmarkar",
+      "description": "Narendra Karmarkar desarrolla un algoritmo de punto interior práctico y eficiente para programación lineal, revolucionando la solución de problemas grandes.",
+      "significance": "Alternativa práctica al Simplex para problemas grandes",
+      "key_figures": ["Narendra Karmarkar"],
+      "tags": ["Karmarkar", "punto interior", "interior point", "algoritmo", "algorithm"]
+    },
+    {
+      "year": 1983,
+      "title": "Simulated Annealing",
+      "description": "Kirkpatrick, Gelatt y Vecchi introducen Simulated Annealing, inspirado en el proceso de recocido en metalurgia, para optimización combinatoria.",
+      "significance": "Inicio de las metaheurísticas modernas",
+      "key_figures": ["Scott Kirkpatrick"],
+      "tags": ["simulated annealing", "metaheurística", "metaheuristic", "optimización combinatoria"]
+    },
+    {
+      "year": 1986,
+      "title": "Algoritmos Genéticos",
+      "description": "John Holland y David Goldberg popularizan los algoritmos genéticos, inspirados en la evolución natural.",
+      "significance": "Nueva familia de metaheurísticas inspiradas en la naturaleza",
+      "key_figures": ["John Holland", "David Goldberg"],
+      "tags": ["algoritmos genéticos", "genetic algorithms", "evolución", "evolution", "metaheurística"]
+    },
+    {
+      "year": 1990,
+      "decade": "1990s",
+      "title": "Era de los Solvers Comerciales",
+      "description": "Solvers comerciales como CPLEX, Gurobi (fundado más tarde) y XPRESS se vuelven ampliamente disponibles, haciendo la optimización accesible a la industria.",
+      "significance": "Democratización de herramientas de optimización",
+      "key_figures": [],
+      "tags": ["solvers", "CPLEX", "comercial", "software", "commercial"]
+    },
+    {
+      "year": 1997,
+      "title": "Optimización Cónica de Segundo Orden",
+      "description": "Los métodos de optimización cónica (SOCP) se establecen como herramienta práctica, expandiendo el alcance de problemas resolubles eficientemente.",
+      "significance": "Extensión de LP a problemas más generales pero aún tratables",
+      "key_figures": [],
+      "tags": ["SOCP", "cónica", "conic", "optimización convexa", "convex optimization"]
+    },
+    {
+      "year": 2000,
+      "decade": "2000s",
+      "title": "Optimización en Cadenas de Suministro",
+      "description": "La IO se convierte en fundamental para la gestión de cadenas de suministro globales, con empresas como Amazon y Walmart liderando su aplicación.",
+      "significance": "IO como ventaja competitiva empresarial",
+      "key_figures": [],
+      "tags": ["cadena de suministro", "supply chain", "logística", "logistics", "Amazon", "Walmart"]
+    },
+    {
+      "year": 2010,
+      "decade": "2010s",
+      "title": "Integración de Machine Learning y Optimización",
+      "description": "Comienza la convergencia de machine learning con IO, usando ML para mejorar solvers y optimización para entrenar modelos.",
+      "significance": "Nueva era de métodos híbridos",
+      "key_figures": [],
+      "tags": ["machine learning", "ML", "inteligencia artificial", "AI", "híbrido", "hybrid"]
+    },
+    {
+      "year": 2020,
+      "decade": "2020s",
+      "title": "IO y COVID-19",
+      "description": "La pandemia de COVID-19 demuestra la importancia de IO en la distribución de vacunas, gestión de recursos hospitalarios y optimización de cadenas de suministro bajo incertidumbre.",
+      "significance": "IO en respuesta a crisis globales",
+      "key_figures": [],
+      "tags": ["COVID-19", "pandemia", "vacunas", "salud", "healthcare", "crisis"]
+    }
+  ],
+  "key_figures": [
+    {
+      "name": "George Dantzig",
+      "birth_year": 1914,
+      "death_year": 2005,
+      "nationality": "Estadounidense",
+      "contributions": [
+        "Inventó el algoritmo Simplex (1947)",
+        "Desarrolló principios de descomposición para LP a gran escala",
+        "Pionero de la teoría de programación lineal",
+        "Contribuciones a programación lineal bajo incertidumbre"
+      ],
+      "famous_for": "Padre de la Programación Lineal",
+      "fun_fact": "Como estudiante de doctorado, llegó tarde a clase y resolvió dos problemas no resueltos pensando que eran tarea. Estos se convirtieron en parte de su tesis doctoral.",
+      "tags": ["simplex", "programación lineal", "linear programming", "estadounidense", "American", "pionero", "pioneer"]
+    },
+    {
+      "name": "Leonid Kantorovich",
+      "birth_year": 1912,
+      "death_year": 1986,
+      "nationality": "Ruso/Soviético",
+      "contributions": [
+        "Primera formulación de LP (1939)",
+        "Teoría de asignación óptima de recursos",
+        "Premio Nobel de Economía (1975)",
+        "Método de multiplicadores resolventes"
+      ],
+      "famous_for": "Inventor independiente de la programación lineal",
+      "fun_fact": "Desarrolló LP para optimizar la producción de madera contrachapada en fábricas soviéticas, sin conocer el trabajo paralelo en Occidente.",
+      "tags": ["programación lineal", "Soviet", "Nobel", "economía", "economics", "ruso", "Russian"]
+    },
+    {
+      "name": "John von Neumann",
+      "birth_year": 1903,
+      "death_year": 1957,
+      "nationality": "Húngaro-Estadounidense",
+      "contributions": [
+        "Teoría de juegos (con Morgenstern)",
+        "Teoría de dualidad en LP",
+        "Arquitectura de computadoras",
+        "Fundamentos de la computación moderna"
+      ],
+      "famous_for": "Genio matemático universal, padre de la computación moderna",
+      "fun_fact": "Demostró el teorema de dualidad de LP y contribuyó fundamentalmente a la teoría de juegos mientras también diseñaba las primeras computadoras.",
+      "tags": ["teoría de juegos", "game theory", "dualidad", "duality", "computación", "computing", "von Neumann"]
+    },
+    {
+      "name": "Richard Bellman",
+      "birth_year": 1920,
+      "death_year": 1984,
+      "nationality": "Estadounidense",
+      "contributions": [
+        "Programación dinámica (1950s)",
+        "Ecuación de Bellman",
+        "Principio de optimalidad",
+        "Aplicaciones en control óptimo"
+      ],
+      "famous_for": "Creador de la programación dinámica",
+      "fun_fact": "Acuñó el término 'programación dinámica' en parte para hacerlo sonar impresionante ante los burócratas del gobierno que financiaban su investigación.",
+      "tags": ["programación dinámica", "dynamic programming", "Bellman", "optimización secuencial", "control"]
+    },
+    {
+      "name": "Patrick Blackett",
+      "birth_year": 1897,
+      "death_year": 1974,
+      "nationality": "Británico",
+      "contributions": [
+        "Pionero de la IO militar en WWII",
+        "Análisis de operaciones antisubmarinas",
+        "Metodología científica para decisiones militares",
+        "Premio Nobel de Física (1948)"
+      ],
+      "famous_for": "Padre de la Investigación de Operaciones militar",
+      "fun_fact": "Sus análisis estadísticos ayudaron a mejorar dramáticamente la efectividad de las fuerzas aliadas contra los submarinos alemanes.",
+      "tags": ["WWII", "Segunda Guerra Mundial", "militar", "military", "británico", "British", "pionero"]
+    },
+    {
+      "name": "Tjalling Koopmans",
+      "birth_year": 1910,
+      "death_year": 1985,
+      "nationality": "Neerlandés-Estadounidense",
+      "contributions": [
+        "Análisis de actividades de producción y asignación",
+        "Premio Nobel de Economía (1975) con Kantorovich",
+        "Teoría económica de recursos óptimos",
+        "Aplicaciones de LP en economía"
+      ],
+      "famous_for": "Aplicación de LP a la economía",
+      "fun_fact": "Comenzó su carrera estudiando física teórica antes de pasar a la economía y la IO.",
+      "tags": ["Nobel", "economía", "economics", "asignación", "allocation", "Koopmans"]
+    },
+    {
+      "name": "Narendra Karmarkar",
+      "birth_year": 1956,
+      "death_year": null,
+      "nationality": "Indio",
+      "contributions": [
+        "Algoritmo de punto interior (1984)",
+        "Revolucionó la solución de LP grandes",
+        "Patente controvertida de algoritmo",
+        "Trabajó en AT&T Bell Labs"
+      ],
+      "famous_for": "Método de punto interior práctico para LP",
+      "fun_fact": "Su algoritmo generó una de las patentes más controvertidas en matemáticas, ya que algunos argumentaban que los algoritmos matemáticos no deberían ser patentables.",
+      "tags": ["Karmarkar", "punto interior", "interior point", "AT&T", "algoritmo", "algorithm", "indio", "Indian"]
+    },
+    {
+      "name": "Edsger Dijkstra",
+      "birth_year": 1930,
+      "death_year": 2002,
+      "nationality": "Neerlandés",
+      "contributions": [
+        "Algoritmo de camino más corto (1956)",
+        "Contribuciones fundamentales a ciencias de la computación",
+        "Programación estructurada",
+        "Premio Turing (1972)"
+      ],
+      "famous_for": "Algoritmo de Dijkstra para camino más corto",
+      "fun_fact": "Diseñó su famoso algoritmo en unos 20 minutos mientras tomaba café con su prometida, sin usar papel ni lápiz.",
+      "tags": ["Dijkstra", "camino más corto", "shortest path", "grafos", "graphs", "Turing", "neerlandés", "Dutch"]
+    }
+  ],
+  "eras": [
+    {
+      "name": "Era Pre-IO",
+      "period": "Antes de 1940",
+      "description": "La optimización matemática existía pero sin metodología sistemática. Frederick Taylor desarrolló la administración científica, y matemáticos trabajaban en problemas individuales de optimización."
+    },
+    {
+      "name": "Orígenes Militares",
+      "period": "1940-1945",
+      "description": "La IO emerge de las necesidades de la Segunda Guerra Mundial. Grupos de científicos en Gran Bretaña y Estados Unidos aplican métodos científicos a operaciones militares: ubicación de radares, rutas de convoyes, logística de suministros."
+    },
+    {
+      "name": "Expansión de Posguerra",
+      "period": "1945-1960",
+      "description": "Transición de aplicaciones militares a industriales. Se desarrollan los algoritmos fundamentales (Simplex, programación dinámica), se fundan las primeras sociedades profesionales (ORSA, TIMS), y la IO se establece en universidades."
+    },
+    {
+      "name": "Maduración Algorítmica",
+      "period": "1960-1980",
+      "description": "Desarrollo de métodos para problemas más complejos: programación entera (Branch and Bound), optimización en redes, teoría de complejidad computacional. La IO se convierte en disciplina madura."
+    },
+    {
+      "name": "Revolución Computacional",
+      "period": "1980-2000",
+      "description": "Las computadoras personales y solvers comerciales democratizan la IO. Métodos de punto interior, metaheurísticas, y la disponibilidad de software hacen la optimización accesible a la industria."
+    },
+    {
+      "name": "Era de los Datos y la IA",
+      "period": "2000-presente",
+      "description": "Integración de IO con big data, machine learning e inteligencia artificial. Aplicaciones en cadenas de suministro globales, economía compartida, y respuesta a crisis. La IO se vuelve invisible pero omnipresente."
+    }
+  ]
+}
