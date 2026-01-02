@@ -51,7 +51,7 @@ def fetch_student_progress(student_id: int) -> dict[str, Any] | None:
 def fetch_assessments(student_id: int, topic: str | None = None) -> list[dict[str, Any]]:
     """Fetch student assessments, optionally filtered by topic."""
     params = {}
-    if topic and topic != "All Topics":
+    if topic:
         params["topic"] = topic
 
     success, data = api_client.get(f"students/{student_id}/assessments", params=params)
@@ -250,8 +250,8 @@ with tab2:
     with col1:
         topic_filter = st.selectbox(
             "Filtrar por tema:",
-            ["Todos los temas", "Investigación de operaciones", "Modelado matemático",
-             "Programación lineal", "Programación entera", "Programación no lineal"],
+            ["Todos los temas", "Investigación de Operaciones", "Modelado Matemático",
+             "Programación Lineal", "Programación Entera", "Programación No Lineal"],
             key="history_topic_filter"
         )
 
@@ -261,7 +261,7 @@ with tab2:
 
     # Convert display name to API enum value
     topic_value = None
-    if topic_filter != "All Topics": # Todos los temas
+    if topic_filter != "Todos los temas":
         topic_value = TOPIC_OPTIONS.get(topic_filter, topic_filter.lower().replace(" ", "_"))
 
     # Fetch assessments
