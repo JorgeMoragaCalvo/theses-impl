@@ -23,6 +23,9 @@ ignore = [
 # Ignore unused imports in __init__.py files
 "__init__.py" = ["F401"]
 
+[lint.isort]
+known-first-party = ["utils"]
+
 [format]
 quote-style = "double"  # Use double quotes for strings
 

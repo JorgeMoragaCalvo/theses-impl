@@ -51,7 +51,7 @@ def fetch_student_progress(student_id: int) -> dict[str, Any] | None:
 def fetch_assessments(student_id: int, topic: str | None = None) -> list[dict[str, Any]]:
     """Fetch student assessments, optionally filtered by topic."""
     params = {}
-    if topic and topic != "All Topics":
+    if topic:
         params["topic"] = topic
 
     success, data = api_client.get(f"students/{student_id}/assessments", params=params)
@@ -167,7 +167,7 @@ with tab1:
         # Knowledge Levels
         knowledge_levels = progress_data.get("knowledge_levels", {})
         if knowledge_levels:
-            st.subheader("🎯 Knowledge Levels")
+            st.subheader("🎯 Niveles de conocimiento")
             cols = st.columns(min(3, len(knowledge_levels)))
             for idx, (topic, level) in enumerate(knowledge_levels.items()):
                 with cols[idx % 3]:
@@ -210,7 +210,7 @@ with tab1:
                 try:
                     dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
                     time_str = dt.strftime("%Y-%m-%d %H:%M")
-                except:
+                except (ValueError, TypeError):
                     time_str = timestamp
 
                 if activity_type == "conversation":
@@ -250,8 +250,8 @@ with tab2:
     with col1:
         topic_filter = st.selectbox(
             "Filtrar por tema:",
-            ["Todos los temas", "Investigación de operaciones", "Modelado matemático",
-             "Programación lineal", "Programación entera", "Programación no lineal"],
+            ["Todos los temas", "Investigación de Operaciones", "Modelado Matemático",
+             "Programación Lineal", "Programación Entera", "Programación No Lineal"],
             key="history_topic_filter"
         )
 
@@ -261,7 +261,7 @@ with tab2:
 
     # Convert display name to API enum value
     topic_value = None
-    if topic_filter != "All Topics": # Todos los temas
+    if topic_filter != "Todos los temas":
         topic_value = TOPIC_OPTIONS.get(topic_filter, topic_filter.lower().replace(" ", "_"))
 
     # Fetch assessments
@@ -320,7 +320,7 @@ with tab2:
             try:
                 dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
                 date_str = dt.strftime("%Y-%m-%d %H:%M")
-            except:
+            except (ValueError, AttributeError, TypeError):
                 date_str = created_at
 
             # Create expander for each assessment

@@ -10,7 +10,8 @@ from sqlalchemy.orm import Session
 from .agents.integer_programming_agent import get_integer_programming_agent
 from .agents.linear_programming_agent import get_linear_programming_agent
 from .agents.mathematical_modeling_agent import get_mathematical_modeling_agent
-from .agents.nonlinear_programming_agent import get_nonlinear_programming_agent
+# from .agents.nonlinear_programming_agent import get_nonlinear_programming_agent
+from .agents.nlp_agent import get_nonlinear_programming_agent
 from .agents.operations_research_agent import get_operations_research_agent
 from .auth import (
     authenticate_user,

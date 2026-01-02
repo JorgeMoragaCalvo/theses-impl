@@ -2,7 +2,8 @@ import logging
 from typing import Any
 
 from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.tools import BaseTool
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 
@@ -214,6 +215,185 @@ class LLMService:
             return response_text
         except Exception as e:
             logger.error(f"Error generating async response with {self.provider}: {str(e)}")
+            raise
+
+    @staticmethod
+    def _execute_tool(tools: list[BaseTool], tool_name: str, tool_args: dict | str) -> str:
+        """
+        Execute a tool by name with given arguments.
+
+        Args:
+            tools: List of available tools
+            tool_name: Name of the tool to execute
+            tool_args: Arguments to pass to the tool
+
+        Returns:
+            Tool execution result as string
+        """
+        for tool in tools:
+            if tool.name == tool_name:
+                try:
+                    # Handle both dict args and string args
+                    if isinstance(tool_args, dict):
+                        result = tool.run(tool_args)
+                    else:
+                        result = tool.run(tool_args)
+                    logger.info(f"Tool '{tool_name}' executed successfully")
+                    return str(result)
+                except Exception as e:
+                    logger.error(f"Tool '{tool_name}' execution error: {e}")
+                    return f"Error executing tool '{tool_name}': {str(e)}"
+        return f"Tool '{tool_name}' not found"
+
+    def generate_response_with_tools(
+        self,
+        messages: list[dict[str, str]],
+        tools: list[BaseTool],
+        system_prompt: str | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        max_tool_iterations: int = 3
+    ) -> str:
+        """
+        Generate a response with tool calling support.
+
+        The LLM can decide to call tools, and this method handles the
+        tool execution loop until a final response is generated.
+
+        Args:
+            messages: Conversation history as list of dicts with 'role' and 'content'
+            tools: List of LangChain tools to make available to the LLM
+            system_prompt: Optional system prompt to prepend
+            temperature: Optional temperature override
+            max_tokens: Optional max_tokens override
+            max_tool_iterations: Maximum number of tool call iterations (default 3)
+
+        Returns:
+            Final generated response text after tool execution
+
+        Raises:
+            Exception: If LLM call fails
+        """
+        try:
+            # Prepend the system message if provided
+            if system_prompt:
+                messages = [{"role": "system", "content": system_prompt}] + messages
+
+            # Convert to LangChain messages
+            langchain_messages = self._convert_message(messages)
+
+            # Get LLM with overrides and bind tools
+            llm = self._get_llm_with_overrides(temperature, max_tokens)
+            llm_with_tools = llm.bind_tools(tools)
+
+            # Tool execution loop
+            for iteration in range(max_tool_iterations):
+                response = llm_with_tools.invoke(langchain_messages)
+
+                # Check if there are tool calls
+                if not hasattr(response, 'tool_calls') or not response.tool_calls:
+                    # No tool calls, return the content
+                    logger.info(f"Generated response with tools (iteration {iteration + 1}): {len(response.content)} chars")
+                    return response.content
+
+                # Add AI message with tool calls to conversation
+                langchain_messages.append(response)
+
+                # Execute each tool call
+                for tool_call in response.tool_calls:
+                    tool_name = tool_call.get("name", "")
+                    tool_args = tool_call.get("args", {})
+                    tool_id = tool_call.get("id", "")
+
+                    logger.info(f"Executing tool '{tool_name}' with args: {tool_args}")
+
+                    # Execute the tool
+                    tool_result = self._execute_tool(tools, tool_name, tool_args)
+
+                    # Add tool result to messages
+                    langchain_messages.append(
+                        ToolMessage(content=tool_result, tool_call_id=tool_id)
+                    )
+
+            # Max iterations reached, get final response without tools
+            logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")
+            final_response = llm.invoke(langchain_messages)
+            return final_response.content
+
+        except Exception as e:
+            logger.error(f"Error in generate_response_with_tools: {str(e)}")
+            raise
+
+    async def a_generate_response_with_tools(
+        self,
+        messages: list[dict[str, str]],
+        tools: list[BaseTool],
+        system_prompt: str | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        max_tool_iterations: int = 3
+    ) -> str:
+        """
+        Async version of generate_response_with_tools.
+
+        Args:
+            messages: Conversation history
+            tools: List of LangChain tools to make available
+            system_prompt: Optional system prompt
+            temperature: Optional temperature override
+            max_tokens: Optional max_tokens override
+            max_tool_iterations: Maximum tool call iterations
+
+        Returns:
+            Final generated response text after tool execution
+        """
+        try:
+            # Prepend the system message if provided
+            if system_prompt:
+                messages = [{"role": "system", "content": system_prompt}] + messages
+
+            # Convert to LangChain messages
+            langchain_messages = self._convert_message(messages)
+
+            # Get LLM with overrides and bind tools
+            llm = self._get_llm_with_overrides(temperature, max_tokens)
+            llm_with_tools = llm.bind_tools(tools)
+
+            # Tool execution loop
+            for iteration in range(max_tool_iterations):
+                response = await llm_with_tools.ainvoke(langchain_messages)
+
+                # Check if there are tool calls
+                if not hasattr(response, 'tool_calls') or not response.tool_calls:
+                    logger.info(f"Generated async response with tools (iteration {iteration + 1}): {len(response.content)} chars")
+                    return response.content
+
+                # Add AI message with tool calls to conversation
+                langchain_messages.append(response)
+
+                # Execute each tool call
+                for tool_call in response.tool_calls:
+                    tool_name = tool_call.get("name", "")
+                    tool_args = tool_call.get("args", {})
+                    tool_id = tool_call.get("id", "")
+
+                    logger.info(f"Executing tool '{tool_name}' with args: {tool_args}")
+
+                    # Execute the tool (tools are sync, but that's okay)
+                    tool_result = self._execute_tool(tools, tool_name, tool_args)
+
+                    # Add tool result to messages
+                    langchain_messages.append(
+                        ToolMessage(content=tool_result, tool_call_id=tool_id)
+                    )
+
+            # Max iterations reached
+            logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")
+            final_response = await llm.ainvoke(langchain_messages)
+            return final_response.content
+
+        except Exception as e:
+            logger.error(f"Error in a_generate_response_with_tools: {str(e)}")
             raise
 
     def get_provider_info(self) -> dict[str, Any]:
