@@ -5,12 +5,12 @@ This package contains tools that agents can use to provide
 enhanced functionality beyond pure text generation.
 """
 
-from .or_tools import TimelineExplorerTool, ProblemClassifierTool
 from .modeling_tools import (
     ModelValidatorTool,
     ProblemSolverTool,
     RegionVisualizerTool,
 )
+from .or_tools import ProblemClassifierTool, TimelineExplorerTool
 
 __all__ = [
     # OR Tools

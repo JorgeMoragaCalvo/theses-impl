@@ -365,8 +365,8 @@ Estados posibles: optimal, infeasible, unbounded, error."""
         has_rhs_vars = any(c != 0 for c in rhs_coeffs)
         if has_rhs_vars:
             # Move RHS variables to LHS: lhs - rhs_vars <= rhs_constant
-            lhs = [l - r for l, r in zip(lhs, rhs_coeffs)]
-
+            lhs = [lhs_coef - rhs_coef for lhs_coef, rhs_coef in zip(lhs, rhs_coeffs, strict=True)]
+            # lhs = [l - r for l, r in zip(lhs, rhs_coeffs)]
         # Get RHS constant
         try:
             # Try to evaluate RHS as a pure number first
@@ -497,7 +497,7 @@ Estados posibles: optimal, infeasible, unbounded, error."""
 
 **Valores de las Variables:**
 """
-            for name, value in zip(var_names, variables):
+            for name, value in zip(var_names, variables, strict=True):
                 # Round very small values to 0 for display
                 display_val = value if abs(value) > 1e-8 else 0.0
                 output += f"- {name} = {display_val:.4f}\n"
@@ -506,7 +506,7 @@ Estados posibles: optimal, infeasible, unbounded, error."""
             slack = result.get("slack")
             if slack:
                 output += "\n**Holguras (Slack):**\n"
-                for i, (name, s) in enumerate(zip(constraint_names, slack)):
+                for name, s in zip(constraint_names, slack, strict=True):
                     if s < 1e-8:
                         output += f"- {name}: 0 (restricción activa/binding)\n"
                     else:
