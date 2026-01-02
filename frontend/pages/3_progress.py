@@ -12,8 +12,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
 from utils.api_client import get_api_client
 
 """
-Progress tracking page - Student learning analytics
+Página de seguimiento del progreso - análisis del aprendizaje de los estudiantes
 """
+# Progress tracking page - Student learning analytics
 
 load_dotenv()
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
@@ -23,7 +24,7 @@ api_client = get_api_client(BACKEND_URL)
 
 st.set_page_config(page_title="Progress - AI Tutor", page_icon="📊", layout="wide")
 
-st.title("📊 Your learning progress")
+st.title("📊 Tu progreso de aprendizaje")
 
 # Check if the user is authenticated
 if not api_client.is_authenticated():
@@ -67,7 +68,7 @@ if success:
         st.divider()
 
         # Knowledge levels
-        st.subheader("🎯 Knowledge Levels by Topic")
+        st.subheader("🎯 Niveles de conocimiento por tema")
 
         knowledge_levels = student_data.get("knowledge_levels", {})
         topic_names = {
@@ -97,12 +98,12 @@ if success:
         # Fetch conversations using the authenticated API
         conv_success, conversations = api_client.get(f"students/{student_id}/conversations")
 
-        st.subheader("💬 Conversation History")
+        st.subheader("💬Historial de conversaciones")
         if conv_success and conversations:
-            st.metric("Total Conversations", len(conversations))
+            st.metric("Conversaciones totales", len(conversations))
 
             # Show recent conversations
-            st.markdown("#### Recent Conversations")
+            st.markdown("#### Conversaciones recientes")
 
             for conv in conversations[:5]:
                 with st.expander(
@@ -127,7 +128,7 @@ if success:
         st.divider()
 
         # Learning Statistics
-        st.subheader("📈 Learning Statistics")
+        st.subheader("📈 Estadísticas de aprendizaje")
 
         # Fetch progress data
         progress_data = fetch_student_progress(student_id)
@@ -137,13 +138,13 @@ if success:
 
             with col1:
                 st.metric(
-                    "Total Messages",
+                    "Total Mensajes",
                     progress_data.get("total_messages", 0)
                 )
 
             with col2:
                 st.metric(
-                    "Practice Problems",
+                    "Problemas de práctica",
                     progress_data.get("total_assessments", 0)
                 )
 
@@ -151,7 +152,7 @@ if success:
                 avg_score = progress_data.get("average_score")
                 if avg_score is not None:
                     st.metric(
-                        "Average Score",
+                        "Puntuación media",
                         f"{avg_score:.1f}"
                     )
                 else:
@@ -159,7 +160,7 @@ if success:
 
             with col4:
                 st.metric(
-                    "Total Conversations",
+                    "Total Conversaciones",
                     progress_data.get("total_conversations", 0)
                 )
         else:
@@ -171,24 +172,24 @@ else:
 st.divider()
 
 # Tips section
-st.subheader("💡 Learning Tips")
+st.subheader("💡 Consejos de aprendizaje")
 
 col1, col2 = st.columns(2)
 
 with col1:
     st.markdown("""
-    **How to Improve Your Knowledge Level:**
-    - Engage regularly with the AI tutor
-    - Practice with different types of problems
-    - Ask for clarification when needed
-    - Review feedback on your assessments
+    **Cómo mejorar tu nivel de conocimientos:**
+    - Interactúa regularmente con el tutor de IA
+    - Practica con diferentes tipos de problemas
+    - Pide aclaraciones cuando sea necesario
+    - Revisar el feedback sobre tus evaluaciones
     """)
 
 with col2:
     st.markdown("""
-    **Effective Learning Strategies:**
-    - Start with fundamentals before advanced topics
-    - Work through examples step-by-step
-    - Connect new concepts to previous knowledge
-    - Test yourself regularly with assessments
+    **Estrategias de aprendizaje eficaces:**
+    - Comienza con los fundamentos antes de abordar temas avanzados
+    - Trabaja con ejemplos paso a paso
+    - Conecta nuevos conceptos con conocimientos previos
+    - Ponte a prueba periódicamente con evaluaciones
     """)

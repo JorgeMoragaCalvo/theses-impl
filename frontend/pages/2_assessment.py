@@ -167,7 +167,7 @@ with tab1:
         # Knowledge Levels
         knowledge_levels = progress_data.get("knowledge_levels", {})
         if knowledge_levels:
-            st.subheader("🎯 Knowledge Levels")
+            st.subheader("🎯 Niveles de conocimiento")
             cols = st.columns(min(3, len(knowledge_levels)))
             for idx, (topic, level) in enumerate(knowledge_levels.items()):
                 with cols[idx % 3]:
