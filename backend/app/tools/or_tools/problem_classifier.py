@@ -234,7 +234,7 @@ Use this when students describe a real-world problem and need guidance on what t
         has_integer = characteristics["has_integer_vars"]
         has_binary = characteristics["has_binary_vars"]
         has_continuous = characteristics["has_continuous_vars"]
-        has_uncertainty = characteristics["has_uncertainty"]
+        # has_uncertainty = characteristics["has_uncertainty"]
 
         # Classification logic
         if has_nonlinear:
