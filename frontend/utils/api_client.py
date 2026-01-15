@@ -9,6 +9,7 @@ API Client for authenticated requests to the backend.
 Handles token management and automatic header injection.
 """
 
+
 class APIClient:
     """Centralized API client with authentication support."""
 
@@ -320,4 +321,3 @@ def get_api_client(base_url: str) -> APIClient:
     if "api_client" not in st.session_state:
         st.session_state.api_client = APIClient(base_url)
     return st.session_state.api_client
-
