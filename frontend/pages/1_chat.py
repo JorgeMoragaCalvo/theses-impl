@@ -52,7 +52,7 @@ for message in st.session_state.chat_messages:
             st.caption(f"Agent: {message['agent_type']}")
 
 # Chat input
-if prompt := st.chat_input("Haz tu pregunta..."):
+if prompt := st.chat_input(placeholder="Haz tu pregunta..."):
     # Add the user message
     st.session_state.chat_messages.append({"role": "user", "content": prompt})
 
