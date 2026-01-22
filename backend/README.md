@@ -135,17 +135,17 @@ python init_db.py
 # Run the application
 uvicorn app.main:app --reload
 ```
+<details>
+  <summary><b>API Endpoints</b></summary>
 
-## API Endpoints
-
-### Authentication
+#### Authentication
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/auth/register` | Register new user |
 | POST | `/auth/login` | Login and get JWT token |
 | GET | `/auth/me` | Get current user info |
 
-### Students
+#### Students
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/students` | Create student profile |
@@ -156,13 +156,13 @@ uvicorn app.main:app --reload
 | GET | `/students/{id}/conversations` | Get student conversations |
 | GET | `/students/{id}/assessments` | Get student assessments |
 
-### Chat
+#### Chat
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/chat` | Send message and get AI response |
 | GET | `/conversations/{id}` | Get conversation with messages |
 
-### Assessments
+#### Assessments
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/assessments/generate` | Generate personalized assessment |
@@ -171,13 +171,13 @@ uvicorn app.main:app --reload
 | POST | `/assessments/{id}/submit` | Submit answer (auto-grades) |
 | POST | `/assessments/{id}/grade` | Admin grade/override |
 
-### Exercises
+#### Exercises
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/exercises` | List available exercises |
 | GET | `/exercises/{id}` | Get exercise preview |
 
-### Admin (requires admin role)
+#### Admin (requires admin role)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/admin/users` | List users with progress |
@@ -187,16 +187,19 @@ uvicorn app.main:app --reload
 | GET | `/admin/settings` | Get system settings |
 | GET | `/admin/stats` | Get system statistics |
 
-### System
+#### System
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/` | Root endpoint with API info |
 | GET | `/health` | Health check |
 | POST | `/feedback` | Submit feedback on message |
+  
+</details>
 
-## Business Logic
-
-### Adaptive Learning Flow
+<details>
+  <summary><b>Business Logic</b></summary>
+  
+  #### Adaptive Learning Flow
 
 1. **User sends message** → `/chat` endpoint
 2. **Agent selection** → Based on topic (LP, IP, NLP, MM, OR)
@@ -208,20 +211,22 @@ uvicorn app.main:app --reload
 5. **Response generation** → LLM generates adaptive response
 6. **Context update** → Conversation history and progress updated
 
-### Assessment Flow
+#### Assessment Flow
 
 1. **Generate assessment** → Based on topic, difficulty, and conversation context
 2. **Student submits answer** → Answer stored
 3. **Auto-grading** → LLM grades against rubric
 4. **Admin override** → Optional manual grade adjustment
 
-### Supported Topics
+#### Supported Topics
 
 - Operations Research (general concepts)
 - Mathematical Modeling (problem formulation)
 - Linear Programming (LP)
 - Integer Programming (IP)
 - Nonlinear Programming (NLP)
+  
+</details>
 
 ## Running the Application
 
