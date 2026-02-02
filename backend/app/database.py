@@ -27,12 +27,14 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Create the Base class for models
 Base = declarative_base()
 
+
 # Enums
 class KnowledgeLevel(str, enum.Enum):
     """Student knowledge level for each topic."""
     BEGINNER = "beginner"
     INTERMEDIATE = "intermediate"
     ADVANCED = "advanced"
+
 
 class Topic(str, enum.Enum):
     """Optimization method topics."""
@@ -42,15 +44,18 @@ class Topic(str, enum.Enum):
     INTEGER_PROGRAMMING = "integer_programming"
     NONLINEAR_PROGRAMMING = "nonlinear_programming"
 
+
 class UserRole(str, enum.Enum):
     """User role for authorization."""
     USER = "user"
     ADMIN = "admin"
 
+
 class GradingSource(str, enum.Enum):
     """Source of assessment grading."""
     AUTO = "auto"
     ADMIN = "admin"
+
 
 # Database Models
 class Student(Base):
@@ -77,6 +82,7 @@ class Student(Base):
     # Learning preferences and metadata
     preferences = Column(JSON, default={})
 
+
 class Conversation(Base):
     """Conversation session model."""
     __tablename__ = "conversations"
@@ -95,6 +101,7 @@ class Conversation(Base):
     # - student_preferences: dict - Inferred student preferences from interaction patterns
     # Metadata
     extra_data = Column(JSON, default={}) # Session metadata
+
 
 class Message(Base):
     """Individual message in a conversation."""
@@ -115,6 +122,7 @@ class Message(Base):
     # - contains_alternative: bool - Whether this is an alternative explanation
     # Metadata
     extra_data = Column(JSON, default={})
+
 
 class Assessment(Base):
     """Student assessment and quiz results."""
@@ -145,6 +153,7 @@ class Assessment(Base):
     # Metadata
     extra_data = Column(JSON, default={})
 
+
 class Feedback(Base):
     """Student feedback on agent responses."""
     __tablename__ = "feedback"
@@ -163,6 +172,7 @@ class Feedback(Base):
     # Metadata
     extra_data = Column(JSON, default={})
 
+
 # Database dependency for FastAPI
 def get_db() -> Generator[Session, None, None]:
     """
@@ -175,10 +185,12 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
+
 # Database initialization
 def init_db() -> None:
     """Initialize database tables."""
     Base.metadata.create_all(bind=engine)
+
 
 # Database cleanup
 def drop_db() -> None:
