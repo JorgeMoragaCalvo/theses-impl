@@ -8,7 +8,7 @@ from ..tools.modeling_tools import (
     ExerciseValidatorTool,
     ModelValidatorTool,
     ProblemSolverTool,
-    RegionVisualizerTool
+    RegionVisualizerTool,
 )
 from ..utils import get_explanation_strategies_from_context
 from .base_agent import BaseAgent

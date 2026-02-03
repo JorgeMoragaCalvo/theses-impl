@@ -1,9 +1,9 @@
 import logging
 from typing import Any
 
-from .base_agent import BaseAgent
 from ..tools.or_tools import ProblemClassifierTool, TimelineExplorerTool
 from ..utils import get_explanation_strategies_from_context
+from .base_agent import BaseAgent
 
 """
 Operations Research Agent - Foundational tutor for Operations Research concepts.

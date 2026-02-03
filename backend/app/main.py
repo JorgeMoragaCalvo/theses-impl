@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from .agents.integer_programming_agent import get_integer_programming_agent
 from .agents.linear_programming_agent import get_linear_programming_agent
 from .agents.mathematical_modeling_agent import get_mathematical_modeling_agent
+
 # from .agents.nonlinear_programming_agent import get_nonlinear_programming_agent
 from .agents.nlp_agent import get_nonlinear_programming_agent
 from .agents.operations_research_agent import get_operations_research_agent
@@ -19,7 +20,7 @@ from .auth import (
     create_access_token,
     get_current_admin_user,
     get_current_user,
-    get_password_hash
+    get_password_hash,
 )
 from .config import settings
 from .database import (
@@ -32,7 +33,7 @@ from .database import (
     Topic,
     UserRole,
     get_db,
-    init_db
+    init_db,
 )
 from .models import (
     AssessmentAnswerSubmit,
@@ -54,12 +55,15 @@ from .models import (
     StudentRegister,
     StudentResponse,
     StudentUpdate,
-    TokenResponse
+    TokenResponse,
 )
 from .routers import admin
 from .services.assessment_service import get_assessment_service
 from .services.conversation_service import get_conversation_service
-from .services.exercise_assessment_service import get_exercise_assessment_service, get_exercise_registry
+from .services.exercise_assessment_service import (
+    get_exercise_assessment_service,
+    get_exercise_registry,
+)
 from .services.grading_service import get_grading_service
 
 """
