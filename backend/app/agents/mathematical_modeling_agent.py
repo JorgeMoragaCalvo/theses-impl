@@ -2,12 +2,15 @@ import logging
 import os
 from typing import Any
 
-from ..utils import get_explanation_strategies_from_context
+from ..services.exercise_manager import ExerciseManager
 from ..tools.modeling_tools import (
+    ExercisePracticeTool,
+    ExerciseValidatorTool,
     ModelValidatorTool,
     ProblemSolverTool,
-    RegionVisualizerTool,
+    RegionVisualizerTool
 )
+from ..utils import get_explanation_strategies_from_context
 from .base_agent import BaseAgent
 
 """
@@ -52,11 +55,25 @@ class MathematicalModelingAgent(BaseAgent):
         else:
             logger.warning(f"Mathematical Modeling course materials not found at {materials_path}")
 
+        # Load exercises
+        exercises_path = os.path.join(
+            os.path.dirname(__file__),
+            "..", "..", "..", "data",
+            "course_materials", "mathematical_modeling", "exercises"
+        )
+        self.exercise_manager = ExerciseManager(exercises_path)
+        logger.info(f"Loaded {self.exercise_manager.get_exercise_count()} exercises")
+
         # Initialize tools for this agent
         self.tools = [
             ModelValidatorTool(),
             ProblemSolverTool(),
             RegionVisualizerTool(),
+            ExercisePracticeTool(exercise_manager=self.exercise_manager),
+            ExerciseValidatorTool(
+                exercise_manager=self.exercise_manager,
+                llm_service=self.llm_service
+            ),
         ]
         logger.info(f"Mathematical Modeling agent initialized with {len(self.tools)} tools")
 
@@ -185,7 +202,13 @@ Adapta las explicaciones al nivel del estudiante y contexto presente.
 """
 
         # ========== SECTION 7: TOOL INSTRUCTIONS ==========
-        tool_instructions = """
+        # Build exercise list dynamically
+        exercise_list = ", ".join([
+            f"{ex['id']} ({ex['title']})"
+            for ex in self.exercise_manager.list_exercises()
+        ]) if self.exercise_manager.get_exercise_count() > 0 else "No hay ejercicios cargados"
+
+        tool_instructions = f"""
 HERRAMIENTAS DISPONIBLES:
 Tienes acceso a herramientas especializadas que puedes usar cuando sea apropiado:
 
@@ -204,12 +227,31 @@ Tienes acceso a herramientas especializadas que puedes usar cuando sea apropiado
    - EJEMPLOS: "Muéstrame la región factible", "No entiendo el método gráfico", problemas de 2 variables
    - INPUT: JSON con las restricciones del problema
 
+4. **exercise_practice**: Para ejercicios de práctica de modelado matemático.
+   - CUÁNDO USAR: Cuando el estudiante quiera practicar, necesite un ejercicio, o pida pistas
+   - EJEMPLOS: "Dame un ejercicio", "Quiero practicar", "Necesito una pista", "Muéstrame la solución"
+   - ACCIONES: list (listar ejercicios), get_exercise (obtener enunciado), get_hint (pista), reveal_solution
+   - INPUT: JSON con action y exercise_id según la acción
+   - EJERCICIOS DISPONIBLES: {exercise_list}
+
+5. **exercise_validator**: Para validar formulaciones de estudiantes contra soluciones de referencia.
+   - CUÁNDO USAR: Cuando el estudiante presenta su formulación de un ejercicio y quiere feedback
+   - EJEMPLOS: "Revisa mi formulación del ejercicio mm_01", "¿Está bien mi modelo para el problema de dieta?"
+   - INPUT: JSON con exercise_id y student_formulation
+
 REGLAS DE USO:
 - Si el estudiante tiene un problema de 2 variables y necesita visualización → USA region_visualizer
 - Si el estudiante propone una formulación para revisar → USA model_validator
 - Si quieres mostrar qué resultado da un modelo → USA problem_solver
 - Para explicaciones conceptuales → Responde directamente sin herramientas
-- Integra la información de las herramientas naturalmente en tu respuesta pedagógica"""
+- Integra la información de las herramientas naturalmente en tu respuesta pedagógica
+
+USO PEDAGÓGICO DE EJERCICIOS:
+- Ofrece ejercicios para practicar después de explicar un concepto
+- Usa los ejercicios como ejemplos concretos durante las explicaciones
+- Da pistas progresivas antes de revelar soluciones completas
+- Usa exercise_validator para feedback constructivo (no solo "correcto/incorrecto")
+- Relaciona conceptos con ejercicios específicos: "Esto es similar al problema de Mezcla de Acero (mm_01)..." """
 
         # ========== COMBINE ALL SECTIONS ==========
         full_prompt = "\n\n".join([

@@ -8,12 +8,14 @@ from pydantic import BaseModel, EmailStr, Field
 Pydantic models for API request/response validation.
 """
 
+
 # Enums
 class KnowledgeLevel(str, Enum):
     """Student knowledge level for each topic."""
     BEGINNER = "beginner"
     INTERMEDIATE = "intermediate"
     ADVANCED = "advanced"
+
 
 class Topic(str, Enum):
     """Optimization method topics."""
@@ -23,21 +25,25 @@ class Topic(str, Enum):
     INTEGER_PROGRAMMING = "integer_programming"
     NONLINEAR_PROGRAMMING = "nonlinear_programming"
 
+
 class MessageRole(str, Enum):
     """Message role in conversation."""
     USER = "user"
     ASSISTANT = "assistant"
     SYSTEM = "system"
 
+
 class UserRole(str, Enum):
     """User role for authorization."""
     USER = "user"
     ADMIN = "admin"
 
+
 class GradingSource(str, Enum):
     """Source of assessment grading."""
     AUTO = "auto"
     ADMIN = "admin"
+
 
 # Request Models
 class StudentCreate(BaseModel):
@@ -47,16 +53,19 @@ class StudentCreate(BaseModel):
     knowledge_levels: dict[str, str] | None = None
     preferences: dict[str, Any] | None = None
 
+
 class StudentRegister(BaseModel):
     """Request model for user registration."""
     name: str = Field(..., min_length=1, max_length=255)
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=72)
 
+
 class StudentLogin(BaseModel):
     """Request model for user login."""
     email: EmailStr
     password: str = Field(..., min_length=1)
+
 
 class StudentUpdate(BaseModel):
     """Request model for updating student information."""
@@ -65,11 +74,13 @@ class StudentUpdate(BaseModel):
     knowledge_levels: dict[str, str] | None = None
     preferences: dict[str, Any] | None = None
 
+
 class MessageCreate(BaseModel):
     """Request model for creating a new message."""
     conversation_id: int | None = None
     content: str = Field(..., min_length=1)
     topic: Topic | None = None
+
 
 class FeedbackCreate(BaseModel):
     """Request the model for creating new feedback."""
@@ -78,21 +89,35 @@ class FeedbackCreate(BaseModel):
     is_helpful: bool | None = None
     comment: str | None= None
 
+
 class AssessmentGenerate(BaseModel):
     """Request the model for generating a new assessment."""
     topic: Topic
     difficulty: KnowledgeLevel | None = KnowledgeLevel.INTERMEDIATE
     conversation_id: int | None= None
 
+
+class ExerciseAssessmentGenerate(BaseModel):
+    """Request a model for generating assessment from a pre-built exercise."""
+    exercise_id: str = Field(..., min_length=1, description="Exercise ID (e.g., 'mm_01')")
+    mode: str = Field(
+        default="practice",
+        pattern="^(practice|similar)$",
+        description="'practice' for original exercise, 'similar' for LLM-generated variation"
+    )
+
+
 class AssessmentAnswerSubmit(BaseModel):
     """Request model for submitting a student's answer to an assessment."""
     student_answer: str = Field(..., min_length=1)
+
 
 class AssessmentGradeRequest(BaseModel):
     """Request model for manually grading an assessment."""
     score: float = Field(..., ge=0)
     max_score: float | None = Field(None, ge=0)
     feedback: str | None= None
+
 
 # Response Models (data output. How the API responds)
 class StudentResponse(BaseModel):
@@ -111,11 +136,20 @@ class StudentResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class TokenResponse(BaseModel):
     """Response model for authentication token."""
     access_token: str
     token_type: str = "bearer"
     user: StudentResponse
+
+
+class RegistrationPendingResponse(BaseModel):
+    """Response model for registration pending admin approval."""
+    status: str = "pending_approval"
+    message: str
+    user: StudentResponse
+
 
 class MessageResponse(BaseModel):
     """Response model for message data."""
@@ -130,6 +164,7 @@ class MessageResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ConversationResponse(BaseModel):
     """Response model for conversation data."""
     id: int
@@ -143,6 +178,7 @@ class ConversationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class AssessmentResponse(BaseModel):
     """Response model for assessment data."""
@@ -181,6 +217,7 @@ class AssessmentResponse(BaseModel):
             return super().model_validate(data, **kwargs)
         return super().model_validate(obj, **kwargs)
 
+
 class FeedbackResponse(BaseModel):
     """Response model for feedback data."""
     id: int
@@ -195,12 +232,14 @@ class FeedbackResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 # Chat Models
 class ChatRequest(BaseModel):
     """Request model for chat endpoint."""
     message: str = Field(..., min_length=1)
     conversation_id: int | None = None
     topic: Topic  # The required field - auto-detect feature will be implemented later
+
 
 class ChatResponse(BaseModel):
     """Response model for chat endpoint."""
@@ -211,6 +250,7 @@ class ChatResponse(BaseModel):
     topic: str | None = None
     timestamp: datetime
 
+
 # Health Check
 class HealthResponse(BaseModel):
     """Response model for health check endpoint."""
@@ -218,6 +258,7 @@ class HealthResponse(BaseModel):
     version: str
     llm_provider: str
     database_connected: bool
+
 
 # Progress Tracking
 class ProgressResponse(BaseModel):

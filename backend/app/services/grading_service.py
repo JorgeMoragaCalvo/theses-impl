@@ -208,6 +208,7 @@ class GradingService:
             r'grade["\s:]+(\d+\.?\d*)',
         ]
 
+        # Extracts score from the response using regex patterns
         for pattern in score_patterns:
             match = re.search(pattern, llm_response, re.IGNORECASE)
             if match:
@@ -221,6 +222,7 @@ class GradingService:
         # Try to extract the feedback section
         feedback_markers = ["feedback:", "evaluation:", "comments:"]
         for marker in feedback_markers:
+            # Extracts feedback from the response using known markers
             if marker in llm_response.lower():
                 idx = llm_response.lower().find(marker)
                 feedback = llm_response[idx + len(marker):].strip()
@@ -235,6 +237,7 @@ class GradingService:
             feedback = feedback[:1000] + "..."
 
         return score, feedback
+
 
 def get_grading_service(db: Session) -> GradingService:
     """

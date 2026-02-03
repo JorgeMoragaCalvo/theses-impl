@@ -103,9 +103,9 @@ def format_knowledge_level_context(knowledge_level: str) -> str:
         Formatted context string
     """
     level_descriptions = {
-        "beginner": "This student is new to the topic and needs clear, step-by-step explanations with basic examples.",
-        "intermediate": "This student has basic understanding and can handle moderate complexity with some mathematical details.",
-        "advanced": "This student is proficient and can engage with theoretical concepts, proofs, and complex problem-solving."
+        "beginner": "Este estudiante es nuevo en el tema y necesita explicaciones claras, paso a paso, con ejemplos básicos.",
+        "intermediate": "Este estudiante tiene comprensión básica y puede manejar complejidad moderada con algunos detalles matemáticos.",
+        "advanced": "Este estudiante es competente y puede abordar conceptos teóricos, demostraciones y resolución de problemas complejos."
     }
     return level_descriptions.get(knowledge_level.lower(), level_descriptions["beginner"])
 
@@ -122,12 +122,13 @@ def parse_topic_from_message(message: str) -> str:
     message_lower = message.lower()
 
     topic_keywords = {
-        "linear_programming": ["linear programming", "lp problem", "simplex", "duality", "constraint",
-                               "objective function"],
-        "integer_programming": ["integer programming", "ip problem", "binary variable", "branch and bound"],
-        "nonlinear_programming": ["nonlinear programming", "nlp", "gradient", "lagrange", "kkt"],
-        "operations_research": ["operations research", "or", "optimization"],
-        "mathematical_modeling": ["mathematical model", "formulation", "modeling"]
+        "linear_programming": ["programación lineal", "problema pl", "simplex", "dualidad",
+                               "restricción", "función objetivo"],
+        "integer_programming": ["programación entera", "problema pe", "variable binaria",
+                                "ramificación y acotamiento", "branch and bound"],
+        "nonlinear_programming": ["programación no lineal", "pnl", "gradiente", "lagrange", "kkt"],
+        "operations_research": ["investigación de operaciones", "io", "optimización"],
+        "mathematical_modeling": ["modelo matemático", "formulación", "modelado", "modelamiento"]
     }
 
     for topic, keywords in topic_keywords.items():
@@ -148,8 +149,8 @@ def format_error_message(error: Exception, user_friendly: bool = True) -> str:
     """
     if user_friendly:
         return (
-            "I apologize, but I encountered an issue generating a response. "
-            "Please try rephrasing your question or try again in a moment."
+            "Lo siento, encontré un problema al generar una respuesta. "
+            "Por favor, reformula tu pregunta o inténtalo de nuevo en un momento."
         )
     return f"Error: {str(error)}"
 
@@ -186,27 +187,28 @@ def detect_confusion_signals(message: str) -> dict[str, Any]:
     """
     message_lower = message.lower().strip()
 
-    # Confusion indicators with severity weights
+    # Confusion indicators with severity weights (Spanish)
     high_confusion_keywords = [
-        "don't understand", "don't get it", "makes no sense", "totally lost",
-        "completely confused", "have no idea", "what does this mean",
-        "i'm lost", "i am lost", "no clue"
+        "no entiendo", "no lo entiendo", "no tiene sentido", "estoy perdido",
+        "completamente confundido", "no tengo idea", "qué significa esto",
+        "estoy totalmente perdido", "no me queda claro para nada"
     ]
 
     medium_confusion_keywords = [
-        "confused", "unclear", "not sure", "don't see", "can't figure out",
-        "struggling with", "difficulty understanding", "hard to understand",
-        "not clear", "doesn't make sense", "how is this"
+        "confundido", "confundida", "no estoy seguro", "no estoy segura",
+        "no veo", "no puedo entender", "me cuesta entender",
+        "dificultad para entender", "difícil de entender", "no me queda claro",
+        "cómo es que", "por qué es así"
     ]
 
     low_confusion_keywords = [
-        "what?", "huh?", "wait", "hold on", "can you explain",
-        "could you clarify", "what do you mean", "i don't follow",
-        "not following", "bit confused"
+        "qué?", "eh?", "espera", "un momento", "puedes explicar",
+        "podrías aclarar", "qué quieres decir", "no sigo",
+        "no te sigo", "un poco confundido", "un poco confundida"
     ]
 
     # Very short responses after explanation (potential confusion)
-    short_response_patterns = ["?", "??", "???", "what", "huh", "ok?", "why"]
+    short_response_patterns = ["?", "??", "???", "qué", "eh", "ok?", "por qué", "cómo"]
 
     detected_signals = []
     confusion_level = "none"

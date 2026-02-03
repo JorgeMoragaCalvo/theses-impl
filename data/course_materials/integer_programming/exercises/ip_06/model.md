@@ -1,0 +1,3 @@
+# Solución
+
+[Formulación matemática aquí]

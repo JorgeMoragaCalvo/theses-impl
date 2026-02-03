@@ -16,6 +16,7 @@ Supports both Gemini, OpenAI and Anthropic with easy switching via configuration
 
 logger = logging.getLogger(__name__)
 
+
 class LLMService:
     """
     Service for interacting with LLM providers.
@@ -261,7 +262,7 @@ class LLMService:
         tool execution loop until a final response is generated.
 
         Args:
-            messages: Conversation history as list of dicts with 'role' and 'content'
+            messages: Conversation history as a list of dicts with 'role' and 'content'
             tools: List of LangChain tools to make available to the LLM
             system_prompt: Optional system prompt to prepend
             temperature: Optional temperature override
@@ -296,7 +297,7 @@ class LLMService:
                     logger.info(f"Generated response with tools (iteration {iteration + 1}): {len(response.content)} chars")
                     return response.content
 
-                # Add AI message with tool calls to conversation
+                # Add an AI message with tool calls to conversation
                 langchain_messages.append(response)
 
                 # Execute each tool call
@@ -310,12 +311,12 @@ class LLMService:
                     # Execute the tool
                     tool_result = self._execute_tool(tools, tool_name, tool_args)
 
-                    # Add tool result to messages
+                    # Add a tool result to messages
                     langchain_messages.append(
                         ToolMessage(content=tool_result, tool_call_id=tool_id)
                     )
 
-            # Max iterations reached, get final response without tools
+            # Max iterations reached, get a final response without tools
             logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")
             final_response = llm.invoke(langchain_messages)
             return final_response.content
@@ -368,7 +369,7 @@ class LLMService:
                     logger.info(f"Generated async response with tools (iteration {iteration + 1}): {len(response.content)} chars")
                     return response.content
 
-                # Add AI message with tool calls to conversation
+                # Add an AI message with tool calls to conversation
                 langchain_messages.append(response)
 
                 # Execute each tool call
@@ -382,7 +383,7 @@ class LLMService:
                     # Execute the tool (tools are sync, but that's okay)
                     tool_result = self._execute_tool(tools, tool_name, tool_args)
 
-                    # Add tool result to messages
+                    # Add a tool result to messages
                     langchain_messages.append(
                         ToolMessage(content=tool_result, tool_call_id=tool_id)
                     )
@@ -410,8 +411,10 @@ class LLMService:
             "max_tokens": settings.max_tokens
         }
 
+
 # Global LLM service instance
 _llm_service: LLMService | None = None
+
 
 def get_llm_service() -> LLMService:
     """

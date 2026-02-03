@@ -1,9 +1,9 @@
 import logging
 from typing import Any
 
-from ..tools.or_tools import TimelineExplorerTool, ProblemClassifierTool
-from ..utils import get_explanation_strategies_from_context
 from .base_agent import BaseAgent
+from ..tools.or_tools import ProblemClassifierTool, TimelineExplorerTool
+from ..utils import get_explanation_strategies_from_context
 
 """
 Operations Research Agent - Foundational tutor for Operations Research concepts.
@@ -11,6 +11,7 @@ Provides broad introduction to OR methodology and prepares students for speciali
 """
 
 logger = logging.getLogger(__name__)
+
 
 class OperationsResearchAgent(BaseAgent):
     """
@@ -705,6 +706,7 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
 
 # Global agent instance (singleton pattern)
 _or_agent: OperationsResearchAgent | None = None
+
 
 def get_operations_research_agent() -> OperationsResearchAgent:
     """

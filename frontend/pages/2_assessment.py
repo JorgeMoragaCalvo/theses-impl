@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
 
 from utils.api_client import get_api_client
-from utils.constants import TOPIC_OPTIONS
+from utils.constants import TOPIC_OPTIONS, TOPIC_DISPLAY_NAMES, TOPICS_LIST
 
 """
 Página de evaluación - Problemas de práctica y cuestionarios.
@@ -95,6 +95,31 @@ def submit_assessment(assessment_id: int, student_answer: str) -> dict[str, Any]
     )
     if not success:
         st.error(f"Error submitting assessment: {data.get('error', 'Unknown error')}")
+        return None
+    return data
+
+
+def fetch_exercises(topic: str | None = None) -> list[dict[str, Any]]:
+    """Fetch available exercises, optionally filtered by topic."""
+    params = {}
+    if topic:
+        params["topic"] = topic
+
+    success, data = api_client.get("exercises", params=params)
+    if not success:
+        st.error(f"Error fetching exercises: {data.get('error', 'Unknown error')}")
+        return []
+    return data
+
+
+def generate_exercise_assessment(exercise_id: str, mode: str) -> dict[str, Any] | None:
+    """Generate assessment from a pre-built exercise."""
+    success, data = api_client.post(
+        "assessments/generate/from-exercise",
+        json_data={"exercise_id": exercise_id, "mode": mode}
+    )
+    if not success:
+        st.error(f"Error generating exercise assessment: {data.get('error', 'Unknown error')}")
         return None
     return data
 
@@ -394,43 +419,112 @@ with tab2:
 with tab3:
     st.subheader("➕ Generar nueva evaluación")
 
-    col1, col2 = st.columns(2)
+    # Mode selection
+    assessment_mode = st.radio(
+        "Modo de evaluación:",
+        ["Generar nuevo problema", "Practicar con ejercicio existente"],
+        key="assessment_mode",
+        horizontal=True
+    )
 
-    with col1:
-        new_topic = st.selectbox(
-            "Select a topic:",
-            [
-                "Investigación de Operaciones",
-                "Modelado Matemático",
-                "Programación Lineal",
-                "Programación Entera",
-                "Programación No Lineal"
-            ],
-            key="new_topic"
+    st.divider()
+
+    if assessment_mode == "Practicar con ejercicio existente":
+        # Exercise-based assessment with topic filter
+        exercise_topic_filter = st.selectbox(
+            "Filtrar por tema:",
+            ["Todos los temas"] + TOPICS_LIST,
+            key="exercise_topic_filter"
         )
 
-    with col2:
-        new_difficulty = st.selectbox(
-            "Selecciona dificultad:",
-            ["Principiante", "Intermedio", "Avanzado"],
-            key="new_difficulty"
-        )
+        # Convert display name to API enum value
+        topic_value = None
+        if exercise_topic_filter != "Todos los temas":
+            topic_value = TOPIC_OPTIONS.get(exercise_topic_filter)
 
-    if st.button("Generar evaluación", type="primary", key="generate_btn"):
-        with st.spinner("Generando evaluación..."):
-            # Convert display name to API enum value
-            topic_value = TOPIC_OPTIONS.get(new_topic, new_topic.lower().replace(" ", "_"))
-            # student_id extracted from the auth token automatically
-            result = generate_assessment(
-                topic_value,
-                new_difficulty
+        exercises = fetch_exercises(topic=topic_value)
+
+        if exercises:
+            # Create exercise options with topic display
+            exercise_options = {}
+            for ex in exercises:
+                topic_display = TOPIC_DISPLAY_NAMES.get(ex.get('topic', ''), ex.get('topic', 'Desconocido'))
+                model_type = ex.get('model_type', '')
+                label = f"[{topic_display}] {ex['id']} - {ex['title']}"
+                if model_type:
+                    label += f" ({model_type})"
+                exercise_options[label] = ex['id']
+
+            selected_exercise = st.selectbox(
+                "Selecciona un ejercicio:",
+                list(exercise_options.keys()),
+                key="selected_exercise"
             )
 
-            if result is not None:
-                st.session_state.current_assessment = result
-                st.session_state.show_assessment_form = True
-                st.success("¡Evaluación generada exitosamente!")
-                st.rerun()
+            practice_mode = st.radio(
+                "Tipo de práctica:",
+                ["Ejercicio original", "Problema similar (generado por IA)"],
+                key="practice_mode",
+                help="'Ejercicio original' usa el problema tal cual. 'Problema similar' genera un nuevo problema con el mismo tipo de modelo pero diferente contexto."
+            )
+
+            if st.button("Comenzar evaluación", type="primary", key="generate_exercise_btn"):
+                with st.spinner("Preparando evaluación..."):
+                    exercise_id = exercise_options[selected_exercise]
+                    mode = "practice" if practice_mode == "Ejercicio original" else "similar"
+
+                    result = generate_exercise_assessment(exercise_id, mode)
+
+                    if result is not None:
+                        st.session_state.current_assessment = result
+                        st.session_state.show_assessment_form = True
+                        st.success("¡Evaluación generada exitosamente!")
+                        st.rerun()
+        else:
+            if topic_value:
+                st.warning(f"No hay ejercicios disponibles para {exercise_topic_filter}.")
+            else:
+                st.warning("No hay ejercicios disponibles en este momento.")
+
+    else:
+        # Standard LLM-generated assessment
+        col1, col2 = st.columns(2)
+
+        with col1:
+            new_topic = st.selectbox(
+                "Selecciona un tema:",
+                [
+                    "Investigación de Operaciones",
+                    "Modelado Matemático",
+                    "Programación Lineal",
+                    "Programación Entera",
+                    "Programación No Lineal"
+                ],
+                key="new_topic"
+            )
+
+        with col2:
+            new_difficulty = st.selectbox(
+                "Selecciona dificultad:",
+                ["Principiante", "Intermedio", "Avanzado"],
+                key="new_difficulty"
+            )
+
+        if st.button("Generar evaluación", type="primary", key="generate_btn"):
+            with st.spinner("Generando evaluación..."):
+                # Convert display name to API enum value
+                topic_value = TOPIC_OPTIONS.get(new_topic, new_topic.lower().replace(" ", "_"))
+                # student_id extracted from the auth token automatically
+                result = generate_assessment(
+                    topic_value,
+                    new_difficulty
+                )
+
+                if result is not None:
+                    st.session_state.current_assessment = result
+                    st.session_state.show_assessment_form = True
+                    st.success("¡Evaluación generada exitosamente!")
+                    st.rerun()
 
     # Display current assessment if available
     if st.session_state.show_assessment_form and st.session_state.current_assessment is not None:

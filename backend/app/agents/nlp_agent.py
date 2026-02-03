@@ -6,6 +6,7 @@ from .base_agent import BaseAgent
 
 logger = logging.getLogger(__name__)
 
+
 class NonLinearProgrammingAgent(BaseAgent):
 
     def __init__(self):
@@ -479,8 +480,10 @@ La calificaciÃ³n de restricciones (LICQ) garantiza que los multiplicadores son Ã
             async_mode=True
         )
 
+
 # ==================== SINGLETON INSTANCE ====================
 _nlp_agent: NonLinearProgrammingAgent | None = None
+
 
 def get_nonlinear_programming_agent() -> NonLinearProgrammingAgent:
     """Get or create the global NLP agent instance."""

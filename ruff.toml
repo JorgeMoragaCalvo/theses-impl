@@ -24,7 +24,7 @@ ignore = [
 "__init__.py" = ["F401"]
 
 [lint.isort]
-known-first-party = ["utils"]
+known-first-party = ["utils", "models", "services", "tools", "agents"]
 
 [format]
 quote-style = "double"  # Use double quotes for strings

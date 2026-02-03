@@ -12,6 +12,7 @@ cutting plane methods, and applications.
 
 logger = logging.getLogger(__name__)
 
+
 class IntegerProgrammingAgent(BaseAgent):
     """
     Specialized agent for teaching Integer Programming.
@@ -545,7 +546,7 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
 
     @staticmethod
     def _get_off_topic_response() -> str:
-        """Response when a query is outside IP scope."""
+        """Response when a query is outside the IP scope."""
         return (
             "Mi especialidad es la Programación Entera. Tu pregunta parece ser sobre otro tema.\n\n"
             "Puedo ayudarte con: formulación de problemas IP con variables binarias y enteras, "
@@ -751,8 +752,10 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             async_mode=True
         )
 
+
 # Global agent instance
 _ip_agent: IntegerProgrammingAgent | None = None
+
 
 def get_integer_programming_agent() -> IntegerProgrammingAgent:
     """

@@ -12,6 +12,7 @@ Covers comprehensive LP topics including formulation, graphical method, simplex,
 
 logger = logging.getLogger(__name__)
 
+
 class LinearProgrammingAgent(BaseAgent):
     """
     Specialized agent for teaching Linear Programming.

@@ -12,6 +12,7 @@ KKT conditions, convexity, numerical methods, and applications.
 
 logger = logging.getLogger(__name__)
 
+
 class NonlinearProgrammingAgent(BaseAgent):
     """
     Specialized agent for teaching Nonlinear Programming.
@@ -516,8 +517,10 @@ Ejemplo de estructura de respuesta:
             async_mode=True
         )
 
+
 # Global agent instance
 _nlp_agent: NonlinearProgrammingAgent | None = None
+
 
 def get_nonlinear_programming_agent() -> NonlinearProgrammingAgent:
     """
