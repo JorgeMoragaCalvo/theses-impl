@@ -2,16 +2,16 @@ import logging
 import os
 from typing import Any
 
-from ..utils import get_explanation_strategies_from_context
+from .base_agent import BaseAgent
+from ..services.exercise_manager import ExerciseManager
 from ..tools.modeling_tools import (
-    ModelValidatorTool,
-    ProblemSolverTool,
-    RegionVisualizerTool,
     ExercisePracticeTool,
     ExerciseValidatorTool,
+    ModelValidatorTool,
+    ProblemSolverTool,
+    RegionVisualizerTool
 )
-from ..services.exercise_manager import ExerciseManager
-from .base_agent import BaseAgent
+from ..utils import get_explanation_strategies_from_context
 
 """
 Mathematical Modeling Agent - Specialized tutor for Mathematical Modeling and Problem Formulation.

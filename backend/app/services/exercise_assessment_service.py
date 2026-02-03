@@ -7,10 +7,11 @@ import logging
 import os
 from typing import Any
 
-from ..models import Topic
 from .exercise_manager import ExerciseManager
-from .llm_service import LLMService, get_llm_service
 from .llm_response_parser import parse_llm_json_response
+from .llm_service import LLMService, get_llm_service
+
+from ..models import Topic
 
 logger = logging.getLogger(__name__)
 

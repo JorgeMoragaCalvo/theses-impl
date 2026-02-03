@@ -7,9 +7,10 @@ providing statements, hints, and solutions.
 
 import json
 import logging
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from langchain_core.tools import BaseTool
+
 
 if TYPE_CHECKING:
     from ...services.exercise_manager import ExerciseManager
