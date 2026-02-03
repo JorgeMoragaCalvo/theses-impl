@@ -10,6 +10,7 @@ Loads environment variables and provides application settings.
 
 logger = logging.getLogger(__name__)
 
+
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
@@ -105,6 +106,7 @@ class Settings(BaseSettings):
                 "This is INSECURE for production. "
                 "Generate a secure key: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
             )
+
 
 # Global settings instance
 settings = Settings()

@@ -788,6 +788,7 @@ class ConversationService:
                 "most_effective": None
             }
 
+
 def get_conversation_service(db: Session) -> ConversationService:
     """
     Create a conversation service instance.
