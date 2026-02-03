@@ -8,9 +8,13 @@ tutoring capabilities with computational and visualization features.
 from .model_validator import ModelValidatorTool
 from .problem_solver import ProblemSolverTool
 from .region_visualizer import RegionVisualizerTool
+from .exercise_practice import ExercisePracticeTool
+from .exercise_validator import ExerciseValidatorTool
 
 __all__ = [
     "ModelValidatorTool",
     "ProblemSolverTool",
     "RegionVisualizerTool",
+    "ExercisePracticeTool",
+    "ExerciseValidatorTool",
 ]

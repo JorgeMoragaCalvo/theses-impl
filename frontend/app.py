@@ -129,8 +129,11 @@ def main():
                             with st.spinner("Creando cuenta..."):
                                 success, data = api_client.register(register_name, register_email, register_password)
                                 if success:
-                                    st.success(f"Bienvenido, {data['user']['name']}! Tu cuenta ha sido creada.")
-                                    st.rerun()
+                                    if data.get("status") == "pending_approval":
+                                        st.warning(f"Cuenta creada para {register_email}. Tu cuenta está pendiente de aprobación por un administrador.")
+                                    else:
+                                        st.success(f"Bienvenido, {data['user']['name']}! Tu cuenta ha sido creada.")
+                                        st.rerun()
                                 else:
                                     error_msg = data.get("detail", "Registration failed")
                                     st.error(f"Error: {error_msg}")

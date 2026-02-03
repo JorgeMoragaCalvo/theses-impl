@@ -1,6 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from typing import Union
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,7 +22,18 @@ from .auth import (
     get_password_hash
 )
 from .config import settings
-from .database import Assessment, Conversation, Feedback, GradingSource, Message, Student, UserRole, get_db, init_db
+from .database import (
+    Assessment,
+    Conversation,
+    Feedback,
+    GradingSource,
+    Message,
+    Student,
+    Topic,
+    UserRole,
+    get_db,
+    init_db
+)
 from .models import (
     AssessmentAnswerSubmit,
     AssessmentGenerate,
@@ -30,11 +42,13 @@ from .models import (
     ChatRequest,
     ChatResponse,
     ConversationResponse,
+    ExerciseAssessmentGenerate,
     FeedbackCreate,
     FeedbackResponse,
     HealthResponse,
     MessageResponse,
     ProgressResponse,
+    RegistrationPendingResponse,
     StudentCreate,
     StudentLogin,
     StudentRegister,
@@ -45,6 +59,7 @@ from .models import (
 from .routers import admin
 from .services.assessment_service import get_assessment_service
 from .services.conversation_service import get_conversation_service
+from .services.exercise_assessment_service import get_exercise_assessment_service, get_exercise_manager, get_exercise_registry
 from .services.grading_service import get_grading_service
 
 """
@@ -146,7 +161,10 @@ async def health_check(db: Session = Depends(get_db)):
     )
 
 # Authentication endpoints
-@app.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+# Allowed email domain for automatic activation
+ALLOWED_EMAIL_DOMAIN = "usach.cl"
+
+@app.post("/auth/register", response_model=Union[TokenResponse, RegistrationPendingResponse], status_code=status.HTTP_201_CREATED)
 async def register(user_data: StudentRegister, db: Session = Depends(get_db)):
     """Register a new user and return the JWT token."""
     # Check if email already exists
@@ -157,13 +175,17 @@ async def register(user_data: StudentRegister, db: Session = Depends(get_db)):
             detail="Email already registered"
         )
 
+    # Check email domain for automatic activation
+    email_domain = str(user_data.email).split('@')[1].lower()
+    is_allowed_domain = email_domain == ALLOWED_EMAIL_DOMAIN
+
     # Create new student with hashed password
     new_student = Student(
         name=user_data.name,
         email=str(user_data.email),
         password_hash=get_password_hash(user_data.password),
         role=UserRole.USER,  # Default role
-        is_active=True,
+        is_active=is_allowed_domain,  # Only allowed domain users are active immediately
         knowledge_levels={
             "operations_research": "beginner",
             "mathematical_modeling": "beginner",
@@ -178,14 +200,21 @@ async def register(user_data: StudentRegister, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_student)
 
-    # Create the access token
-    access_token = create_access_token(data={"sub": str(new_student.id)})
+    logger.info(f"New user registered: {new_student.id} - {new_student.email} (active: {is_allowed_domain})")
 
-    logger.info(f"New user registered: {new_student.id} - {new_student.email}")
+    # Return pending response for non-allowed domains
+    if not is_allowed_domain:
+        return RegistrationPendingResponse(
+            status="pending_approval",
+            message="Cuenta creada. Tu cuenta está pendiente de aprobación por un administrador debido al dominio de correo.",
+            user=StudentResponse.model_validate(new_student)
+        )
+
+    # Create the access token for allowed domain users
+    access_token = create_access_token(data={"sub": str(new_student.id)})
 
     return TokenResponse(
         access_token=access_token,
-        # token_type="bearer",
         user=StudentResponse.model_validate(new_student)
     )
 
@@ -688,6 +717,128 @@ async def generate_assessment(
 
     logger.info(f"Generated assessment {new_assessment.id} for student {student_id}")
     return AssessmentResponse.model_validate(new_assessment)
+
+
+# ============================================================================
+# EXERCISE ENDPOINTS
+# ============================================================================
+
+@app.get("/exercises")
+async def list_exercises(topic: Topic | None = None):
+    """
+    List available exercises, optionally filtered by topic.
+
+    Args:
+        topic: Optional topic to filter exercises by
+    """
+    registry = get_exercise_registry()
+    if topic:
+        return registry.list_exercises_by_topic(topic)
+    return registry.list_all_exercises()
+
+
+@app.get("/exercises/{exercise_id}")
+async def get_exercise_preview(exercise_id: str):
+    """Get exercise details (statement only, no solution)."""
+    service = get_exercise_assessment_service()
+    preview = service.get_exercise_preview(exercise_id)
+
+    if preview is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Exercise '{exercise_id}' not found"
+        )
+
+    return preview
+
+
+@app.post("/assessments/generate/from-exercise", response_model=AssessmentResponse, status_code=status.HTTP_201_CREATED)
+async def generate_assessment_from_exercise(
+    request: ExerciseAssessmentGenerate,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
+    """
+    Generate an assessment from a pre-built exercise.
+
+    Modes:
+    - practice: Use the exercise directly as the assessment
+    - similar: Generate a similar problem using LLM
+    """
+    student_id = current_user.id
+
+    # Get registry to determine topic from exercise
+    registry = get_exercise_registry()
+    topic = registry.get_topic_for_exercise(request.exercise_id)
+
+    if topic is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Exercise '{request.exercise_id}' not found"
+        )
+
+    # Get the manager for this topic's exercises
+    manager = registry.get_manager(topic)
+    if manager is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Exercise manager for topic '{topic.value}' not available"
+        )
+
+    service = get_exercise_assessment_service()
+    # Temporarily set the correct manager for the service
+    original_manager = service.exercise_manager
+    service.exercise_manager = manager
+
+    try:
+        generated = service.create_assessment(
+            exercise_id=request.exercise_id,
+            mode=request.mode
+        )
+
+        question = generated.get("question", "")
+        correct_answer = generated.get("correct_answer", "")
+        rubric = generated.get("rubric", "")
+        metadata = generated.get("metadata", {})
+        # Add a topic to metadata for reference
+        metadata['topic'] = topic.value
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Error generating exercise assessment: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate assessment from exercise"
+        )
+    finally:
+        # Restore the original manager
+        service.exercise_manager = original_manager
+
+    # Create an assessment in a database with an inferred topic
+    new_assessment = Assessment(
+        student_id=student_id,
+        topic=topic,  # Dynamic topic from exercise
+        question=question,
+        correct_answer=correct_answer,
+        rubric=rubric,
+        max_score=7.0,
+        extra_data=metadata
+    )
+
+    db.add(new_assessment)
+    db.commit()
+    db.refresh(new_assessment)
+
+    logger.info(
+        f"Generated exercise assessment {new_assessment.id} for student {student_id} "
+        f"(exercise: {request.exercise_id}, mode: {request.mode})"
+    )
+    return AssessmentResponse.model_validate(new_assessment)
+
 
 @app.post("/assessments/{assessment_id}/submit", response_model=AssessmentResponse)
 async def submit_assessment_answer(
