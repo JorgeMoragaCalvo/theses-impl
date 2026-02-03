@@ -12,7 +12,8 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
-    create_engine)
+    create_engine,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
 

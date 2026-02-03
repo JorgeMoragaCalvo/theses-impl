@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
 
 from utils.api_client import get_api_client
-from utils.constants import TOPIC_OPTIONS, TOPIC_DISPLAY_NAMES, TOPICS_LIST
+from utils.constants import TOPIC_DISPLAY_NAMES, TOPIC_OPTIONS, TOPICS_LIST
 
 """
 Página de evaluación - Problemas de práctica y cuestionarios.

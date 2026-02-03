@@ -11,7 +11,6 @@ from typing import Any
 
 from langchain_core.tools import BaseTool
 
-
 # if TYPE_CHECKING:
 #     from ...services.exercise_manager import ExerciseManager
 
