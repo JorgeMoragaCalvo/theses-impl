@@ -42,7 +42,7 @@ jobs:
 
       - name: Scan dependencies for vulnerabilities
         run: |
-          pip-audit --desc on || True
+          pip-audit --desc on || true
 
       - name: Check Python syntax
         run: |
