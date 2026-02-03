@@ -1,7 +1,6 @@
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import Union
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -168,7 +167,7 @@ async def health_check(db: Session = Depends(get_db)):
 # Allowed email domain for automatic activation
 ALLOWED_EMAIL_DOMAIN = "usach.cl"
 
-@app.post("/auth/register", response_model=Union[TokenResponse, RegistrationPendingResponse], status_code=status.HTTP_201_CREATED)
+@app.post("/auth/register", response_model=TokenResponse | RegistrationPendingResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: StudentRegister, db: Session = Depends(get_db)):
     """Register a new user and return the JWT token."""
     # Check if email already exists
