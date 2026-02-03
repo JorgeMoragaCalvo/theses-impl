@@ -12,6 +12,7 @@ Provides broad introduction to OR methodology and prepares students for speciali
 
 logger = logging.getLogger(__name__)
 
+
 class OperationsResearchAgent(BaseAgent):
     """
     Foundational agent for teaching Operations Research fundamentals.
@@ -705,6 +706,7 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
 
 # Global agent instance (singleton pattern)
 _or_agent: OperationsResearchAgent | None = None
+
 
 def get_operations_research_agent() -> OperationsResearchAgent:
     """

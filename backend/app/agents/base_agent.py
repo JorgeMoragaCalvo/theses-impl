@@ -18,6 +18,7 @@ Base Agent - Foundation class for all specialized agents.
 
 logger = logging.getLogger(__name__)
 
+
 class BaseAgent(ABC):
     """
     Abstract base class for all agents.

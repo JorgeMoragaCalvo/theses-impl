@@ -12,6 +12,7 @@ cutting plane methods, and applications.
 
 logger = logging.getLogger(__name__)
 
+
 class IntegerProgrammingAgent(BaseAgent):
     """
     Specialized agent for teaching Integer Programming.
@@ -751,8 +752,10 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             async_mode=True
         )
 
+
 # Global agent instance
 _ip_agent: IntegerProgrammingAgent | None = None
+
 
 def get_integer_programming_agent() -> IntegerProgrammingAgent:
     """
