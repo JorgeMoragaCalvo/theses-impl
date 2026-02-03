@@ -59,7 +59,7 @@ from .models import (
 from .routers import admin
 from .services.assessment_service import get_assessment_service
 from .services.conversation_service import get_conversation_service
-from .services.exercise_assessment_service import get_exercise_assessment_service, get_exercise_manager, get_exercise_registry
+from .services.exercise_assessment_service import get_exercise_assessment_service, get_exercise_registry
 from .services.grading_service import get_grading_service
 
 """
@@ -833,9 +833,13 @@ async def generate_assessment_from_exercise(
     db.commit()
     db.refresh(new_assessment)
 
+    # Sanitize user-controlled values before logging to prevent log injection
+    safe_exercise_id = str(request.exercise_id).replace("\r", "").replace("\n", "")
+    safe_mode = str(request.mode).replace("\r", "").replace("\n", "")
+
     logger.info(
         f"Generated exercise assessment {new_assessment.id} for student {student_id} "
-        f"(exercise: {request.exercise_id}, mode: {request.mode})"
+        f"(exercise: {safe_exercise_id}, mode: {safe_mode})"
     )
     return AssessmentResponse.model_validate(new_assessment)
 

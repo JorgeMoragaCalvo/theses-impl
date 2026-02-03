@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING, Any
 from langchain_core.tools import BaseTool
 
 
-if TYPE_CHECKING:
-    from ...services.exercise_manager import ExerciseManager
+# if TYPE_CHECKING:
+#     from ...services.exercise_manager import ExerciseManager
 
 logger = logging.getLogger(__name__)
 

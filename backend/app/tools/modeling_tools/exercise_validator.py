@@ -10,13 +10,13 @@ import json
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
 from langchain_core.tools import BaseTool
 
-if TYPE_CHECKING:
-    from ...services.exercise_manager import ExerciseManager
-    from ...services.llm_service import LLMService
+# if TYPE_CHECKING:
+#     from ...services.exercise_manager import ExerciseManager
+#     from ...services.llm_service import LLMService
 
 logger = logging.getLogger(__name__)
 

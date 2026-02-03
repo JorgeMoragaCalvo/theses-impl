@@ -171,6 +171,17 @@ class ExerciseAssessmentService:
         self.exercise_manager = exercise_manager
         self.llm_service = llm_service
 
+    @staticmethod
+    def _sanitize_for_log(value: Any) -> str:
+        """
+        Sanitize a value for safe inclusion in log messages by removing
+        line breaks and carriage returns to prevent log injection.
+        """
+        text = str(value)
+
+        # Remove CRLF, CR, and LF to avoid creating new log lines
+        return text.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+
     def create_assessment(
         self,
         exercise_id: str,
@@ -210,7 +221,10 @@ class ExerciseAssessmentService:
 
         rubric = self._generate_rubric(exercise.model_type)
 
-        logger.info(f"Created practice assessment from exercise {exercise_id}")
+        # Sanitize exercise_id before logging to prevent log injection
+        safe_exercise_id = exercise_id.replace("\r\n", "").replace("\n", "").replace("\n", "")
+
+        logger.info(f"Created practice assessment from exercise {safe_exercise_id}")
 
         return {
             "question": exercise.statement,
@@ -275,11 +289,13 @@ Genera SOLO el JSON, sin texto adicional."""
             parsed = parse_llm_json_response(response)
 
             if not parsed or "question" not in parsed:
-                logger.warning(f"Failed to parse LLM response for similar exercise {exercise_id}")
+                safe_exercise_id = self._sanitize_for_log(exercise_id)
+                logger.warning(f"Failed to parse LLM response for similar exercise {safe_exercise_id}")
                 # Fallback to practice mode
                 return self._create_practice_assessment(exercise_id)
 
-            logger.info(f"Generated similar assessment from exercise {exercise_id}")
+            safe_exercise_id = self._sanitize_for_log(exercise_id)
+            logger.info(f"Generated similar assessment from exercise {safe_exercise_id}")
 
             return {
                 "question": parsed.get("question", ""),
