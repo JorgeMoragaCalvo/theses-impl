@@ -6,20 +6,20 @@ The `agents/` directory contains specialized AI tutoring agents for different op
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `base_agent.py` | Abstract base class with core agent functionality |
-| `linear_programming_agent.py` | Agent for Linear Programming (LP) |
-| `integer_programming_agent.py` | Agent for Integer Programming (IP) |
-| `nonlinear_programming_agent.py` | Agent for Nonlinear Programming (NLP) |
-| `nlp_agent.py` | Alternative NLP agent implementation |
-| `mathematical_modeling_agent.py` | Agent for Mathematical Modeling (with tools) |
-| `operations_research_agent.py` | Agent for general Operations Research |
-| `__init__.py` | Package initialization |
+| File                             | Description                                       |
+|----------------------------------|---------------------------------------------------|
+| `base_agent.py`                  | Abstract base class with core agent functionality |
+| `linear_programming_agent.py`    | Agent for Linear Programming (LP)                 |
+| `integer_programming_agent.py`   | Agent for Integer Programming (IP)                |
+| `nonlinear_programming_agent.py` | Agent for Nonlinear Programming (NLP)             |
+| `nlp_agent.py`                   | Alternative NLP agent implementation              |
+| `mathematical_modeling_agent.py` | Agent for Mathematical Modeling (with tools)      |
+| `operations_research_agent.py`   | Agent for general Operations Research             |
+| `__init__.py`                    | Package initialization                            |
 
 ## Architecture
 
-```
+```diagram
                     ┌─────────────────────┐
                     │     BaseAgent       │
                     │     (Abstract)      │
@@ -54,23 +54,23 @@ The `agents/` directory contains specialized AI tutoring agents for different op
 
 ### Core Methods
 
-| Method | Description |
-|--------|-------------|
-| `get_system_prompt(context)` | Abstract - generates topic-specific system prompt |
-| `generate_response(message, history, context)` | Generates AI response using LLM |
-| `a_generate_response(...)` | Async version of generate_response |
-| `load_course_materials(path)` | Loads course materials from file |
-| `format_context_for_prompt(context)` | Formats student context for prompts |
+| Method                                         | Description                                       |
+|------------------------------------------------|---------------------------------------------------|
+| `get_system_prompt(context)`                   | Abstract - generates topic-specific system prompt |
+| `generate_response(message, history, context)` | Generates AI response using LLM                   |
+| `a_generate_response(...)`                     | Async version of generate_response                |
+| `load_course_materials(path)`                  | Loads course materials from file                  |
+| `format_context_for_prompt(context)`           | Formats student context for prompts               |
 
 ### Adaptive Learning Methods
 
-| Method | Description |
-|--------|-------------|
-| `detect_student_confusion(message, history)` | Analyzes for confusion signals |
-| `select_explanation_strategy(confusion, knowledge, previous)` | Chooses best strategy |
-| `build_adaptive_prompt_section(analysis, strategy, context)` | Creates adaptive instructions |
-| `should_add_feedback_request(...)` | Determines if feedback check needed |
-| `add_feedback_request_to_response(...)` | Appends understanding check-in |
+| Method                                                        | Description                         |
+|---------------------------------------------------------------|-------------------------------------|
+| `detect_student_confusion(message, history)`                  | Analyzes for confusion signals      |
+| `select_explanation_strategy(confusion, knowledge, previous)` | Chooses best strategy               |
+| `build_adaptive_prompt_section(analysis, strategy, context)`  | Creates adaptive instructions       |
+| `should_add_feedback_request(...)`                            | Determines if feedback check needed |
+| `add_feedback_request_to_response(...)`                       | Appends understanding check-in      |
 
 ### Confusion Detection
 
@@ -83,15 +83,15 @@ Confusion levels: `none`, `low`, `medium`, `high`
 
 ### Explanation Strategies
 
-| Strategy | Description | Best For |
-|----------|-------------|----------|
-| `step-by-step` | Numbered sequential steps | High confusion, beginners |
-| `example-based` | Concrete numerical examples | Medium confusion |
-| `conceptual` | Focus on underlying ideas | Intermediate+ students |
-| `analogy-based` | Relate to familiar concepts | High confusion |
-| `visual` | Geometric/graphical descriptions | Spatial concepts |
-| `formal-mathematical` | Rigorous definitions | Advanced students |
-| `comparative` | Compare with related concepts | Intermediate+ students |
+| Strategy              | Description                      | Best For                  |
+|-----------------------|----------------------------------|---------------------------|
+| `step-by-step`        | Numbered sequential steps        | High confusion, beginners |
+| `example-based`       | Concrete numerical examples      | Medium confusion          |
+| `conceptual`          | Focus on underlying ideas        | Intermediate+ students    |
+| `analogy-based`       | Relate to familiar concepts      | High confusion            |
+| `visual`              | Geometric/graphical descriptions | Spatial concepts          |
+| `formal-mathematical` | Rigorous definitions             | Advanced students         |
+| `comparative`         | Compare with related concepts    | Intermediate+ students    |
 
 ## Agent Registry
 
@@ -211,3 +211,4 @@ class Topic(str, enum.Enum):
 ## Changelog
 
 - **v1.0.0** (2026-01-05): Initial documentation
+- **v1.1.0** (2026-02-03): Added some tools, exercise features, basic user restrictiveness to `@usach` domain

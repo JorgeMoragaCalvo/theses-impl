@@ -6,7 +6,7 @@ This is the backend API for an AI-powered tutoring system that helps students le
 
 ## Architecture
 
-```
+```diagram
 ┌─────────────────────────────────────────────────────────────────┐
 │                        FastAPI Application                      │
 ├─────────────────────────────────────────────────────────────────┤
@@ -67,7 +67,7 @@ This is the backend API for an AI-powered tutoring system that helps students le
 
 ## Directory Structure
 
-```
+```diagram
 backend/
 ├── app/
 │   ├── agents/           # AI tutoring agents (LP, IP, NLP, MM, OR)
@@ -139,60 +139,60 @@ uvicorn app.main:app --reload
   <summary><b>API Endpoints</b></summary>
 
 #### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/auth/register` | Register new user |
-| POST | `/auth/login` | Login and get JWT token |
-| GET | `/auth/me` | Get current user info |
+| Method | Endpoint         | Description             |
+|--------|------------------|-------------------------|
+| POST   | `/auth/register` | Register new user       |
+| POST   | `/auth/login`    | Login and get JWT token |
+| GET    | `/auth/me`       | Get current user info   |
 
 #### Students
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/students` | Create student profile |
-| GET | `/students/{id}` | Get student by ID |
-| PUT | `/students/{id}` | Update student profile |
-| GET | `/students` | List all students |
-| GET | `/students/{id}/progress` | Get student progress |
-| GET | `/students/{id}/conversations` | Get student conversations |
-| GET | `/students/{id}/assessments` | Get student assessments |
+| Method | Endpoint                       | Description               |
+|--------|--------------------------------|---------------------------|
+| POST   | `/students`                    | Create student profile    |
+| GET    | `/students/{id}`               | Get student by ID         |
+| PUT    | `/students/{id}`               | Update student profile    |
+| GET    | `/students`                    | List all students         |
+| GET    | `/students/{id}/progress`      | Get student progress      |
+| GET    | `/students/{id}/conversations` | Get student conversations |
+| GET    | `/students/{id}/assessments`   | Get student assessments   |
 
 #### Chat
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/chat` | Send message and get AI response |
-| GET | `/conversations/{id}` | Get conversation with messages |
+| Method | Endpoint              | Description                      |
+|--------|-----------------------|----------------------------------|
+| POST   | `/chat`               | Send message and get AI response |
+| GET    | `/conversations/{id}` | Get conversation with messages   |
 
 #### Assessments
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/assessments/generate` | Generate personalized assessment |
-| POST | `/assessments/generate/from-exercise` | Generate from pre-built exercise |
-| GET | `/assessments/{id}` | Get assessment details |
-| POST | `/assessments/{id}/submit` | Submit answer (auto-grades) |
-| POST | `/assessments/{id}/grade` | Admin grade/override |
+| Method | Endpoint                              | Description                      |
+|--------|---------------------------------------|----------------------------------|
+| POST   | `/assessments/generate`               | Generate personalized assessment |
+| POST   | `/assessments/generate/from-exercise` | Generate from pre-built exercise |
+| GET    | `/assessments/{id}`                   | Get assessment details           |
+| POST   | `/assessments/{id}/submit`            | Submit answer (auto-grades)      |
+| POST   | `/assessments/{id}/grade`             | Admin grade/override             |
 
 #### Exercises
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/exercises` | List available exercises |
-| GET | `/exercises/{id}` | Get exercise preview |
+| Method | Endpoint          | Description              |
+|--------|-------------------|--------------------------|
+| GET    | `/exercises`      | List available exercises |
+| GET    | `/exercises/{id}` | Get exercise preview     |
 
 #### Admin (requires admin role)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/admin/users` | List users with progress |
-| GET | `/admin/users/{id}` | Get user details |
-| PUT | `/admin/users/{id}/status` | Activate/deactivate user |
-| PUT | `/admin/users/{id}/role` | Change user role |
-| GET | `/admin/settings` | Get system settings |
-| GET | `/admin/stats` | Get system statistics |
+| Method | Endpoint                   | Description              |
+|--------|----------------------------|--------------------------|
+| GET    | `/admin/users`             | List users with progress |
+| GET    | `/admin/users/{id}`        | Get user details         |
+| PUT    | `/admin/users/{id}/status` | Activate/deactivate user |
+| PUT    | `/admin/users/{id}/role`   | Change user role         |
+| GET    | `/admin/settings`          | Get system settings      |
+| GET    | `/admin/stats`             | Get system statistics    |
 
 #### System
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Root endpoint with API info |
-| GET | `/health` | Health check |
-| POST | `/feedback` | Submit feedback on message |
+| Method | Endpoint    | Description                 |
+|--------|-------------|-----------------------------|
+| GET    | `/`         | Root endpoint with API info |
+| GET    | `/health`   | Health check                |
+| POST   | `/feedback` | Submit feedback on message  |
   
 </details>
 
@@ -251,3 +251,4 @@ Once running, access:
 ## Changelog
 
 - **v1.0.0** (2026-01-05): Initial documentation
+- **v1.1.0** (2026-02-03): Added some tools, exercise features, basic user restrictiveness to `@usach` domain

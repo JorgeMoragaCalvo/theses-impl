@@ -6,8 +6,8 @@ The `api/` directory is a placeholder for future API extensions and versioning s
 
 ## Contents
 
-| File | Description |
-|------|-------------|
+| File          | Description                    |
+|---------------|--------------------------------|
 | `__init__.py` | Package initialization (empty) |
 
 ## Business Logic
@@ -23,7 +23,7 @@ This directory is reserved for:
 
 ### API Versioning
 
-```
+```diagram
 api/
 ├── __init__.py
 ├── v1/
@@ -55,3 +55,4 @@ Currently, all endpoints are defined directly in `main.py`. When the API grows, 
 ## Changelog
 
 - **v1.0.0** (2026-01-05): Initial documentation
+- **v1.1.0** (2026-02-03): Added some tools, exercise features, basic user restrictiveness to `@usach` domain

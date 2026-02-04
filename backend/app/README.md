@@ -6,34 +6,34 @@ The `app/` directory contains the core FastAPI application for the AI Tutoring S
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `main.py` | FastAPI application entry point with all endpoints (~908 lines) |
-| `config.py` | Environment-based configuration using Pydantic BaseSettings |
-| `database.py` | SQLAlchemy ORM models and session management |
-| `auth.py` | JWT authentication and password hashing |
-| `models.py` | Pydantic request/response schemas |
-| `utils.py` | Utility functions for message formatting and confusion detection |
-| `__init__.py` | Package initialization |
+| File          | Description                                                      |
+|---------------|------------------------------------------------------------------|
+| `main.py`     | FastAPI application entry point with all endpoints (~908 lines)  |
+| `config.py`   | Environment-based configuration using Pydantic BaseSettings      |
+| `database.py` | SQLAlchemy ORM models and session management                     |
+| `auth.py`     | JWT authentication and password hashing                          |
+| `models.py`   | Pydantic request/response schemas                                |
+| `utils.py`    | Utility functions for message formatting and confusion detection |
+| `__init__.py` | Package initialization                                           |
 
-| Directory | Description |
-|-----------|-------------|
-| `agents/` | AI tutoring agents for different optimization topics |
-| `api/` | API extensions (placeholder for future use) |
-| `routers/` | FastAPI route handlers (admin routes) |
-| `services/` | Business logic services |
-| `tools/` | LangChain tools for agent capabilities |
+| Directory   | Description                                          |
+|-------------|------------------------------------------------------|
+| `agents/`   | AI tutoring agents for different optimization topics |
+| `api/`      | API extensions (placeholder for future use)          |
+| `routers/`  | FastAPI route handlers (admin routes)                |
+| `services/` | Business logic services                              |
+| `tools/`    | LangChain tools for agent capabilities               |
 
 ## Request Flow
 
-```
+```diagram
 ┌─────────────┐     ┌──────────────┐     ┌─────────────────┐
 │   Client    │────▶│   main.py    │────▶│  auth.py        │
 │   Request   │     │   Endpoint   │     │  (JWT verify)   │
 └─────────────┘     └──────────────┘     └────────┬────────┘
-                                                   │
+                                                  │
                            ┌───────────────────────▼───────────────────────┐
-                           │              Service Layer                     │
+                           │              Service Layer                    │
                            │  ┌────────────────┐  ┌─────────────────────┐  │
                            │  │ Conversation   │  │ Assessment Service  │  │
                            │  │ Service        │  │                     │  │
@@ -98,13 +98,13 @@ MAX_TOKENS        # LLM max tokens (default: 2000)
 
 SQLAlchemy ORM models:
 
-| Model | Purpose |
-|-------|---------|
-| `Student` | User profile with knowledge levels and preferences |
-| `Conversation` | Chat session with topic and metadata |
-| `Message` | Individual messages with agent info |
-| `Assessment` | Questions, answers, grading |
-| `Feedback` | User feedback on responses |
+| Model          | Purpose                                            |
+|----------------|----------------------------------------------------|
+| `Student`      | User profile with knowledge levels and preferences |
+| `Conversation` | Chat session with topic and metadata               |
+| `Message`      | Individual messages with agent info                |
+| `Assessment`   | Questions, answers, grading                        |
+| `Feedback`     | User feedback on responses                         |
 
 Enums:
 - `KnowledgeLevel`: beginner, intermediate, advanced
@@ -207,3 +207,4 @@ settings.temperature = 0.7
 ## Changelog
 
 - **v1.0.0** (2026-01-05): Initial documentation
+- **v1.1.0** (2026-02-03): Added some tools, exercise features, basic user restrictiveness to `@usach` domain

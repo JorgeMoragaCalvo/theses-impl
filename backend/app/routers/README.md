@@ -6,23 +6,23 @@ The `routers/` directory contains FastAPI APIRouter instances that group related
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `admin.py` | Admin-only endpoints for user and system management |
-| `__init__.py` | Package initialization |
+| File          | Description                                         |
+|---------------|-----------------------------------------------------|
+| `admin.py`    | Admin-only endpoints for user and system management |
+| `__init__.py` | Package initialization                              |
 
 ## Admin Router
 
 ### Endpoints
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/admin/users` | List all users with progress metrics | Admin |
-| GET | `/admin/users/{user_id}` | Get detailed user information | Admin |
-| PUT | `/admin/users/{user_id}/status` | Activate or deactivate user account | Admin |
-| PUT | `/admin/users/{user_id}/role` | Change user role (user/admin) | Admin |
-| GET | `/admin/settings` | Get system settings (read-only) | Admin |
-| GET | `/admin/stats` | Get system-wide statistics | Admin |
+| Method | Endpoint                        | Description                          | Auth  |
+|--------|---------------------------------|--------------------------------------|-------|
+| GET    | `/admin/users`                  | List all users with progress metrics | Admin |
+| GET    | `/admin/users/{user_id}`        | Get detailed user information        | Admin |
+| PUT    | `/admin/users/{user_id}/status` | Activate or deactivate user account  | Admin |
+| PUT    | `/admin/users/{user_id}/role`   | Change user role (user/admin)        | Admin |
+| GET    | `/admin/settings`               | Get system settings (read-only)      | Admin |
+| GET    | `/admin/stats`                  | Get system-wide statistics           | Admin |
 
 ### Response Examples
 
@@ -136,3 +136,4 @@ app.include_router(reports.router)
 ## Changelog
 
 - **v1.0.0** (2026-01-05): Initial documentation
+- **v1.1.0** (2026-02-03): Added some tools, exercise features, basic user restrictiveness to `@usach` domain

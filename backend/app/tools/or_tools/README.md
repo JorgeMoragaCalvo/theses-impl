@@ -1,4 +1,4 @@
-# OR Tools - Operations Research Agent Tools
+# OR Tools – Operations Research Agent Tools
 
 ## Overview
 
@@ -6,11 +6,11 @@ The `or_tools/` directory contains LangChain tools that support the Operations R
 
 ## Contents
 
-| File | Description |
-|------|-------------|
+| File                    | Description                                            |
+|-------------------------|--------------------------------------------------------|
 | `problem_classifier.py` | Classifies optimization problems and recommends agents |
-| `timeline_explorer.py` | Provides historical context and timeline information |
-| `__init__.py` | Package exports |
+| `timeline_explorer.py`  | Provides historical context and timeline information   |
+| `__init__.py`           | Package exports                                        |
 
 ## Tools
 
@@ -25,14 +25,15 @@ The `or_tools/` directory contains LangChain tools that support the Operations R
 - Special characteristics (network, stochastic, etc.)
 
 **Classifications**:
-| Type | Description | Recommended Agent |
-|------|-------------|-------------------|
-| LP | Linear Programming | LinearProgrammingAgent |
-| IP | Integer Programming | IntegerProgrammingAgent |
-| MIP | Mixed Integer Programming | IntegerProgrammingAgent |
-| NLP | Nonlinear Programming | NonlinearProgrammingAgent |
-| Network | Network flow problems | OperationsResearchAgent |
-| Stochastic | Problems with uncertainty | OperationsResearchAgent |
+
+| Type       | Description               | Recommended Agent         |
+|------------|---------------------------|---------------------------|
+| LP         | Linear Programming        | LinearProgrammingAgent    |
+| IP         | Integer Programming       | IntegerProgrammingAgent   |
+| MIP        | Mixed Integer Programming | IntegerProgrammingAgent   |
+| NLP        | Nonlinear Programming     | NonlinearProgrammingAgent |
+| Network    | Network flow problems     | OperationsResearchAgent   |
+| Stochastic | Problems with uncertainty | OperationsResearchAgent   |
 
 **Input**: Natural language problem description
 
@@ -161,3 +162,4 @@ __all__ = [
 ## Changelog
 
 - **v1.0.0** (2026-01-05): Initial documentation
+- **v1.1.0** (2026-02-03): Added some tools, exercise features, basic user restrictiveness to `@usach` domain

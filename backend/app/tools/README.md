@@ -6,15 +6,15 @@ The `tools/` directory contains LangChain-based tools that extend agent capabili
 
 ## Contents
 
-| File/Directory | Description |
-|----------------|-------------|
-| `__init__.py` | Package exports for all tools |
+| File/Directory    | Description                           |
+|-------------------|---------------------------------------|
+| `__init__.py`     | Package exports for all tools         |
 | `modeling_tools/` | Tools for Mathematical Modeling Agent |
-| `or_tools/` | Tools for Operations Research Agent |
+| `or_tools/`       | Tools for Operations Research Agent   |
 
 ## Architecture
 
-```
+```diagram
 ┌─────────────────────────────────────────────────────────────────┐
 │                          Agent                                  │
 │                  (e.g., MathematicalModelingAgent)              │
@@ -46,22 +46,22 @@ The `tools/` directory contains LangChain-based tools that extend agent capabili
 
 Tools for the Mathematical Modeling Agent to validate, solve, and visualize optimization problems:
 
-| Tool | Purpose |
-|------|---------|
-| `ModelValidatorTool` | Validate optimization formulations |
-| `ProblemSolverTool` | Solve optimization problems |
-| `RegionVisualizerTool` | Visualize feasible regions |
-| `ExercisePracticeTool` | Provide practice exercises |
-| `ExerciseValidatorTool` | Validate student formulations |
+| Tool                    | Purpose                            |
+|-------------------------|------------------------------------|
+| `ModelValidatorTool`    | Validate optimization formulations |
+| `ProblemSolverTool`     | Solve optimization problems        |
+| `RegionVisualizerTool`  | Visualize feasible regions         |
+| `ExercisePracticeTool`  | Provide practice exercises         |
+| `ExerciseValidatorTool` | Validate student formulations      |
 
 ### OR Tools
 
 Tools for the Operations Research Agent to classify and contextualize problems:
 
-| Tool | Purpose |
-|------|---------|
+| Tool                    | Purpose                                     |
+|-------------------------|---------------------------------------------|
 | `ProblemClassifierTool` | Classify problem types and recommend agents |
-| `TimelineExplorerTool` | Provide historical context |
+| `TimelineExplorerTool`  | Provide historical context                  |
 
 ## Business Logic
 
@@ -204,3 +204,4 @@ tools = [MyNewTool()]
 ## Changelog
 
 - **v1.0.0** (2026-01-05): Initial documentation
+- **v1.1.0** (2026-02-03): Added some tools, exercise features, basic user restrictiveness to `@usach` domain

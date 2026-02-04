@@ -6,7 +6,7 @@ This module contains shared utility functions and classes used across all fronte
 
 ## File Structure
 
-```
+```diagram
 utils/
 ├── __init__.py      # Python package marker
 ├── api_client.py    # HTTP client with JWT authentication
@@ -41,12 +41,12 @@ client = APIClient(base_url="http://localhost:8000")
 
 #### HTTP Methods
 
-| Method | Signature | Returns |
-|--------|-----------|---------|
-| `get()` | `get(endpoint, params=None)` | `tuple[bool, Any]` |
-| `post()` | `post(endpoint, data=None, json_data=None)` | `tuple[bool, Any]` |
-| `put()` | `put(endpoint, data=None, json_data=None)` | `tuple[bool, Any]` |
-| `delete()` | `delete(endpoint)` | `tuple[bool, Any]` |
+| Method     | Signature                                   | Returns            |
+|------------|---------------------------------------------|--------------------|
+| `get()`    | `get(endpoint, params=None)`                | `tuple[bool, Any]` |
+| `post()`   | `post(endpoint, data=None, json_data=None)` | `tuple[bool, Any]` |
+| `put()`    | `put(endpoint, data=None, json_data=None)`  | `tuple[bool, Any]` |
+| `delete()` | `delete(endpoint)`                          | `tuple[bool, Any]` |
 
 **Return Pattern:**
 All methods return a tuple `(success: bool, data: dict)`:
@@ -75,14 +75,14 @@ success, data = api_client.post("/chat", json_data={
 
 #### Authentication Methods
 
-| Method | Purpose |
-|--------|---------|
-| `register(name, email, password)` | Create new user account |
-| `login(email, password)` | Authenticate and receive JWT token |
-| `logout()` | Clear token and session data |
-| `get_current_user()` | Fetch current user profile |
-| `is_authenticated()` | Check if user has valid token |
-| `is_admin()` | Check if user has admin role |
+| Method                            | Purpose                            |
+|-----------------------------------|------------------------------------|
+| `register(name, email, password)` | Create new user account            |
+| `login(email, password)`          | Authenticate and receive JWT token |
+| `logout()`                        | Clear token and session data       |
+| `get_current_user()`              | Fetch current user profile         |
+| `is_authenticated()`              | Check if user has valid token      |
+| `is_admin()`                      | Check if user has admin role       |
 
 **Login Flow:**
 ```python
@@ -99,14 +99,14 @@ if success:
 
 **Internal Methods:**
 
-| Method | Purpose |
-|--------|---------|
-| `_get_headers()` | Build request headers with Bearer token |
-| `_handle_response()` | Process HTTP response, detect auth errors |
-| `_store_auth_data()` | Save token and user to session state |
-| `_store_token_in_browser()` | Persist token to browser localStorage |
-| `_clear_token_from_browser()` | Remove token from localStorage |
-| `load_token_from_browser()` | Load token from localStorage |
+| Method                        | Purpose                                   |
+|-------------------------------|-------------------------------------------|
+| `_get_headers()`              | Build request headers with Bearer token   |
+| `_handle_response()`          | Process HTTP response, detect auth errors |
+| `_store_auth_data()`          | Save token and user to session state      |
+| `_store_token_in_browser()`   | Persist token to browser localStorage     |
+| `_clear_token_from_browser()` | Remove token from localStorage            |
+| `load_token_from_browser()`   | Load token from localStorage              |
 
 **Token Storage:**
 - Primary: Streamlit session state (`st.session_state.token`)
@@ -116,13 +116,13 @@ if success:
 
 #### Error Handling
 
-| HTTP Status | Behavior |
-|-------------|----------|
-| 200-299 | Success, return response data |
-| 401 | Unauthorized - auto logout, return error |
-| 403 | Forbidden - return permission error |
-| 4xx | Client error - return error message |
-| 5xx | Server error - return error message |
+| HTTP Status | Behavior                                 |
+|-------------|------------------------------------------|
+| 200-299     | Success, return response data            |
+| 401         | Unauthorized - auto logout, return error |
+| 403         | Forbidden - return permission error      |
+| 4xx         | Client error - return error message      |
+| 5xx         | Server error - return error message      |
 
 ---
 
@@ -232,7 +232,7 @@ display_name = TOPIC_DISPLAY_NAMES["linear_programming"]
 
 All pages follow this pattern for API calls:
 
-```
+```diagram
 Page Component
       │
       ▼
@@ -289,6 +289,7 @@ Constants ensure frontend-backend consistency:
 
 ## Changelog
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-01-05 | Initial documentation created |
+| Version | Date       | Changes                                                                            |
+|---------|------------|------------------------------------------------------------------------------------|
+| 1.0.0   | 2025-01-05 | Initial documentation created                                                      |
+| 1.1.0   | 2025-02-03 | Added some tools, exercise features, basic user restrictiveness to `@usach` domain |

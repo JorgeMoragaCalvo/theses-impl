@@ -5,15 +5,15 @@
 This is the frontend module for the AI Tutor application, built with **Streamlit**. It provides a web-based interface for students to learn optimization methods through interactive chat, assessments, and progress tracking.
 
 The application specializes in teaching:
-- Operations Research (Investigacion de Operaciones)
-- Mathematical Modeling (Modelado Matematico)
-- Linear Programming (Programacion Lineal)
-- Integer Programming (Programacion Entera)
-- Nonlinear Programming (Programacion No Lineal)
+- Operations Research (Investigación de Operaciones)
+- Mathematical Modeling (Modelado Matemático)
+- Linear Programming (Programación Lineal)
+- Integer Programming (Programación Entera)
+- Nonlinear Programming (Programación No Lineal)
 
 ## File Structure
 
-```
+```diagram
 frontend/
 ├── __init__.py          # Python package marker
 ├── app.py               # Main application entry point (Home page)
@@ -51,17 +51,17 @@ The application will be available at `http://localhost:8501`.
 
 ## Architecture
 
-```
+```digram
 ┌─────────────────────────────────────────────────────────────┐
-│                    Streamlit Frontend                        │
+│                    Streamlit Frontend                       │
 ├─────────────────────────────────────────────────────────────┤
-│  ┌─────────┐  ┌─────────┐  ┌──────────┐  ┌─────────┐       │
-│  │  Home   │  │  Chat   │  │Assessment│  │ Progress│       │
-│  │ (app)   │  │ (page)  │  │  (page)  │  │ (page)  │       │
-│  └────┬────┘  └────┬────┘  └────┬─────┘  └────┬────┘       │
+│  ┌─────────┐  ┌─────────┐  ┌──────────┐  ┌─────────┐        │
+│  │  Home   │  │  Chat   │  │Assessment│  │ Progress│        │
+│  │ (app)   │  │ (page)  │  │  (page)  │  │ (page)  │        │
+│  └────┬────┘  └────┬────┘  └────┬─────┘  └────┬────┘        │
 │       │            │            │             │             │
 │       └────────────┴─────┬──────┴─────────────┘             │
-│                          │                                   │
+│                          │                                  │
 │                   ┌──────┴──────┐                           │
 │                   │  APIClient  │                           │
 │                   │  (utils)    │                           │
@@ -79,14 +79,14 @@ The application will be available at `http://localhost:8501`.
 
 ### 1. Authentication Flow
 
-```
+```diagram
 User Registration/Login
         │
         ▼
-┌───────────────────┐
-│ APIClient.login() │
+┌─────────────────────┐
+│ APIClient.login()   │
 │ APIClient.register()│
-└─────────┬─────────┘
+└─────────┬───────────┘
           │
           ▼
 ┌───────────────────┐
@@ -110,24 +110,24 @@ User Registration/Login
 
 ### 2. Topic Selection System
 
-The application offers 5 optimization topics for personalized learning:
+The application offers five optimization topics for personalized learning:
 
-| Internal Key | Display Name (Spanish) |
-|--------------|------------------------|
-| `operations_research` | Investigacion de Operaciones |
-| `mathematical_modeling` | Modelado Matematico |
-| `linear_programming` | Programacion Lineal |
-| `integer_programming` | Programacion Entera |
-| `nonlinear_programming` | Programacion No Lineal |
+| Internal Key            | Display Name (Spanish)       |
+|-------------------------|------------------------------|
+| `operations_research`   | Investigacion de Operaciones |
+| `mathematical_modeling` | Modelado Matematico          |
+| `linear_programming`    | Programacion Lineal          |
+| `integer_programming`   | Programacion Entera          |
+| `nonlinear_programming` | Programacion No Lineal       |
 
 Topics are defined centrally in `utils/constants.py` for consistency.
 
 ### 3. Chat Interface
 
 - Real-time conversation with topic-specialized AI agents
-- Message history maintained in session state
+- Message history maintained in the session state
 - Conversation tracking via `conversation_id`
-- Agent type attribution displayed for each response
+- Agent type attribution is displayed for each response
 
 ### 4. Backend Health Check
 
@@ -140,23 +140,23 @@ def check_backend_health():
 
 ### 5. Role-Based Access Control
 
-| Role | Access |
-|------|--------|
-| User | Home, Chat, Assessment, Progress |
-| Admin | All above + Admin Dashboard |
+| Role  | Access                           |
+|-------|----------------------------------|
+| User  | Home, Chat, Assessment, Progress |
+| Admin | All above + Admin Dashboard      |
 
-Access checks performed on each page load.
+Access checks are performed on each page load.
 
 ## API Communication
 
 All API calls route through `utils/api_client.py`:
 
-| Method | Usage |
-|--------|-------|
-| `get()` | Fetch data (progress, assessments, users) |
-| `post()` | Create resources (chat messages, assessments) |
-| `put()` | Update resources (user status, roles) |
-| `delete()` | Remove resources |
+| Method     | Usage                                         |
+|------------|-----------------------------------------------|
+| `get()`    | Fetch data (progress, assessments, users)     |
+| `post()`   | Create resources (chat messages, assessments) |
+| `put()`    | Update resources (user status, roles)         |
+| `delete()` | Remove resources                              |
 
 Error handling includes automatic logout on 401 (token expired).
 
@@ -164,18 +164,19 @@ Error handling includes automatic logout on 401 (token expired).
 
 Key session variables managed across pages:
 
-| Variable | Purpose |
-|----------|---------|
-| `api_client` | Singleton APIClient instance |
-| `token` | JWT authentication token |
-| `user` | Current user profile |
-| `student_id` | Student identifier |
-| `selected_topic` | User's chosen learning topic |
-| `chat_messages` | Chat conversation history |
-| `conversation_id` | Active conversation tracker |
+| Variable          | Purpose                      |
+|-------------------|------------------------------|
+| `api_client`      | Singleton APIClient instance |
+| `token`           | JWT authentication token     |
+| `user`            | Current user profile         |
+| `student_id`      | Student identifier           |
+| `selected_topic`  | User's chosen learning topic |
+| `chat_messages`   | Chat conversation history    |
+| `conversation_id` | Active conversation tracker  |
 
 ## Changelog
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-01-05 | Initial documentation created |
+| Version | Date       | Changes                                                                            |
+|---------|------------|------------------------------------------------------------------------------------|
+| 1.0.0   | 2025-01-05 | Initial documentation created                                                      |
+| 1.1.0   | 2025-02-03 | Added some tools, exercise features, basic user restrictiveness to `@usach` domain |

@@ -6,14 +6,14 @@ The `modeling_tools/` directory contains LangChain tools that enhance the Mathem
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `model_validator.py` | Validates optimization model formulations |
-| `problem_solver.py` | Solves optimization problems |
-| `region_visualizer.py` | Visualizes feasible regions |
-| `exercise_practice.py` | Provides practice exercises |
+| File                    | Description                                       |
+|-------------------------|---------------------------------------------------|
+| `model_validator.py`    | Validates optimization model formulations         |
+| `problem_solver.py`     | Solves optimization problems                      |
+| `region_visualizer.py`  | Visualizes feasible regions                       |
+| `exercise_practice.py`  | Provides practice exercises                       |
 | `exercise_validator.py` | Validates student formulations against references |
-| `__init__.py` | Package exports |
+| `__init__.py`           | Package exports                                   |
 
 ## Tools
 
@@ -141,11 +141,11 @@ The `modeling_tools/` directory contains LangChain tools that enhance the Mathem
 
 ### Error Severity
 
-| Level | Description |
-|-------|-------------|
-| Error | Invalid model, cannot proceed |
+| Level   | Description                     |
+|---------|---------------------------------|
+| Error   | Invalid model, cannot proceed   |
 | Warning | Potential issue, model may work |
-| Info | Suggestion for improvement |
+| Info    | Suggestion for improvement      |
 
 ## Usage
 
@@ -219,3 +219,4 @@ __all__ = [
 ## Changelog
 
 - **v1.0.0** (2026-01-05): Initial documentation
+- **v1.1.0** (2026-02-03): Added some tools, exercise features, basic user restrictiveness to `@usach` domain

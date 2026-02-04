@@ -1,4 +1,4 @@
-# Services - Business Logic Layer
+# Services – Business Logic Layer
 
 ## Overview
 
@@ -6,27 +6,27 @@ The `services/` directory contains the business logic layer of the application. 
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `llm_service.py` | Multi-provider LLM abstraction (OpenAI, Anthropic, Google) |
-| `conversation_service.py` | Conversation history, context, and progress tracking |
-| `assessment_service.py` | Personalized assessment generation |
-| `grading_service.py` | Automatic assessment grading using LLM |
-| `exercise_manager.py` | Exercise loading and management |
-| `exercise_assessment_service.py` | Exercise-based assessment creation |
-| `llm_response_parser.py` | JSON extraction from LLM responses |
-| `__init__.py` | Package initialization |
+| File                             | Description                                                |
+|----------------------------------|------------------------------------------------------------|
+| `llm_service.py`                 | Multi-provider LLM abstraction (OpenAI, Anthropic, Google) |
+| `conversation_service.py`        | Conversation history, context, and progress tracking       |
+| `assessment_service.py`          | Personalized assessment generation                         |
+| `grading_service.py`             | Automatic assessment grading using LLM                     |
+| `exercise_manager.py`            | Exercise loading and management                            |
+| `exercise_assessment_service.py` | Exercise-based assessment creation                         |
+| `llm_response_parser.py`         | JSON extraction from LLM responses                         |
+| `__init__.py`                    | Package initialization                                     |
 
 ## Service Architecture
 
-```
+```diagram
 ┌─────────────────────────────────────────────────────────────────┐
-│                         Endpoints                                │
+│                         Endpoints                               │
 └───────────────────────────────┬─────────────────────────────────┘
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      Service Layer                               │
+│                      Service Layer                              │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
 │  │  Conversation   │  │   Assessment    │  │    Grading      │  │
 │  │    Service      │  │    Service      │  │    Service      │  │
@@ -37,14 +37,14 @@ The `services/` directory contains the business logic layer of the application. 
 │  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘  │
 │           │                    │                    │           │
 │           └────────────────────┼────────────────────┘           │
-│                                ▼                                 │
+│                                ▼                                │
 │  ┌─────────────────────────────────────────────────────────────┐│
-│  │                       LLM Service                            ││
+│  │                       LLM Service                           ││
 │  │  ┌─────────┐  ┌─────────┐  ┌─────────┐                      ││
 │  │  │ OpenAI  │  │Anthropic│  │ Google  │                      ││
 │  │  └─────────┘  └─────────┘  └─────────┘                      ││
 │  └─────────────────────────────────────────────────────────────┘│
-│                                                                  │
+│                                                                 │
 │  ┌─────────────────┐  ┌─────────────────┐                       │
 │  │ Exercise        │  │ Exercise        │                       │
 │  │ Manager         │  │ Assessment Svc  │                       │
@@ -53,7 +53,7 @@ The `services/` directory contains the business logic layer of the application. 
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Database                                  │
+│                        Database                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -70,13 +70,13 @@ The `services/` directory contains the business logic layer of the application. 
 
 **Key Methods**:
 
-| Method | Description |
-|--------|-------------|
-| `generate_response(messages, system_prompt)` | Generate text response |
-| `a_generate_response(...)` | Async version |
-| `generate_response_with_tools(messages, tools)` | Response with tool calling |
-| `a_generate_response_with_tools(...)` | Async version with tools |
-| `get_provider_info()` | Get current provider details |
+| Method                                          | Description                  |
+|-------------------------------------------------|------------------------------|
+| `generate_response(messages, system_prompt)`    | Generate text response       |
+| `a_generate_response(...)`                      | Async version                |
+| `generate_response_with_tools(messages, tools)` | Response with tool calling   |
+| `a_generate_response_with_tools(...)`           | Async version with tools     |
+| `get_provider_info()`                           | Get current provider details |
 
 **Tool Calling Flow**:
 1. LLM receives messages and tool definitions
@@ -92,12 +92,12 @@ The `services/` directory contains the business logic layer of the application. 
 
 **Key Methods**:
 
-| Method | Description |
-|--------|-------------|
-| `get_conversation_history(id, limit)` | Get recent messages |
-| `get_student_context(student_id, topic)` | Get student personalization context |
-| `get_conversation_context(conv_id, student_id, topic)` | Combined context |
-| `compute_student_progress(student_id)` | Calculate progress metrics |
+| Method                                                 | Description                         |
+|--------------------------------------------------------|-------------------------------------|
+| `get_conversation_history(id, limit)`                  | Get recent messages                 |
+| `get_student_context(student_id, topic)`               | Get student personalization context |
+| `get_conversation_context(conv_id, student_id, topic)` | Combined context                    |
+| `compute_student_progress(student_id)`                 | Calculate progress metrics          |
 
 **Context Structure**:
 ```python
@@ -118,8 +118,8 @@ The `services/` directory contains the business logic layer of the application. 
 
 **Key Methods**:
 
-| Method | Description |
-|--------|-------------|
+| Method                                                            | Description           |
+|-------------------------------------------------------------------|-----------------------|
 | `generate_personalized_assessment(student_id, topic, difficulty)` | Create new assessment |
 
 **Assessment Generation**:
@@ -135,8 +135,8 @@ The `services/` directory contains the business logic layer of the application. 
 
 **Key Methods**:
 
-| Method | Description |
-|--------|-------------|
+| Method                         | Description                       |
+|--------------------------------|-----------------------------------|
 | `grade_assessment(assessment)` | Grade and return score + feedback |
 
 **Grading Process**:
@@ -151,10 +151,10 @@ The `services/` directory contains the business logic layer of the application. 
 
 **Key Methods**:
 
-| Method | Description |
-|--------|-------------|
-| `list_exercises()` | Get all available exercises |
-| `get_exercise(exercise_id)` | Get specific exercise |
+| Method                      | Description                 |
+|-----------------------------|-----------------------------|
+| `list_exercises()`          | Get all available exercises |
+| `get_exercise(exercise_id)` | Get specific exercise       |
 
 **Exercise Structure**:
 ```python
@@ -178,10 +178,10 @@ The `services/` directory contains the business logic layer of the application. 
 
 **Key Methods**:
 
-| Method | Description |
-|--------|-------------|
+| Method                                 | Description                     |
+|----------------------------------------|---------------------------------|
 | `create_assessment(exercise_id, mode)` | Create assessment from exercise |
-| `get_exercise_preview(exercise_id)` | Get exercise without solution |
+| `get_exercise_preview(exercise_id)`    | Get exercise without solution   |
 
 ### LLMResponseParser (`llm_response_parser.py`)
 
@@ -189,8 +189,8 @@ The `services/` directory contains the business logic layer of the application. 
 
 **Key Methods**:
 
-| Method | Description |
-|--------|-------------|
+| Method                   | Description                   |
+|--------------------------|-------------------------------|
 | `extract_json(response)` | Parse JSON from response text |
 
 **Handles**:
@@ -277,3 +277,4 @@ def get_my_service(db: Session):
 ## Changelog
 
 - **v1.0.0** (2026-01-05): Initial documentation
+- **v1.1.0** (2026-02-03): Added some tools, exercise features, basic user restrictiveness to `@usach` domain

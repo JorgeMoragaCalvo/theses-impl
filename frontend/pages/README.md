@@ -2,13 +2,13 @@
 
 ## Overview
 
-This module contains the Streamlit multi-page application pages. Each page is a separate Python file that Streamlit automatically discovers and adds to the navigation sidebar.
+This module contains the Streamlit multipage application pages. Each page is a separate Python file that Streamlit automatically discovers and adds to the navigation sidebar.
 
 Pages are numbered (e.g., `1_chat.py`) to control their display order in the sidebar navigation.
 
 ## File Structure
 
-```
+```diagram
 pages/
 ├── __init__.py          # Python package marker
 ├── 1_chat.py            # Chat interface page
@@ -38,20 +38,22 @@ Streamlit automatically detects Python files in the `pages/` directory and creat
 - Topic-specific chat selection
 - Real-time AI response display
 - Agent type attribution (shows which AI agent responded)
-- Conversation history within session
+- Conversation history within a session
 - Clear conversation functionality
 - Learning tips sidebar
 
 **Session State:**
-| Variable | Type | Purpose |
-|----------|------|---------|
-| `chat_messages` | list | Conversation message history |
-| `chat_conversation_id` | str | Active conversation identifier |
+
+| Variable               | Type | Purpose                        |
+|------------------------|------|--------------------------------|
+| `chat_messages`        | list | Conversation message history   |
+| `chat_conversation_id` | str  | Active conversation identifier |
 
 **API Endpoints Used:**
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/chat` | POST | Send message and receive AI response |
+
+| Endpoint | Method | Purpose                              |
+|----------|--------|--------------------------------------|
+| `/chat`  | POST   | Send message and receive AI response |
 
 ---
 
@@ -59,12 +61,12 @@ Streamlit automatically detects Python files in the `pages/` directory and creat
 
 **Purpose:** Comprehensive practice and assessment system for student evaluation
 
-**Size:** Largest page (~593 lines) - Most complex functionality
+**Size:** Largest page (~593 lines) – Most complex functionality
 
 **Tabs:**
-1. **Progress Dashboard** - Overview of learning metrics
-2. **Assessment History** - Past assessments and grades
-3. **New Assessment** - Generate and complete new assessments
+1. **Progress Dashboard** – Overview of learning metrics
+2. **Assessment History** – Past assessments and grades
+3. **New Assessment** – Generate and complete new assessments
 
 **Key Features:**
 
@@ -94,21 +96,23 @@ Streamlit automatically detects Python files in the `pages/` directory and creat
   - Original or AI-generated similar problems
 
 **Session State:**
-| Variable | Type | Purpose |
-|----------|------|---------|
-| `current_assessment` | dict | Active assessment being worked on |
-| `show_assessment_form` | bool | UI visibility control |
+
+| Variable               | Type | Purpose                           |
+|------------------------|------|-----------------------------------|
+| `current_assessment`   | dict | Active assessment being worked on |
+| `show_assessment_form` | bool | UI visibility control             |
 
 **API Endpoints Used:**
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/students/{id}/progress` | GET | Fetch student progress |
-| `/assessments` | GET | List student assessments |
-| `/assessments/{id}` | GET | Get single assessment |
-| `/assessments/generate` | POST | Generate new assessment |
-| `/assessments/{id}/submit` | POST | Submit assessment answer |
-| `/exercises` | GET | List available exercises |
-| `/exercises/{id}/generate` | POST | Generate exercise-based assessment |
+
+| Endpoint                   | Method | Purpose                            |
+|----------------------------|--------|------------------------------------|
+| `/students/{id}/progress`  | GET    | Fetch student progress             |
+| `/assessments`             | GET    | List student assessments           |
+| `/assessments/{id}`        | GET    | Get single assessment              |
+| `/assessments/generate`    | POST   | Generate new assessment            |
+| `/assessments/{id}/submit` | POST   | Submit assessment answer           |
+| `/exercises`               | GET    | List available exercises           |
+| `/exercises/{id}/generate` | POST   | Generate exercise-based assessment |
 
 **Helper Functions:**
 ```python
@@ -116,7 +120,7 @@ fetch_student_progress(student_id)      # Get overall progress metrics
 fetch_assessments(student_id, topic)    # Get assessment history
 fetch_single_assessment(assessment_id)  # Get single assessment details
 generate_assessment(topic, difficulty)  # Generate new AI assessment
-submit_assessment(assessment_id, answer)# Submit answer for grading
+submit_assessment(assessment_id, answer)# Submit an answer for grading
 fetch_exercises()                       # Get available exercises
 generate_exercise_assessment(id, mode)  # Generate exercise-based assessment
 ```
@@ -135,11 +139,12 @@ generate_exercise_assessment(id, mode)  # Generate exercise-based assessment
 - Detailed conversation viewer
 
 **Knowledge Level Colors:**
-| Level | Color | Badge |
-|-------|-------|-------|
-| Beginner | Red | `🔴` |
-| Intermediate | Yellow | `🟡` |
-| Advanced | Green | `🟢` |
+
+| Level        | Color  | Badge |
+|--------------|--------|-------|
+| Beginner     | Red    | `🔴`  |
+| Intermediate | Yellow | `🟡`  |
+| Advanced     | Green  | `🟢`  |
 
 **Statistics Displayed:**
 - Total messages sent
@@ -149,15 +154,16 @@ generate_exercise_assessment(id, mode)  # Generate exercise-based assessment
 - Member tenure
 
 **Session State:**
-Uses shared session state from main app (no page-specific state).
+Uses shared session state from the main app (no page-specific state).
 
 **API Endpoints Used:**
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/students/{id}` | GET | Fetch student profile |
-| `/students/{id}/progress` | GET | Fetch progress metrics |
-| `/students/{id}/conversations` | GET | List conversations |
-| `/conversations/{id}` | GET | Get conversation details |
+
+| Endpoint                       | Method | Purpose                  |
+|--------------------------------|--------|--------------------------|
+| `/students/{id}`               | GET    | Fetch student profile    |
+| `/students/{id}/progress`      | GET    | Fetch progress metrics   |
+| `/students/{id}/conversations` | GET    | List conversations       |
+| `/conversations/{id}`          | GET    | Get conversation details |
 
 ---
 
@@ -177,9 +183,9 @@ if not api_client.is_admin():
 ```
 
 **Tabs:**
-1. **User Management** - Manage all system users
-2. **System Statistics** - View system-wide metrics
-3. **Settings** - View system configuration
+1. **User Management** – Manage all system users
+2. **System Statistics** – View system-wide metrics
+3. **Settings** – View system configuration
 
 **Key Features:**
 
@@ -189,7 +195,7 @@ if not api_client.is_admin():
 - User data table showing:
   - User ID, Name, Email, Role
   - Status (active/inactive)
-  - Conversation and assessment counts
+  - Conversation and assessment count
   - Average score
   - Creation date and last login
 - Individual user actions:
@@ -203,7 +209,7 @@ if not api_client.is_admin():
 - Usage analytics placeholders
 
 #### Tab 3: Settings
-- Display current configuration (read-only):
+- Display the current configuration (read-only):
   - LLM provider and model
   - Temperature and max tokens
   - System version
@@ -211,13 +217,14 @@ if not api_client.is_admin():
   - Session timeout
 
 **API Endpoints Used:**
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/admin/users` | GET | List all users |
-| `/admin/users/{id}/status` | PUT | Activate/deactivate user |
-| `/admin/users/{id}/role` | PUT | Change user role |
-| `/admin/stats` | GET | System statistics |
-| `/admin/settings` | GET | System configuration |
+
+| Endpoint                   | Method | Purpose                  |
+|----------------------------|--------|--------------------------|
+| `/admin/users`             | GET    | List all users           |
+| `/admin/users/{id}/status` | PUT    | Activate/deactivate user |
+| `/admin/users/{id}/role`   | PUT    | Change user role         |
+| `/admin/stats`             | GET    | System statistics        |
+| `/admin/settings`          | GET    | System configuration     |
 
 ---
 
@@ -225,15 +232,15 @@ if not api_client.is_admin():
 
 ### Navigation Flow
 
-```
+```diagram
 ┌─────────────┐
 │   app.py    │ (Home - Login/Register)
 │   (Home)    │
 └──────┬──────┘
        │ Authenticated
        ▼
-┌──────────────────────────────────────────────┐
-│              Streamlit Sidebar               │
+┌─────────────────────────────────────────────┐
+│              Streamlit Sidebar              │
 ├──────────┬──────────┬──────────┬────────────┤
 │  Chat    │Assessment│ Progress │   Admin    │
 │  (1)     │   (2)    │   (3)    │   (4)*     │
@@ -265,6 +272,7 @@ else:
 
 ## Changelog
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-01-05 | Initial documentation created |
+| Version | Date       | Changes                                                                            |
+|---------|------------|------------------------------------------------------------------------------------|
+| 1.0.0   | 2025-01-05 | Initial documentation created                                                      |
+| 1.1.0   | 2025-02-03 | Added some tools, exercise features, basic user restrictiveness to `@usach` domain |
