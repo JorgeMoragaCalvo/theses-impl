@@ -461,6 +461,18 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
         return preprocessed_message, None
 
     @staticmethod
+    def _sanitize_for_log(value: Any) -> str:
+        """
+        Sanitize a value before logging to prevent log injection.
+
+        Removes newline and carriage-return characters and ensures the value is represented as a string.
+        """
+        text = str(value)
+        # Strip CR/LF to avoid log injection via forged lines
+        text = text.replace("\r", "").replace("\n", "")
+        return text
+
+    @staticmethod
     def _get_off_topic_response() -> str:
         """
         Standard off-topic response for both sync and async flows.
@@ -567,9 +579,11 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
             )
 
         mode_label = "async" if async_mode else "sync"
+        safe_strategy = self._sanitize_for_log(selected_strategy)
+        safe_confusion = self._sanitize_for_log(confusion_analysis['level'])
         logger.info(
-            f"Generated {mode_label} LP response with strategy={selected_strategy}, "
-            f"confusion={confusion_analysis['level']}"
+            f"Generated {mode_label} LP response with strategy={safe_strategy}, "
+            f"confusion={safe_confusion}"
         )
         return final_response
 

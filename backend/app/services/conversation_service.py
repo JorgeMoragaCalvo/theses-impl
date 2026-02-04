@@ -444,7 +444,8 @@ class ConversationService:
             unique_gaps = list(set(knowledge_gaps))[:5]
 
             safe_student_id = _sanitize_for_log(student_id)
-            logger.info(f"Identified {len(unique_gaps)} knowledge gaps for student {safe_student_id} in {topic}")
+            safe_topic = _sanitize_for_log(topic)
+            logger.info(f"Identified {len(unique_gaps)} knowledge gaps for student {safe_student_id} in {safe_topic}")
             return unique_gaps
         except Exception as e:
             logger.error(f"Error identifying knowledge gaps: {str(e)}")
@@ -479,7 +480,7 @@ class ConversationService:
                     recent_activity=[]
                 )
         except Exception as e:
-            logger.error("Error fetching student %s: %s", student_id, str(e))
+            logger.error("Error fetching student %s: %s", safe_student_id, str(e))
             return ProgressResponse(
                 student_id=student_id,
                 knowledge_levels={},

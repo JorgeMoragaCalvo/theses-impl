@@ -85,6 +85,11 @@ AGENT_REGISTRY = {
     "integer_programming": get_integer_programming_agent
 }
 
+
+def _sanitize_log_value(value: str) -> str:
+    """Sanitize log value to prevent log injection."""
+    return str(value).replace("\r", "").replace("\n", "")
+
 def get_agent_for_topic(topic: str):
     """
     Get the appropriate agent for a given topic.
@@ -96,11 +101,12 @@ def get_agent_for_topic(topic: str):
         Agent instance for the specified topic
     """
     agent_getter = AGENT_REGISTRY.get(topic)
+    safe_topic = _sanitize_log_value(topic)
     if agent_getter is None:
-        logger.warning(f"No agent found for topic '{topic}', falling back to linear programming agent")
+        logger.warning(f"No agent found for topic '{safe_topic}', falling back to linear programming agent")
         return get_linear_programming_agent()
 
-    logger.info(f"Selected agent for topic: {topic}")
+    logger.info(f"Selected agent for topic: {safe_topic}")
     return agent_getter()
 
 # Lifespan context manager
@@ -542,7 +548,8 @@ async def create_feedback(
     db.commit()
     db.refresh(new_feedback)
 
-    logger.info(f"Created feedback for message {feedback_data.message_id}")
+    safe_feedback = _sanitize_log_value(str(feedback_data.message_id))
+    logger.info(f"Created feedback for message {safe_feedback}")
 
     return FeedbackResponse(
         id=new_feedback.id,
@@ -584,7 +591,8 @@ async def get_student_progress(
     # Compute progress
     progress = conversation_service.compute_student_progress(student_id)
 
-    logger.info(f"Retrieved progress for student {student_id}")
+    safe_student_id = _sanitize_log_value(str(student_id))
+    logger.info(f"Retrieved progress for student {safe_student_id}")
     return progress
 
 # Assessment endpoints
@@ -899,11 +907,12 @@ async def submit_assessment_answer(
         db.commit()
         db.refresh(assessment)
 
-        logger.info(f"Student submitted and auto-graded assessment {assessment_id} - Score: {score}/{assessment.max_score}")
+        safe_assessment_id = _sanitize_log_value(str(assessment_id))
+        logger.info(f"Student submitted and auto-graded assessment {safe_assessment_id} - Score: {score}/{assessment.max_score}")
     except Exception as e:
-        logger.error(f"Failed to auto-grade assessment {assessment_id}: {str(e)}")
+        logger.error(f"Failed to auto-grade assessment {safe_assessment_id}: {str(e)}")
         # Continue even if grading fails - assessment is submitted but not graded
-        logger.info(f"Assessment {assessment_id} submitted but not graded due to error")
+        logger.info(f"Assessment {safe_assessment_id} submitted but not graded due to error")
 
     return AssessmentResponse.model_validate(assessment)
 
@@ -951,7 +960,9 @@ async def grade_assessment(
     db.refresh(assessment)
 
     action = "overrode auto-grade for" if is_override and was_auto_graded else "graded"
-    logger.info(f"Admin {current_admin.id} {action} assessment {assessment_id}: {grade_data.score}/{assessment.max_score}")
+    safe_assessment_id = _sanitize_log_value(str(assessment_id))
+    safe_current_admin = _sanitize_log_value(str(current_admin.id))
+    logger.info(f"Admin {safe_current_admin} {action} assessment {safe_assessment_id}: {grade_data.score}/{assessment.max_score}")
     return AssessmentResponse.model_validate(assessment)
 
 # Root endpoint
