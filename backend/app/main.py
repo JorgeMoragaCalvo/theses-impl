@@ -348,7 +348,8 @@ async def update_student(
     db.commit()
     db.refresh(student)
 
-    logger.info(f"Updated student: {student_id}")
+    safe_student_id = _sanitize_log_value(str(student_id))
+    logger.info(f"Updated student: {safe_student_id}")
     return student
 
 @app.get("/students", response_model=list[StudentResponse])
@@ -962,7 +963,9 @@ async def grade_assessment(
     action = "overrode auto-grade for" if is_override and was_auto_graded else "graded"
     safe_assessment_id = _sanitize_log_value(str(assessment_id))
     safe_current_admin = _sanitize_log_value(str(current_admin.id))
-    logger.info(f"Admin {safe_current_admin} {action} assessment {safe_assessment_id}: {grade_data.score}/{assessment.max_score}")
+    safe_score = _sanitize_log_value(str(grade_data.score))
+    safe_max_score = _sanitize_log_value(str(assessment.max_score))
+    logger.info(f"Admin {safe_current_admin} {action} assessment {safe_assessment_id}: {safe_score}/{safe_max_score}")
     return AssessmentResponse.model_validate(assessment)
 
 # Root endpoint
