@@ -8,4 +8,24 @@
 [![ChatGPT](https://custom-icon-badges.demolab.com/badge/ChatGPT-74aa9c?logo=openai&logoColor=white)](#) [![Claude](https://img.shields.io/badge/Claude-D97757?logo=claude&logoColor=fff)](#) [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-886FBF?logo=googlegemini&logoColor=fff)](#)
 </div>
 
+<div align="center">
+
+📚 **Massive Document Knowledge Q&A** &nbsp;•&nbsp; 🎨 **Interactive Learning Visualization**<br>
+🎯 **Knowledge Reinforcement** &nbsp;•&nbsp; 🔍 **Deep Research & Idea Generation**
+
+</div>
+
 ---
+
+## Key Features
+### 📚 Massive Document Knowledge Q&A
+
+### 🎨 Interactive Learning Visualization
+
+### 🎯 Knowledge Reinforcement
+
+### 🔍 Deep Research & Idea Generation
+
+## 📋 Todo
+
+## 🚀 Getting Started
