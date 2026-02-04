@@ -443,7 +443,8 @@ class ConversationService:
             # Remove duplicates and limit
             unique_gaps = list(set(knowledge_gaps))[:5]
 
-            logger.info(f"Identified {len(unique_gaps)} knowledge gaps for student {student_id} in {topic}")
+            safe_student_id = _sanitize_for_log(student_id)
+            logger.info(f"Identified {len(unique_gaps)} knowledge gaps for student {safe_student_id} in {topic}")
             return unique_gaps
         except Exception as e:
             logger.error(f"Error identifying knowledge gaps: {str(e)}")
@@ -512,14 +513,15 @@ class ConversationService:
         # Get assessments (with error handling)
         total_assessments = 0
         average_score = None
+        safe_student_id = _sanitize_for_log(student_id)
         try:
-            logger.debug(f"Querying assessments for student {student_id}")
+            logger.debug(f"Querying assessments for student {safe_student_id}")
             assessments = self.db.query(Assessment).filter(
                 Assessment.student_id == student_id
             ).all()
 
             total_assessments = len(assessments)
-            logger.debug(f"Student {student_id}: {total_assessments} assessments found")
+            logger.debug(f"Student {safe_student_id}: {total_assessments} assessments found")
 
             graded_assessments = [a for a in assessments if a.score is not None]
 
@@ -529,9 +531,9 @@ class ConversationService:
                 valid_scores = [a.score for a in graded_assessments if a.score is not None]
                 if valid_scores:
                     average_score = sum(valid_scores) / len(valid_scores)
-                    logger.debug(f"Student {student_id}: average score = {average_score}")
+                    logger.debug(f"Student {safe_student_id}: average score = {average_score}")
         except Exception as e:
-            logger.error(f"Error processing assessments for student {student_id}: {str(e)}", exc_info=True)
+            logger.error(f"Error processing assessments for student {safe_student_id}: {str(e)}", exc_info=True)
 
         # Get topics covered from conversations (with error handling)
         topics_covered = []
@@ -544,9 +546,9 @@ class ConversationService:
             topics_covered = list(set([
                 conv.topic.value for conv in conversations_with_topics if conv.topic
             ]))
-            logger.debug(f"Student {student_id}: {len(topics_covered)} topics covered")
+            logger.debug(f"Student {safe_student_id}: {len(topics_covered)} topics covered")
         except Exception as e:
-            logger.error(f"Error getting topics for student {student_id}: {str(e)}")
+            logger.error(f"Error getting topics for student {safe_student_id}: {str(e)}")
 
         # Build recent activity timeline (with error handling)
         recent_activity = []
@@ -590,7 +592,7 @@ class ConversationService:
             recent_activity.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
             recent_activity = recent_activity[:10]  # Keep only 10 most recent
         except Exception as e:
-            logger.error(f"Error building recent activity for student {student_id}: {str(e)}")
+            logger.error(f"Error building recent activity for student {safe_student_id}: {str(e)}")
 
         # Build response with whatever data we successfully collected
         progress = ProgressResponse(
@@ -604,7 +606,7 @@ class ConversationService:
             recent_activity=recent_activity
         )
 
-        logger.info(f"Computed progress for student {student_id}: "
+        logger.info(f"Computed progress for student {safe_student_id}: "
                    f"{total_conversations} convs, {total_messages} msgs, "
                    f"{total_assessments} assessments, avg_score={average_score}")
         return progress
