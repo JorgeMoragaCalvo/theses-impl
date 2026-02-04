@@ -17,6 +17,11 @@ All endpoints require admin role.
 
 logger = logging.getLogger(__name__)
 
+
+def _sanitize_log_value(value: Any) -> str:
+    return str(value).replace("\r", "").replace("\n", "")
+
+
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
@@ -87,7 +92,8 @@ async def get_user_details(
             detail="User not found"
         )
 
-    logger.info(f"Admin {current_admin.id} viewed user {user_id} details")
+    safe_user_id_for_log = _sanitize_log_value(user_id)
+    logger.info(f"Admin {current_admin.id} viewed user {safe_user_id_for_log} details")
     return StudentResponse.model_validate(student)
 
 
@@ -121,7 +127,9 @@ async def update_user_status(
     db.refresh(student)
 
     action = "activated" if is_active else "deactivated"
-    logger.info(f"Admin {current_admin.id} {action} user {user_id}")
+    safe_user_id_for_log = _sanitize_log_value(user_id)
+    safe_action_for_log = _sanitize_log_value(action)
+    logger.info(f"Admin {current_admin.id} {safe_action_for_log} user {safe_user_id_for_log}")
 
     return {
         "message": f"User {action} successfully",

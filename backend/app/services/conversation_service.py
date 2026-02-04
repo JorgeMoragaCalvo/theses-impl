@@ -478,7 +478,7 @@ class ConversationService:
                     recent_activity=[]
                 )
         except Exception as e:
-            logger.error(f"Error fetching student %s: %s", student_id, str(e))
+            logger.error("Error fetching student %s: %s", student_id, str(e))
             return ProgressResponse(
                 student_id=student_id,
                 knowledge_levels={},

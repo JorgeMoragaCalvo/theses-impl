@@ -17,6 +17,10 @@ Uses LLM to create tailored exercises based on student context and weaknesses.
 logger = logging.getLogger(__name__)
 
 
+def _sanitize_for_log(value: Any) -> str:
+    return str(value).replace("\r", "").replace("\n", "")
+
+
 class AssessmentService:
     """
     Service for generating personalized assessments using LLM.
@@ -108,9 +112,13 @@ class AssessmentService:
                 "knowledge_gaps_addressed": len(student_context.get("knowledge_gaps", [])) > 0
             }
 
+            safe_student_id = _sanitize_for_log(student_id)
+            safe_topic = _sanitize_for_log(topic.value)
+            safe_difficulty = _sanitize_for_log(difficulty)
+
             logger.info(
-                f"Generated personalized assessment for student {student_id} on {topic.value} "
-                f"(difficulty: {difficulty})"
+                f"Generated personalized assessment for student {safe_student_id} on {safe_topic} "
+                f"(difficulty: {safe_difficulty})"
             )
             return assessment_data
 
