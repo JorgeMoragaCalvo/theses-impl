@@ -9,6 +9,18 @@ from ..utils import format_conversation_history, format_knowledge_level_context
 
 logger = logging.getLogger(__name__)
 
+
+def _sanitize_for_log(value: Any) -> str:
+    """
+    Sanitize a value for safe logging by removing line breaks.
+
+    This helps prevent log injection when logging user-controlled data.
+    """
+    text = str(value)
+    # Remove common line break sequences
+    return text.replace("\r\n", "").replace("\n", "").replace("\r", "")
+
+
 class ConversationService:
     """Service for managing conversation context and history."""
     def __init__(self, db: Session):
@@ -447,13 +459,15 @@ class ConversationService:
         Returns:
             ProgressResponse with aggregated metrics
         """
-        logger.info(f"Computing progress for student {student_id}")
+        safe_student_id = _sanitize_for_log(student_id)
+
+        logger.info(f"Computing progress for student {safe_student_id}")
 
         # Get student info
         try:
             student = self.db.query(Student).filter(Student.id == student_id).first()
             if not student:
-                logger.warning(f"Student {student_id} not found for progress computation")
+                logger.warning(f"Student {safe_student_id} not found for progress computation")
                 return ProgressResponse(
                     student_id=student_id,
                     knowledge_levels={},
@@ -464,7 +478,7 @@ class ConversationService:
                     recent_activity=[]
                 )
         except Exception as e:
-            logger.error(f"Error fetching student {student_id}: {str(e)}")
+            logger.error(f"Error fetching student %s: %s", student_id, str(e))
             return ProgressResponse(
                 student_id=student_id,
                 knowledge_levels={},
@@ -481,9 +495,9 @@ class ConversationService:
             total_conversations = self.db.query(Conversation).filter(
                 Conversation.student_id == student_id
             ).count()
-            logger.debug(f"Student {student_id}: {total_conversations} conversations")
+            logger.debug(f"Student {safe_student_id}: {total_conversations} conversations")
         except Exception as e:
-            logger.error(f"Error counting conversations for student {student_id}: {str(e)}")
+            logger.error(f"Error counting conversations for student {safe_student_id}: {str(e)}")
 
         # Count messages (with error handling)
         total_messages = 0
@@ -491,9 +505,9 @@ class ConversationService:
             total_messages = self.db.query(Message).join(Conversation).filter(
                 Conversation.student_id == student_id
             ).count()
-            logger.debug(f"Student {student_id}: {total_messages} messages")
+            logger.debug(f"Student {safe_student_id}: {total_messages} messages")
         except Exception as e:
-            logger.error(f"Error counting messages for student {student_id}: {str(e)}")
+            logger.error(f"Error counting messages for student {safe_student_id}: {str(e)}")
 
         # Get assessments (with error handling)
         total_assessments = 0
