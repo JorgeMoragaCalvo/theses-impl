@@ -13,7 +13,7 @@
 
 ## Variables de decisión
 
-x_j = número de rollos de 100 cm cortados con el patrón j (j = 1, ..., 6)
+$x_j$ = número de rollos de 100 cm cortados con el patrón j (j = 1, ..., 6)
 
 ## Función objetivo
 
@@ -31,7 +31,7 @@ x₂ + 2x₄ + x₅ ≥ 500
 x₃ + x₅ + 2x₆ ≥ 1000
 
 **No negatividad:**
-x_j ≥ 0 ∀j
+$x_j$ ≥ 0 ∀j
 
 ## Tipo de modelo
 

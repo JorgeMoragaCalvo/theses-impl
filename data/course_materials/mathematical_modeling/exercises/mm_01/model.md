@@ -2,7 +2,7 @@
 
 ## Variables de decisión
 
-x_i = toneladas de materia prima i a utilizar (i = 1, 2, ..., 7)
+$x_i$ = toneladas de materia prima i a utilizar (i = 1, 2, ..., 7)
 
 ## Función objetivo
 

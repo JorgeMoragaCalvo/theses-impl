@@ -2,7 +2,7 @@
 
 ## Variables de decisión
 
-x_i = número de porciones del alimento i (i = 1: Avena, 2: Pollo, 3: Huevo, 4: Leche, 5: Carne, 6: Manzana)
+$x_i$ = número de porciones del alimento i (i = 1: Avena, 2: Pollo, 3: Huevo, 4: Leche, 5: Carne, 6: Manzana)
 
 ## Función objetivo
 
@@ -20,7 +20,7 @@ min Z = 23x₁ + 240x₂ + 83x₃ + 210x₄ + 620x₅ + 89x₆
 2x₁ + 12x₂ + 54x₃ + 185x₄ + 22x₅ + 80x₆ ≥ 800
 
 **No negatividad:**
-x_i ≥ 0 ∀i
+$x_i$ ≥ 0 ∀i
 
 ## Tipo de modelo
 
