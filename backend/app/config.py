@@ -89,11 +89,17 @@ class Settings(BaseSettings):
     def model_post_init(self, __context):
         """Validate settings after initialization."""
         # Log the loaded SECRET_KEY (first/last 4 chars only for security)
-        if len(self.secret_key) >= 8:
-            masked_key = f"{self.secret_key[:4]}...{self.secret_key[-4:]}"
+        # if len(self.secret_key) >= 8:
+        #     masked_key = f"{self.secret_key[:4]}...{self.secret_key[-4:]}"
+        # else:
+        #     masked_key = "***"
+        # logger.info(f"Loaded SECRET_KEY: {masked_key}")
+
+        # Log non-sensitive information about the SECRET_KEY (do not log the key itself)
+        if self.secret_key:
+            logger.info("Loaded SECRET_KEY (length: %d characters)", len(self.secret_key))
         else:
-            masked_key = "***"
-        logger.info(f"Loaded SECRET_KEY: {masked_key}")
+            logger.warning("SECRET_KEY is not set or is empty.")
 
         # Warn if using a default/insecure key
         if self.secret_key in [
