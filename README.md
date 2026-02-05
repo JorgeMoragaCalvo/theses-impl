@@ -91,61 +91,54 @@ Streamlit Multi-Page Application (MPA)
 ```
 
 Key Patterns Identified
-  ┌──────────────────┬─────────────────────────────────────────────┬─────────────────────────────┐
-  │      Aspect      │                   Pattern                   │          Location           │
-  ├──────────────────┼─────────────────────────────────────────────┼─────────────────────────────┤
-  │ Architecture     │ Multi-page application (MPA)                │ pages/ directory            │
-  ├──────────────────┼─────────────────────────────────────────────┼─────────────────────────────┤
-  │ Organization     │ Feature-based + utilities                   │ pages/ + utils/             │
-  ├──────────────────┼─────────────────────────────────────────────┼─────────────────────────────┤
-  │ State Management │ Streamlit st.session_state                  │ All pages                   │
-  ├──────────────────┼─────────────────────────────────────────────┼─────────────────────────────┤
-  │ Routing          │ File-based automatic routing                │ Numeric prefix in filenames │
-  ├──────────────────┼─────────────────────────────────────────────┼─────────────────────────────┤
-  │ API Client       │ Singleton pattern with centralized requests │ utils/api_client.py         │
-  ├──────────────────┼─────────────────────────────────────────────┼─────────────────────────────┤
-  │ Authentication   │ JWT token + localStorage persistence        │ api_client.py, app.py       │
-  ├──────────────────┼─────────────────────────────────────────────┼─────────────────────────────┤
-  │ Styling          │ Inline CSS via st.markdown()                │ app.py:37-56                │
-  ├──────────────────┼─────────────────────────────────────────────┼─────────────────────────────┤
-  │ Forms            │ Imperative with session state               │ All pages                   │
-  └──────────────────┴─────────────────────────────────────────────┴─────────────────────────────┘
-  API Client Pattern (utils/api_client.py)
 
-  - Singleton instantiation via get_api_client()
-  - Automatic JWT injection in request headers
-  - Centralized error handling (401 → auto-logout)
-  - Methods: get(), post(), put(), delete(), login(), register()
+| Aspect           | Pattern                                     | Location                    |
+|------------------|---------------------------------------------|-----------------------------|
+| Architecture     | Multi-page application (MPA)                | pages/ directory            |
+| Organization     | Feature-based + utilities                   | pages/ + utils/             |
+| State Management | Streamlit st.session_state                  | All pages                   |
+| Routing          | File-based automatic routing                | Numeric prefix in filenames |
+| API Client       | Singleton pattern with centralized requests | utils/api_client.py         |
+| Authentication   | JWT token + localStorage persistence        | api_client.py, app.py       |
+| Styling          | Inline CSS via st.markdown()                | app.py:37-56                |
+| Forms            | Imperative with session state               | All pages                   |
+  
+#### API Client Pattern (utils/api_client.py)
 
-  State Management
+- Singleton instantiation via get_api_client()
+- Automatic JWT injection in request headers
+- Centralized error handling (401 → auto-logout)
+- Methods: get(), post(), put(), delete(), login(), register()
 
-  Key session state variables:
-  - access_token – JWT authentication
-  - user, student_id, user_role – User profile
-  - messages, conversation_id – Chat history
-  - current_assessment – Active assessment
-  - api_client – Singleton instance
+####  State Management
 
-  Authentication Flow
+Key session state variables:
+- access_token – JWT authentication
+- user, student_id, user_role – User profile
+- messages, conversation_id – Chat history
+- current_assessment – Active assessment
+- api_client – Singleton instance
+
+#### Authentication Flow
 
 ```diagram
 Login/Register → Backend returns JWT → Stored in session_state + localStorage
                → Auto-injected in API headers → 401 triggers auto-logout
 ```
 
-  Role-Based Access Control
+#### Role-Based Access Control
 
-  - api_client.is_authenticated() – Auth check
-  - api_client.is_admin() - Admin role check
-  - Page-level guards: if not authenticated: st.stop()
+- api_client.is_authenticated() – Auth check
+- api_client.is_admin() - Admin role check
+- Page-level guards: if not authenticated: st.stop()
 
-  Special Features
+####  Special Features
 
-  - Backend health monitoring – check_backend_health()
-  - Tab-based UI - Assessment (three tabs), Admin (three tabs)
-  - Spanish language UI – All strings in Spanish
-  - Conversation persistence – Track conversation ID across sessions
+- Backend health monitoring – check_backend_health()
+- Tab-based UI - Assessment (three tabs), Admin (three tabs)
+- Spanish language UI – All strings in Spanish
+- Conversation persistence – Track conversation ID across sessions
 
-  Technology Stack
+#### Technology Stack
 
-  Streamlit 1.x | Python 3.10+ | requests | python-dotenv | pandas | JWT
+- Streamlit 1.x | Python 3.10+ | requests | python-dotenv | pandas | JWT
