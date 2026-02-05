@@ -1,4 +1,6 @@
-# Solución
+# P4 — Modelo
+
+## Solución
 
 1. Calcular el gradiente de $ f(x, y) $:
 $$ \nabla f(x, y) = (4x^3 - 4y, -4x + 4y^3) $$
