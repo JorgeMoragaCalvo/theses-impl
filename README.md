@@ -28,6 +28,7 @@
 
 ## 📋 Todo
 
+<<<<<<< HEAD
 ## 🚀 Getting Started
 
 ### Backend Architectural Patterns Summary           
@@ -142,3 +143,6 @@ Login/Register → Backend returns JWT → Stored in session_state + localStorag
 #### Technology Stack
 
 - Streamlit 1.x | Python 3.10+ | requests | python-dotenv | pandas | JWT
+=======
+## 🚀 Getting Started
+>>>>>>> origin/main
