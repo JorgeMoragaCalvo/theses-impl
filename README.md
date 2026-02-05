@@ -28,7 +28,6 @@
 
 ## 📋 Todo
 
-<<<<<<< HEAD
 ## 🚀 Getting Started
 
 ### Backend Architectural Patterns Summary           
