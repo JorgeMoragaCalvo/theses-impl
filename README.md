@@ -80,17 +80,17 @@ Specialized tutor agents in agents/ inherit from BaseAgent:
 
 The frontend is built with Streamlit (Python), not a traditional JS framework. This enables full-stack Python development.                                                        
                                                                                                                                                                                     
-  Overall Structure                                                                                                                                                                 
+#### Overall Structure                                                                                                                                                                 
 ```diagram                                                                                                                                                                                    
-Streamlit Multi-Page Application (MPA)                                                                                                                                            
-├── app.py          → Home/Auth page                                                                                                                                              
+Streamlit Multi-Page Application (MPA)
+├── app.py          → Home/Auth page
 ├── pages/1_chat.py → Chat interface
 ├── pages/2_assessment.py → Assessment/practice
 ├── pages/3_progress.py   → Progress tracking
 └── pages/4_admin.py      → Admin dashboard
 ```
 
-Key Patterns Identified
+#### Key Patterns Identified
 
 | Aspect           | Pattern                                     | Location                    |
 |------------------|---------------------------------------------|-----------------------------|
