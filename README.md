@@ -27,6 +27,69 @@
 ### 🔍 Deep Research & Idea Generation
 
 ## 📋 Todo
+### Overview
+
+5-phase implementation to improve pedagogical effectiveness from Level 3/5 to Level 4–5/5 maturity.
+
+---
+
+#### Phase 1: Competency Framework & Mastery Tracking
+
+##### 1.1 Database Models
+
+**File:** `backend/app/database.py`
+
+##### 1.2 Concept Taxonomy Files
+
+- **Create:** `data/concept_taxonomies/linear_programming.json`
+- **Create:** `data/concept_taxonomies/mathematical_modeling.json`
+- **Create:** `data/concept_taxonomies/integer_programming.json`
+
+##### 1.3 New Service
+
+**Create:** `backend/app/services/competency_service.py`
+
+##### 1.4 Integration
+
+**Modify:** `backend/app/services/grading_service.py`
+
+- Add to grading prompt: `"concepts_tested": ["lp.formulation.variables", ...]`
+- After grading, call `competency_service.update_competency()`
+
+**Modify:** `backend/app/services/conversation_service.py`
+
+- Add `get_student_competency_context()` method
+- Include mastery data in the agent context
+
+##### 1.5 API Endpoints
+
+**Modify:** `backend/app/main.py`
+
+---
+
+#### Phase 2: Error Taxonomy & Targeted Remediation
+
+##### 2.1 Error Taxonomy Files
+
+**Create:** `data/error_taxonomies/mathematical_modeling.json`
+
+##### 2.2 Database Model
+
+**Modify:** `backend/app/database.py`
+
+##### 2.3 Enhanced Grading
+
+**Modify:** `backend/app/services/grading_service.py`
+
+##### 2.4 New Service
+
+**Create:** `backend/app/services/remediation_service.py`
+
+##### 2.5 Agent Integration
+
+**Modify:** `backend/app/agents/base_agent.py`
+
+---
 
 ## 🚀 Getting Started
 
