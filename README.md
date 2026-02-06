@@ -31,6 +31,8 @@
 
 5-phase implementation to improve pedagogical effectiveness from Level 3/5 to Level 4–5/5 maturity.
 
+[TODO Details](docs/notes/todo-details.md). (Pedagogical Improvements Implementation Plan)
+
 ---
 
 #### Phase 1: Competency Framework & Mastery Tracking
@@ -88,6 +90,131 @@
 ##### 2.5 Agent Integration
 
 **Modify:** `backend/app/agents/base_agent.py`
+
+---
+
+#### Phase 3: Spaced Repetition System
+
+##### 3.1 New Service (SM-2 Algorithm)
+
+**Create:** `backend/app/services/spaced_repetition_service.py`
+
+##### 3.2 Database Model
+
+**Modify:** `backend/app/database.py`
+
+##### 3.3 API Endpoints
+
+**Modify:** `backend/app/main.py`
+
+##### 3.4 Agent Integration
+
+**Modify:** `backend/app/agents/base_agent.py`
+
+---
+
+#### Phase 4: Higher-Order Learning Tasks
+
+##### 4.1 Task Type Enums
+
+**Modify:** `backend/app/database.py`
+
+**Modify Assessment model:**
+
+##### 4.2 Task Templates
+
+**Create:** `data/task_templates/higher_order_tasks.json`
+
+##### 4.3 Enhanced Assessment Service
+
+**Modify:** `backend/app/services/assessment_service.py`
+
+##### 4.4 Specialized Grading
+
+**Modify:** `backend/app/services/grading_service.py`
+
+##### 4.5 API Endpoint
+
+**Modify:** `backend/app/main.py`
+
+```python
+POST /assessments/generate/higher-order
+```
+
+---
+
+#### Phase 5: Metacognitive Scaffolding
+
+##### 5.1 Metacognitive Prompts
+
+**Create:** `data/metacognitive/prompts.json`
+
+##### 5.2 Database Model
+
+**Modify:** `backend/app/database.py`
+
+##### 5.3 New Service
+
+**Create:** `backend/app/services/metacognitive_service.py`
+
+##### 5.4 Agent Integration
+
+**Modify:** `backend/app/agents/base_agent.py`
+
+##### 5.5 API Endpoints
+
+**Modify:** `backend/app/main.py`
+
+##### 5.6 Pydantic Models
+
+**Modify:** `backend/app/models.py`
+
+#### Files Summary
+
+##### New Files to Create:
+
+| File                                                | Purpose                       |
+|-----------------------------------------------------|-------------------------------|
+| `backend/app/services/competency_service.py`        | Mastery tracking              |
+| `backend/app/services/remediation_service.py`       | Error-targeted remediation    |
+| `backend/app/services/spaced_repetition_service.py` | SM-2 algorithm                |
+| `backend/app/services/metacognitive_service.py`     | Self-assessment tracking      |
+| `data/concept_taxonomies/*.json`                    | Concept hierarchies per topic |
+| `data/error_taxonomies/*.json`                      | Common errors per topic       |
+| `data/task_templates/higher_order_tasks.json`       | Bloom's higher levels         |
+| `data/metacognitive/prompts.json`                   | Reflection prompts            |
+
+##### Files to Modify:
+
+| File                                           | Changes                                                |
+|------------------------------------------------|--------------------------------------------------------|
+| `backend/app/database.py`                      | 5 new models + 2 enums                                 |
+| `backend/app/models.py`                        | 8+ new Pydantic schemas                                |
+| `backend/app/main.py`                          | 10+ new API endpoints                                  |
+| `backend/app/services/grading_service.py`      | Concept extraction, error classification               |
+| `backend/app/services/assessment_service.py`   | Higher-order task generation                           |
+| `backend/app/services/conversation_service.py` | Competency context                                     |
+| `backend/app/agents/base_agent.py`             | Error context, metacognitive prompts, review reminders |
+
+---
+
+#### Implementation Order
+
+```diagram
+Phase 1 (Competency) ──┬── Phase 2 (Errors) ──┐
+                       │                       │
+                       ├── Phase 3 (SRS) ──────┼── Integration
+                       │                       │
+Phase 4 (Higher-Order)─┴── Phase 5 (Meta) ────┘
+```
+
+**Recommended sequence:**
+
+1. **Phase 1** – Foundation for all tracking
+2. **Phase 4** – Independent, high pedagogical value
+3. **Phase 2** – Builds on Phase 1 concepts
+4. **Phase 5** – Can start after Phase 1
+5. **Phase 3** – Depends on Phase 1 completion
 
 ---
 
