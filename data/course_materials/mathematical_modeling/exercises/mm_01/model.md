@@ -2,7 +2,7 @@
 
 ## Variables de decisión
 
-$x_i$ = toneladas de materia prima i a utilizar (i = 1, 2, ..., 7)
+$x_i$ = toneladas de materia prima $i$ a utilizar $(i = 1, 2, ..., 7)$
 
 ## Función objetivo
 
@@ -11,31 +11,25 @@ min Z = 200x₁ + 250x₂ + 150x₃ + 220x₄ + 240x₅ + 200x₆ + 165x₇
 ## Restricciones
 
 **Demanda total:**
-x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ = 500
+- $x_1 + x_2 + x_3 + x_4 + x_5 + x_6 + x_7 = 500$
 
-**Carbono (2% - 3%):**
-2.5x₁ + 3x₂ ≥ 10
-2.5x₁ + 3x₂ ≤ 15
+**Carbon (2% - 3%):**
+- $0.025x_1 + 0.03x_2 \geq 0.02 \cdot 500$
+- $0.025x_1 + 0.03x_2 \leq 0.03 \cdot 500$
 
 **Cobre (0.4% - 0.6%):**
-0.3x₃ + 90x₄ + 96x₅ + 0.4x₆ + 0.6x₇ ≥ 2
-0.3x₃ + 90x₄ + 96x₅ + 0.4x₆ + 0.6x₇ ≤ 3
+- $0.003x_3 + 0.9x_4 + 0.96x_5 + 0.004x_6 + 0.006x_7 \geq 0.004 \cdot 500$
+- $0.003x_3 + 0.9x_4 + 0.96x_5 + 0.004x_6 + 0.006x_7 \leq 0.006 \cdot 500$
 
 **Manganeso (1.2% - 1.65%):**
-1.3x₁ + 0.8x₂ + 4x₅ + 1.2x₆ ≥ 6
-1.3x₁ + 0.8x₂ + 4x₅ + 1.2x₆ ≤ 8.25
+- $0.013x_1 + 0.008x_2 + 0.04x_5 + 0.012x_6 \geq 0.012 \cdot 500$
+- $0.013x_1 + 0.008x_2 + 0.04x_5 + 0.012x_6 \leq 0.0165 \cdot 500$
 
 **Disponibilidad:**
-x₁ ≤ 400
-x₂ ≤ 300
-x₃ ≤ 600
-x₄ ≤ 500
-x₅ ≤ 200
-x₆ ≤ 300
-x₇ ≤ 250
+- $x_1 \leq 400$, $x_2 \leq 300$, $x_3 \leq 600$, $x_4 \leq 500$, $x_5 \leq 200$, $x_6 \leq 300$, $x_7 \leq 250$
 
 **No negatividad:**
-x_i ≥ 0 ∀i
+- $x_i \geq 0; \space \forall i$
 
 ## Tipo de modelo
 
