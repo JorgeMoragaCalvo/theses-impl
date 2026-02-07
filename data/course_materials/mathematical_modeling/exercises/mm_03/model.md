@@ -2,25 +2,25 @@
 
 ## Variables de decisión
 
-$x_i$ = número de porciones del alimento i (i = 1: Avena, 2: Pollo, 3: Huevo, 4: Leche, 5: Carne, 6: Manzana)
+$x_i$ = número de porciones del alimento $i$ ($i$ = 1: Avena, 2: Pollo, 3: Huevo, 4: Leche, 5: Carne, 6: Manzana)
 
 ## Función objetivo
 
-min Z = 23x₁ + 240x₂ + 83x₃ + 210x₄ + 620x₅ + 89x₆
+min Z = $23x_1 + 240x_2 + 83x_3 + 210x_4 + 620x_5 + 89x_6$
 
 ## Restricciones
 
 **Energía mínima (2000 Kcal):**
-110x₁ + 205x₂ + 160x₃ + 160x₄ + 420x₅ + 110x₆ ≥ 2000
+- $110x_1 + 205x_2 + 160x_3 + 160x_4 + 420x_5 + 110x_6 \geq 2000$
 
 **Proteína mínima (95 g):**
-4x₁ + 32x₂ + 13x₃ + 18x₄ + 64x₅ + 14x₆ ≥ 95
+- $4x_1 + 32x_2 + 13x_3 + 18x_4 + 64x_5 + 14x_6 \geq 95$
 
 **Calcio mínimo (800 mg):**
-2x₁ + 12x₂ + 54x₃ + 185x₄ + 22x₅ + 80x₆ ≥ 800
+- $2x_1 + 12x_2 + 54x_3 + 185x_4 + 22x_5 + 80x_6 \geq 800$
 
 **No negatividad:**
-$x_i$ ≥ 0 ∀i
+- $x_i$ ≥ 0 ∀i
 
 ## Tipo de modelo
 
