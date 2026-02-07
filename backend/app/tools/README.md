@@ -205,3 +205,4 @@ tools = [MyNewTool()]
 
 - **v1.0.0** (2026-01-05): Initial documentation
 - **v1.1.0** (2026-02-03): Added some tools, exercise features, basic user restrictiveness to `@usach` domain
+- **v1.1.1** (2026-02-07): New exercises were added.
