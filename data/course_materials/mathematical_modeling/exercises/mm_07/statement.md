@@ -1,6 +1,6 @@
 # P7 — Perfiles para ventanas
 
-VEKA Chile, frabricante de perfiles para ventanas, se adjudicó una licitación para proveer 100, 250, 190, 140, 220 y 110 ventanas en la construcción de un condominio durante los siguientes seis meses. 
+VEKA Chile, fabricante de perfiles para ventanas, se adjudicó una licitación para proveer 100, 250, 190, 140, 220 y 110 ventanas en la construcción de un condominio durante los siguientes seis meses. 
 
 El costo de producción (mano de obra, materiales y servicios) por ventana varía por período y se estima que será de \$35000, \$31500, \$38500, \$33600, \$36400 y \$35000 durante los próximos seis meses.  
 
