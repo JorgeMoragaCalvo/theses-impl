@@ -445,14 +445,24 @@ with tab3:
         exercises = fetch_exercises(topic=topic_value)
 
         if exercises:
-            # Create exercise options with topic display
+            # Sort exercises by difficulty rank (ascending: easiest first)
+            # Exercises without metadata (rank=0) go at the end
+            exercises_sorted = sorted(
+                exercises,
+                key=lambda ex: (ex.get('rank', 0) == 0, ex.get('rank', 0))
+            )
+
+            # Create exercise options with topic and difficulty display
             exercise_options = {}
-            for ex in exercises:
+            for ex in exercises_sorted:
                 topic_display = TOPIC_DISPLAY_NAMES.get(ex.get('topic', ''), ex.get('topic', 'Desconocido'))
                 model_type = ex.get('model_type', '')
+                difficulty = ex.get('difficulty', '')
                 label = f"[{topic_display}] {ex['id']} - {ex['title']}"
                 if model_type:
                     label += f" ({model_type})"
+                if difficulty:
+                    label += f" [{difficulty}]"
                 exercise_options[label] = ex['id']
 
             selected_exercise = st.selectbox(

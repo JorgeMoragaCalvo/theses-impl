@@ -2,6 +2,7 @@
 Exercise Manager - Loads and provides access to mathematical modeling exercises.
 """
 
+import json
 import logging
 import os
 import re
@@ -30,6 +31,9 @@ class Exercise:
     hints: list[str] = field(default_factory=list)
     model: str = ""
     model_type: str = ""
+    difficulty: str = ""
+    rank: int = 0
+    tier: int = 0
 
 
 class ExerciseManager:
@@ -71,6 +75,7 @@ class ExerciseManager:
             logger.error(f"Error reading exercises directory: {e}")
             return
 
+        # Iterates exercises; loads valid ones; logs errors
         for entry in sorted(entries):
             exercise_dir = os.path.join(self.exercises_path, entry)
 
@@ -107,13 +112,13 @@ class ExerciseManager:
             model_path: Path to model.md
 
         Returns:
-            Exercise object with all data loaded, or None if exercise is incomplete/template
+            Exercise object with all data loaded, or None if the exercise is incomplete/template
         """
         # Read statement
         with open(statement_path, encoding="utf-8") as f:
             statement_content = f.read()
 
-        # Check if statement has actual content (not just template)
+        # Check if the statement has actual content (not just template)
         if not self._has_actual_content(statement_content):
             logger.debug(f"Skipping {exercise_id}: statement.md contains only template content")
             return None
@@ -126,7 +131,7 @@ class ExerciseManager:
 
         # Read the model if it exists
         model_content = ""
-        model_type = ""
+        # model_type = ""
         if os.path.exists(model_path):
             with open(model_path, encoding="utf-8") as f:
                 model_content = f.read()
@@ -142,6 +147,9 @@ class ExerciseManager:
             logger.debug(f"Skipping {exercise_id}: missing model.md")
             return None
 
+        # Read metadata if it exists
+        metadata = self._load_metadata(os.path.dirname(statement_path))
+
         return Exercise(
             id=exercise_id,
             title=title,
@@ -149,12 +157,35 @@ class ExerciseManager:
             hints=hints,
             model=model_content,
             model_type=model_type,
+            difficulty=metadata.get("difficulty", ""),
+            rank=metadata.get("rank", 0),
+            tier=metadata.get("tier", 0),
         )
+
+    @staticmethod
+    def _load_metadata(exercise_dir: str) -> dict[str, Any]:
+        """
+        Load metadata from meta-data.json in the exercise directory.
+
+        Args:
+            exercise_dir: Path to the exercise directory
+
+        Returns:
+            Dictionary with metadata or empty dict if a file doesn't exist
+        """
+        metadata_path = os.path.join(exercise_dir, "meta-data.json")
+        if os.path.exists(metadata_path):
+            try:
+                with open(metadata_path, encoding="utf-8") as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, OSError) as e:
+                logger.warning(f"Error reading metadata from {metadata_path}: {e}")
+        return {}
 
     @staticmethod
     def _has_actual_content(content: str) -> bool:
         """
-        Check if content has actual exercise data vs. just template placeholders.
+        Check if the content has actual exercise data vs. just template placeholders.
 
         Returns False if content contains template placeholders or is too short.
         """
@@ -170,8 +201,8 @@ class ExerciseManager:
             if marker in content:
                 return False
 
-        # Content should be substantial (more than just headers)
-        # Remove markdown headers and check remaining content length
+        # Content should be significant (more than just headers)
+        # Remove Markdown headers and check remaining content length
         stripped = re.sub(r'^#+\s.*$', '', content, flags=re.MULTILINE)
         stripped = re.sub(r'<!--.*?-->', '', stripped, flags=re.DOTALL)
         stripped = stripped.strip()
@@ -259,6 +290,9 @@ class ExerciseManager:
                 "id": ex.id,
                 "title": ex.title,
                 "model_type": ex.model_type,
+                "difficulty": ex.difficulty,
+                "rank": ex.rank,
+                "tier": ex.tier,
             }
             for ex in self.exercises.values()
         ]
@@ -284,7 +318,7 @@ class ExerciseManager:
             exercise_id: The exercise identifier
 
         Returns:
-            List of hints or empty list if exercise is not found
+            List of hints or empty list if the exercise is not found
         """
         exercise = self.exercises.get(exercise_id)
         return exercise.hints if exercise else []
