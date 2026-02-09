@@ -374,5 +374,8 @@ Puntuación máxima: 7.0 puntos"""
             "statement": exercise.statement,
             "hints": exercise.hints,
             "model_type": exercise.model_type,
-            "hints_count": len(exercise.hints)
+            "hints_count": len(exercise.hints),
+            "difficulty": exercise.difficulty,
+            "rank": exercise.rank,
+            "tier": exercise.tier,
         }

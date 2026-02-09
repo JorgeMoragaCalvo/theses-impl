@@ -96,11 +96,12 @@ Retorna: El contenido solicitado según la acción."""
             return "No hay ejercicios disponibles."
 
         result = "**Ejercicios Disponibles**\n\n"
-        result += "| ID | Título | Tipo de Modelo |\n"
-        result += "|-----|--------|----------------|\n"
+        result += "| ID | Título | Tipo de Modelo | Dificultad |\n"
+        result += "|-----|--------|----------------|------------|\n"
 
         for ex in exercises:
-            result += f"| {ex['id']} | {ex['title']} | {ex['model_type']} |\n"
+            difficulty = ex.get('difficulty', '') or '—'
+            result += f"| {ex['id']} | {ex['title']} | {ex['model_type']} | {difficulty} |\n"
 
         result += f"\n*Total: {len(exercises)} ejercicios*"
         return result
