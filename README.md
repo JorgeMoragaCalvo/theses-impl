@@ -44,13 +44,13 @@
 
 ### Backend Architectural Patterns Summary           
                                   
-The backend follows a Layered Architecture with Service-Oriented Design. Here are the key patterns identified:                                                                    
+The backend follows a Layered Architecture with Service-Oriented Design. Here are the key patterns:                                                                    
                                                                                                                                                                                     
 #### Overall Structure                                                                                                                                                                 
                                                                                                                                                                                     
 API Layer (FastAPI) → Business Logic (Services/Agents) → Data Access (SQLAlchemy) → PostgreSQL                                                                                    
 
-#### Design Patterns Found
+#### Design Patterns
 
 | Pattern              | Location                                      | Purpose                                                                         |
 |----------------------|-----------------------------------------------|---------------------------------------------------------------------------------|
@@ -90,7 +90,7 @@ Specialized tutor agents in agents/ inherit from BaseAgent:
 - MathematicalModelingAgent
 - OperationsResearchAgent
 
-The frontend is built with Streamlit (Python), not a traditional JS framework. This enables full-stack Python development.                                                        
+The frontend is built with Streamlit (Python). This enables full-stack Python development.                                                        
                                                                                                                                                                                     
 #### Overall Structure                                                                                                                                                                 
 ```diagram                                                                                                                                                                                    
@@ -102,7 +102,7 @@ Streamlit Multi-Page Application (MPA)
 └── pages/4_admin.py      → Admin dashboard
 ```
 
-#### Key Patterns Identified
+#### Key Patterns
 
 | Aspect           | Pattern                                     | Location                    |
 |------------------|---------------------------------------------|-----------------------------|
