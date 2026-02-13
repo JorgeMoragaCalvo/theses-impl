@@ -63,6 +63,11 @@ from .services.exercise_assessment_service import (
     get_exercise_assessment_service,
     get_exercise_registry,
 )
+from .services.exercise_progress_service import (
+    compute_max_unlocked_rank,
+    get_completed_exercise_ids,
+    get_exercises_with_progress,
+)
 from .services.grading_service import get_grading_service
 
 """
@@ -749,6 +754,16 @@ async def list_exercises(topic: Topic | None = None):
     return registry.list_all_exercises()
 
 
+@app.get("/exercises/progress")
+async def list_exercises_with_progress(
+    topic: Topic | None = None,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user),
+):
+    """List exercises enriched with locked/completed status for the current student."""
+    return get_exercises_with_progress(db, current_user.id, topic)
+
+
 @app.get("/exercises/{exercise_id}")
 async def get_exercise_preview(exercise_id: str):
     """Get exercise details (statement only, no solution)."""
@@ -788,6 +803,20 @@ async def generate_assessment_from_exercise(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Exercise '{request.exercise_id}' not found"
         )
+
+    # Gating: check if the exercise is locked for this student
+    exercises = registry.list_exercises_by_topic(topic)
+    target_exercise = next((ex for ex in exercises if ex["id"] == request.exercise_id), None)
+    if target_exercise:
+        target_rank = target_exercise.get("rank", 0)
+        if target_rank > 0:
+            completed_ids = get_completed_exercise_ids(db, student_id, topic)
+            max_unlocked = compute_max_unlocked_rank(completed_ids, exercises)
+            if target_rank > max_unlocked:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Exercise is locked. Complete exercises at the previous rank first.",
+                )
 
     # Get the manager for this topic's exercises
     manager = registry.get_manager(topic)
