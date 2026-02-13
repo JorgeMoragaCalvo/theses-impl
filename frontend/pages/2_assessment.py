@@ -112,6 +112,19 @@ def fetch_exercises(topic: str | None = None) -> list[dict[str, Any]]:
     return data
 
 
+def fetch_exercises_with_progress(topic: str | None = None) -> list[dict[str, Any]]:
+    """Fetch exercises with locked/completed status for the current student."""
+    params = {}
+    if topic:
+        params["topic"] = topic
+
+    success, data = api_client.get("exercises/progress", params=params)
+    if not success:
+        st.error(f"Error fetching exercise progress: {data.get('error', 'Unknown error')}")
+        return []
+    return data
+
+
 def generate_exercise_assessment(exercise_id: str, mode: str) -> dict[str, Any] | None:
     """Generate assessment from a pre-built exercise."""
     success, data = api_client.post(
@@ -119,7 +132,11 @@ def generate_exercise_assessment(exercise_id: str, mode: str) -> dict[str, Any] 
         json_data={"exercise_id": exercise_id, "mode": mode}
     )
     if not success:
-        st.error(f"Error generating exercise assessment: {data.get('error', 'Unknown error')}")
+        detail = data.get("detail", data.get("error", "Unknown error"))
+        if "locked" in str(detail).lower():
+            st.error("Este ejercicio está bloqueado. Completa los ejercicios del rango anterior primero.")
+        else:
+            st.error(f"Error generating exercise assessment: {detail}")
         return None
     return data
 
@@ -442,7 +459,7 @@ with tab3:
         if exercise_topic_filter != "Todos los temas":
             topic_value = TOPIC_OPTIONS.get(exercise_topic_filter)
 
-        exercises = fetch_exercises(topic=topic_value)
+        exercises = fetch_exercises_with_progress(topic=topic_value)
 
         if exercises:
             # Sort exercises by difficulty rank (ascending: easiest first)
@@ -452,44 +469,64 @@ with tab3:
                 key=lambda ex: (ex.get('rank', 0) == 0, ex.get('rank', 0))
             )
 
-            # Create exercise options with topic and difficulty display
-            exercise_options = {}
-            for ex in exercises_sorted:
-                topic_display = TOPIC_DISPLAY_NAMES.get(ex.get('topic', ''), ex.get('topic', 'Desconocido'))
-                model_type = ex.get('model_type', '')
-                difficulty = ex.get('difficulty', '')
-                label = f"[{topic_display}] {ex['id']} - {ex['title']}"
-                if model_type:
-                    label += f" ({model_type})"
-                if difficulty:
-                    label += f" [{difficulty}]"
-                exercise_options[label] = ex['id']
+            # Split into unlocked and locked
+            unlocked_exercises = [ex for ex in exercises_sorted if not ex.get('locked', False)]
+            locked_exercises = [ex for ex in exercises_sorted if ex.get('locked', False)]
 
-            selected_exercise = st.selectbox(
-                "Selecciona un ejercicio:",
-                list(exercise_options.keys()),
-                key="selected_exercise"
-            )
+            if unlocked_exercises:
+                # Create exercise options with topic, difficulty, and completion status
+                exercise_options = {}
+                for ex in unlocked_exercises:
+                    topic_display = TOPIC_DISPLAY_NAMES.get(ex.get('topic', ''), ex.get('topic', 'Desconocido'))
+                    model_type = ex.get('model_type', '')
+                    difficulty = ex.get('difficulty', '')
+                    completed = ex.get('completed', False)
+                    prefix = "\u2705 " if completed else ""
+                    label = f"{prefix}[{topic_display}] {ex['id']} - {ex['title']}"
+                    if model_type:
+                        label += f" ({model_type})"
+                    if difficulty:
+                        label += f" [{difficulty}]"
+                    exercise_options[label] = ex['id']
 
-            practice_mode = st.radio(
-                "Tipo de práctica:",
-                ["Ejercicio original", "Problema similar (generado por IA)"],
-                key="practice_mode",
-                help="'Ejercicio original' usa el problema tal cual. 'Problema similar' genera un nuevo problema con el mismo tipo de modelo pero diferente contexto."
-            )
+                selected_exercise = st.selectbox(
+                    "Selecciona un ejercicio:",
+                    list(exercise_options.keys()),
+                    key="selected_exercise"
+                )
 
-            if st.button("Comenzar evaluación", type="primary", key="generate_exercise_btn"):
-                with st.spinner("Preparando evaluación..."):
-                    exercise_id = exercise_options[selected_exercise]
-                    mode = "practice" if practice_mode == "Ejercicio original" else "similar"
+                practice_mode = st.radio(
+                    "Tipo de práctica:",
+                    ["Ejercicio original", "Problema similar (generado por IA)"],
+                    key="practice_mode",
+                    help="'Ejercicio original' usa el problema tal cual. 'Problema similar' genera un nuevo problema con el mismo tipo de modelo pero diferente contexto."
+                )
 
-                    result = generate_exercise_assessment(exercise_id, mode)
+                if st.button("Comenzar evaluación", type="primary", key="generate_exercise_btn"):
+                    with st.spinner("Preparando evaluación..."):
+                        exercise_id = exercise_options[selected_exercise]
+                        mode = "practice" if practice_mode == "Ejercicio original" else "similar"
 
-                    if result is not None:
-                        st.session_state.current_assessment = result
-                        st.session_state.show_assessment_form = True
-                        st.success("¡Evaluación generada exitosamente!")
-                        st.rerun()
+                        result = generate_exercise_assessment(exercise_id, mode)
+
+                        if result is not None:
+                            st.session_state.current_assessment = result
+                            st.session_state.show_assessment_form = True
+                            st.success("¡Evaluación generada exitosamente!")
+                            st.rerun()
+            else:
+                st.info("No hay ejercicios desbloqueados disponibles. Completa ejercicios de rangos anteriores para desbloquear más.")
+
+            # Show locked exercises in a collapsed expander
+            if locked_exercises:
+                with st.expander(f"\U0001F512 Ejercicios bloqueados ({len(locked_exercises)})"):
+                    for ex in locked_exercises:
+                        topic_display = TOPIC_DISPLAY_NAMES.get(ex.get('topic', ''), ex.get('topic', 'Desconocido'))
+                        rank = ex.get('rank', 0)
+                        st.markdown(
+                            f"\U0001F512 **[{topic_display}] {ex['id']} - {ex['title']}** "
+                            f"— Requiere completar rango {rank - 1}"
+                        )
         else:
             if topic_value:
                 st.warning(f"No hay ejercicios disponibles para {exercise_topic_filter}.")
