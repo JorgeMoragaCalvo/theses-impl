@@ -274,6 +274,7 @@ else:
 
 | Version | Date       | Changes                                                                            |
 |---------|------------|------------------------------------------------------------------------------------|
-| 1.0.0   | 2025-01-05 | Initial documentation created                                                      |
-| 1.1.0   | 2025-02-03 | Added some tools, exercise features, basic user restrictiveness to `@usach` domain |
+| 1.0.0   | 2026-01-05 | Initial documentation created                                                      |
+| 1.1.0   | 2026-02-03 | Added some tools, exercise features, basic user restrictiveness to `@usach` domain |
 | 1.1.1   | 2026-02-07 | New exercises were added                                                           |
+| v1.2.1  | 2026-02-13 | New functionality for locked and unlocked exercises                                |
