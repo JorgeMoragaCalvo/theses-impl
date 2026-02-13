@@ -21,12 +21,26 @@ An adaptive, multi-agent AI tutoring system that provides personalized conversat
 
 ## Key Features
 ### 🤖 Multi-agent tutoring system
+Multi-agent tutoring system with five AI agents specializing in:
+- Operations Research
+- Mathematical Modeling
+- Linear Programming
+- Integer Programming
+- Nonlinear Programming
 
 ### 💬 Conversational learning interface
+- Context-aware responses that use students' conversation history. 
+- The system leverages a multi-agent system with a tutor agent that learns from students' interactions. 
+- The tutor agent is able to adapt to students' needs and provide personalized responses.
 
 ### 🔄 Adaptive learning characteristics
+- Detecting confusion through keyword analysis. 
+- Alternative explanations when confusion is detected.
 
 ### 📝 Assessment system
+- Context-aware, using the student's knowledge level and conversation history.
+- Three difficulty levels: beginner, intermediate, and advanced.
+- Generates detailed feedback for each exercise submission.
 
 ### 📊 Student progress tracking and metrics
 
