@@ -12,6 +12,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     create_engine,
 )
 from sqlalchemy.ext.declarative import declarative_base
@@ -66,6 +67,15 @@ class GradingSource(str, enum.Enum):
     """Source of assessment grading."""
     AUTO = "auto"
     ADMIN = "admin"
+
+
+class MasteryLevel(str, enum.Enum):
+    """Mastery level for a concept based on mastery score."""
+    NOT_STARTED = "not_started"
+    NOVICE = "novice"           # 0.0 - 0.30
+    DEVELOPING = "developing"   # 0.30 - 0.60
+    PROFICIENT = "proficient"   # 0.60 - 0.85
+    MASTERED = "mastered"       # 0.85+
 
 
 # Database Models
@@ -181,6 +191,44 @@ class Feedback(Base):
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     # Metadata
+    extra_data = Column(JSON, default={})
+
+
+class StudentCompetency(Base):
+    """Tracks mastery of a specific concept for a student."""
+    __tablename__ = "student_competencies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, nullable=False, index=True)
+    topic = Column(Enum(Topic), nullable=False)
+    concept_id = Column(String(255), nullable=False, index=True)
+    concept_name = Column(String(255), nullable=False)
+    mastery_level = Column(Enum(MasteryLevel), default=MasteryLevel.NOVICE, nullable=False)
+    mastery_score = Column(Float, default=0.0, nullable=False)
+    attempts_count = Column(Integer, default=0, nullable=False)
+    correct_count = Column(Integer, default=0, nullable=False)
+    last_attempt_at = Column(DateTime, nullable=True)
+    last_correct_at = Column(DateTime, nullable=True)
+    decay_factor = Column(Float, default=2.5)  # SM-2 ease factor, reserved for Phase 3
+    next_review_at = Column(DateTime, nullable=True)
+    extra_data = Column(JSON, default={})
+
+    __table_args__ = (
+        UniqueConstraint("student_id", "concept_id", name="uq_student_concept"),
+    )
+
+
+class ConceptHierarchy(Base):
+    """Stores the concept taxonomy for each topic."""
+    __tablename__ = "concept_hierarchy"
+
+    id = Column(Integer, primary_key=True, index=True)
+    concept_id = Column(String(255), nullable=False, unique=True, index=True)
+    concept_name = Column(String(255), nullable=False)
+    topic = Column(Enum(Topic), nullable=False)
+    parent_concept_id = Column(String(255), nullable=True)
+    bloom_level = Column(String(50), nullable=False)
+    prerequisites = Column(JSON, default=[])
     extra_data = Column(JSON, default={})
 
 

@@ -1,0 +1,102 @@
+{
+  "topic": "linear_programming",
+  "version": "1.0",
+  "concepts": [
+    {
+      "concept_id": "lp.formulation.variables",
+      "name": "Decision Variables",
+      "bloom_level": "remember",
+      "prerequisites": []
+    },
+    {
+      "concept_id": "lp.formulation.objective",
+      "name": "Objective Function",
+      "bloom_level": "understand",
+      "prerequisites": ["lp.formulation.variables"]
+    },
+    {
+      "concept_id": "lp.formulation.constraints",
+      "name": "Constraints",
+      "bloom_level": "understand",
+      "prerequisites": ["lp.formulation.variables"]
+    },
+    {
+      "concept_id": "lp.formulation.standard_form",
+      "name": "Standard Form",
+      "bloom_level": "apply",
+      "prerequisites": ["lp.formulation.objective", "lp.formulation.constraints"]
+    },
+    {
+      "concept_id": "lp.graphical.feasible_region",
+      "name": "Feasible Region",
+      "bloom_level": "understand",
+      "prerequisites": ["lp.formulation.constraints"]
+    },
+    {
+      "concept_id": "lp.graphical.method",
+      "name": "Graphical Method",
+      "bloom_level": "apply",
+      "prerequisites": ["lp.graphical.feasible_region", "lp.formulation.objective"]
+    },
+    {
+      "concept_id": "lp.simplex.basis",
+      "name": "Basic Feasible Solution",
+      "bloom_level": "understand",
+      "prerequisites": ["lp.formulation.standard_form"]
+    },
+    {
+      "concept_id": "lp.simplex.method",
+      "name": "Simplex Method",
+      "bloom_level": "apply",
+      "prerequisites": ["lp.simplex.basis", "lp.graphical.method"]
+    },
+    {
+      "concept_id": "lp.simplex.tableau",
+      "name": "Simplex Tableau",
+      "bloom_level": "apply",
+      "prerequisites": ["lp.simplex.method"]
+    },
+    {
+      "concept_id": "lp.simplex.pivot",
+      "name": "Pivot Operations",
+      "bloom_level": "apply",
+      "prerequisites": ["lp.simplex.tableau"]
+    },
+    {
+      "concept_id": "lp.duality.concept",
+      "name": "Duality Theory",
+      "bloom_level": "analyze",
+      "prerequisites": ["lp.simplex.method"]
+    },
+    {
+      "concept_id": "lp.duality.shadow_price",
+      "name": "Shadow Prices",
+      "bloom_level": "analyze",
+      "prerequisites": ["lp.duality.concept"]
+    },
+    {
+      "concept_id": "lp.sensitivity.analysis",
+      "name": "Sensitivity Analysis",
+      "bloom_level": "analyze",
+      "prerequisites": ["lp.simplex.method", "lp.duality.shadow_price"]
+    },
+    {
+      "concept_id": "lp.sensitivity.ranges",
+      "name": "Optimality Ranges",
+      "bloom_level": "analyze",
+      "prerequisites": ["lp.sensitivity.analysis"]
+    },
+    {
+      "concept_id": "lp.special_cases.unbounded",
+      "name": "Unbounded Problems",
+      "bloom_level": "analyze",
+      "prerequisites": ["lp.graphical.feasible_region"]
+    },
+    {
+      "concept_id": "lp.special_cases.infeasible",
+      "name": "Infeasible Problems",
+      "bloom_level": "analyze",
+      "prerequisites": ["lp.graphical.feasible_region"]
+    }
+  ]
+}

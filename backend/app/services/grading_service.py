@@ -30,12 +30,13 @@ class GradingService:
         self.db = db
         self.llm_service = get_llm_service()
 
-    def grade_assessment(self, assessment: Assessment) -> tuple[float, str]:
+    def grade_assessment(self, assessment: Assessment, competency_service=None) -> tuple[float, str]:
         """
         Automatically grade an assessment using LLM.
 
         Args:
             assessment: Assessment object to grade
+            competency_service: Optional CompetencyService to update student competencies
 
         Returns:
             Tuple of (score, feedback)
@@ -49,6 +50,19 @@ class GradingService:
                 logger.warning(f"Assessment {assessment.id} missing correct_answer or rubric")
                 return 1.0, "Unable to grade: missing grading materials."
 
+            # Get concept IDs for this topic to guide the LLM
+            available_concepts = None
+            if competency_service:
+                try:
+                    from .competency_service import get_taxonomy_registry
+                    registry = get_taxonomy_registry()
+                    topic_str = assessment.topic.value if hasattr(assessment.topic, 'value') else str(assessment.topic)
+                    concepts = registry.get_concepts_for_topic(topic_str)
+                    if concepts:
+                        available_concepts = [c["concept_id"] for c in concepts]
+                except Exception as e:
+                    logger.warning(f"Could not load concept taxonomy: {e}")
+
             # Build grading prompt
             system_prompt = self.build_grading_prompt(
                 question=assessment.question,
@@ -56,7 +70,8 @@ class GradingService:
                 correct_answer=assessment.correct_answer,
                 rubric=assessment.rubric,
                 max_score=assessment.max_score,
-                topic=assessment.topic.value if hasattr(assessment.topic, 'value') else str(assessment.topic)
+                topic=assessment.topic.value if hasattr(assessment.topic, 'value') else str(assessment.topic),
+                available_concepts=available_concepts,
             )
 
             # Generate grading using LLM
@@ -74,7 +89,28 @@ class GradingService:
             )
 
             # Parse the LLM response
-            score, feedback = self.parse_grading_response(response, assessment.max_score)
+            score, feedback, concepts_tested = self.parse_grading_response(response, assessment.max_score)
+
+            # Update competencies if service provided
+            if competency_service and concepts_tested and assessment.student_id:
+                try:
+                    from .competency_service import get_taxonomy_registry
+                    registry = get_taxonomy_registry()
+                    valid_concepts = [c for c in concepts_tested if registry.concept_exists(c)]
+                    performance_score = score / assessment.max_score if assessment.max_score else 0.0
+                    is_correct = performance_score >= 0.6
+                    for concept_id in valid_concepts:
+                        try:
+                            competency_service.update_competency(
+                                student_id=assessment.student_id,
+                                concept_id=concept_id,
+                                is_correct=is_correct,
+                                performance_score=performance_score,
+                            )
+                        except Exception as e:
+                            logger.error(f"Error updating competency for {concept_id}: {e}")
+                except Exception as e:
+                    logger.error(f"Error in competency update pipeline: {e}")
 
             logger.info(
                 f"Auto-graded assessment {assessment.id} - Score: {score}/{assessment.max_score}"
@@ -93,7 +129,8 @@ class GradingService:
         correct_answer: str,
         rubric: str,
         max_score: float,
-        topic: str
+        topic: str,
+        available_concepts: list[str] | None = None,
     ) -> str:
         """
         Build a comprehensive system prompt for assessment grading.
@@ -105,10 +142,21 @@ class GradingService:
             rubric: Grading rubric
             max_score: Maximum possible score
             topic: Assessment topic
+            available_concepts: Optional list of concept IDs for this topic
 
         Returns:
             System prompt string
         """
+        concepts_section = ""
+        concepts_output = ""
+        if available_concepts:
+            concepts_list = "\n".join(f"            - {c}" for c in available_concepts)
+            concepts_section = f"""
+            ## Available Concept IDs for This Topic:
+{concepts_list}
+"""
+            concepts_output = ',\n                "concepts_tested": ["concept_id_1", "concept_id_2"]'
+
         prompt = f"""You are an expert grader for {topic} assessments in operations research and optimization methods.
 
             Your task is to grade a student's answer fairly and objectively, providing constructive feedback.
@@ -136,14 +184,14 @@ class GradingService:
             6. **Minor Errors**: Don't penalize heavily for minor arithmetic errors if the approach is correct
             7. **Alternative Approaches**: Accept valid alternative solution methods if they're correct
             8. **Completeness**: Consider whether the student fully addressed all parts of the question
-
+{concepts_section}
             ## Output Format:
             Please provide your response in the following JSON format:
 
             ```json
             {{
                 "score": <numeric score between 0 and {max_score}>,
-                "feedback": "Detailed feedback explaining the grade, highlighting strengths and areas for improvement"
+                "feedback": "Detailed feedback explaining the grade, highlighting strengths and areas for improvement"{concepts_output}
             }}
             ```
 
@@ -151,23 +199,25 @@ class GradingService:
             - The score MUST be a number between 0 and {max_score}
             - Provide specific, constructive feedback (3-5 sentences minimum)
             - Cite specific parts of the student's answer in your feedback
-            - Be encouraging while being honest about mistakes
+            - Be encouraging while being honest about mistakes{"" if not available_concepts else """
+            - concepts_tested MUST be a list of concept IDs from the Available Concept IDs list above that are relevant to this assessment
+            - Only include concepts that are actually tested or demonstrated in the student's answer"""}
             - IMPORTANT: Respond ONLY with the JSON object, no additional text before or after
 
             Grade the assessment now.
             """
         return prompt
 
-    def parse_grading_response(self, llm_response: str, max_score: float) -> tuple[float, str]:
+    def parse_grading_response(self, llm_response: str, max_score: float) -> tuple[float, str, list[str]]:
         """
-        Parse the LLM grading response to extract score and feedback.
+        Parse the LLM grading response to extract score, feedback, and concepts tested.
 
         Args:
             llm_response: Raw LLM response
             max_score: Maximum possible score for validation
 
         Returns:
-            Tuple of (score, feedback)
+            Tuple of (score, feedback, concepts_tested)
         """
         try:
             # Use the shared parser to get the JSON data
@@ -176,15 +226,22 @@ class GradingService:
             score = float(parsed.get("score", 0))
             feedback = parsed.get("feedback", "No feedback provided.")
 
+            # Extract concepts_tested if present
+            concepts_tested = parsed.get("concepts_tested", [])
+            if not isinstance(concepts_tested, list):
+                concepts_tested = []
+            concepts_tested = [str(c) for c in concepts_tested if isinstance(c, str)]
+
             # Validate score is within bounds
             score = max(1.0, min(score, max_score))
 
-            return score, feedback
+            return score, feedback, concepts_tested
 
         except (json.JSONDecodeError, ValueError, KeyError) as e:
             logger.error(f"Failed to parse grading response as JSON: {str(e)}")
             # Fallback: try to extract score and feedback manually
-            return self._parse_fallback(llm_response, max_score)
+            score, feedback = self._parse_fallback(llm_response, max_score)
+            return score, feedback, []
 
     @staticmethod
     def _parse_fallback(llm_response: str, max_score: float) -> tuple[float, str]:
