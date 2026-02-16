@@ -16,6 +16,16 @@ Uses Exponentially Weighted Average (EWA) for mastery score updates.
 
 logger = logging.getLogger(__name__)
 
+def _sanitize_for_log(value: Any) -> str:
+    """
+    Sanitize a value for safe logging by removing line breaks.
+
+    This helps prevent log injection when logging user-controlled data.
+    """
+    text = str(value)
+    # Remove common line break sequences
+    return text.replace("\r\n", "").replace("\n", "").replace("\r", "")
+
 # EWA learning rate
 MASTERY_ALPHA = 0.3
 
@@ -270,7 +280,8 @@ class CompetencyService:
         try:
             topic_enum = Topic(topic)
         except ValueError:
-            logger.warning(f"Unknown topic: {topic}")
+            safe_topic = _sanitize_for_log(topic)
+            logger.warning(f"Unknown topic: {safe_topic}")
             return []
 
         return self.db.query(StudentCompetency).filter(
