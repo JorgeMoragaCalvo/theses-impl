@@ -44,11 +44,11 @@ class GradingService:
         try:
             # Validate inputs
             if not assessment.student_answer:
-                return 1.0, "No answer provided."
+                return 1.0, "No se proporcionó respuesta."
 
             if not assessment.correct_answer or not assessment.rubric:
                 logger.warning(f"Assessment {assessment.id} missing correct_answer or rubric")
-                return 1.0, "Unable to grade: missing grading materials."
+                return 1.0, "No se pudo calificar: faltan materiales de calificación."
 
             # Get concept IDs for this topic to guide the LLM
             available_concepts = None
@@ -78,7 +78,7 @@ class GradingService:
             messages = [
                 {
                     "role": "user",
-                    "content": "Please grade this student's assessment following the guidelines provided."
+                    "content": "Califica la evaluación del estudiante siguiendo las directrices proporcionadas."
                 }
             ]
 
@@ -120,7 +120,7 @@ class GradingService:
         except Exception as e:
             logger.error(f"Error auto-grading assessment {assessment.id}: {str(e)}")
             # Return a neutral score with the error message
-            return 1.0, f"Unable to auto-grade this assessment. Error: {str(e)}"
+            return 1.0, f"No se pudo calificar automáticamente esta evaluación. Error: {str(e)}"
 
     @staticmethod
     def build_grading_prompt(
@@ -152,59 +152,61 @@ class GradingService:
         if available_concepts:
             concepts_list = "\n".join(f"            - {c}" for c in available_concepts)
             concepts_section = f"""
-            ## Available Concept IDs for This Topic:
+            ## IDs de conceptos disponibles para este tema:
 {concepts_list}
 """
             concepts_output = ',\n                "concepts_tested": ["concept_id_1", "concept_id_2"]'
 
-        prompt = f"""You are an expert grader for {topic} assessments in operations research and optimization methods.
+        prompt = f"""Eres un evaluador experto en evaluaciones de {topic} en investigación de operaciones y métodos de optimización.
 
-            Your task is to grade a student's answer fairly and objectively, providing constructive feedback.
+            Tu tarea es calificar la respuesta del estudiante de manera justa y objetiva, proporcionando retroalimentación constructiva.
+            IMPORTANTE: Toda la retroalimentación debe estar en español.
 
-            ## Assessment Question:
+            ## Pregunta de la evaluación:
             {question}
 
-            ## Student's Answer:
+            ## Respuesta del estudiante:
             {student_answer}
 
-            ## Reference Solution:
+            ## Solución de referencia:
             {correct_answer}
 
-            ## Grading Rubric:
+            ## Rúbrica de calificación:
             {rubric}
 
-            ## Maximum Score: {max_score} points
+            ## Puntuación máxima: {max_score} puntos
 
-            ## Grading Guidelines:
-            1. **Be Fair and Objective**: Grade based on the rubric and the correctness of the approach and solution
-            2. **Partial Credit**: Award partial credit for correct methodology even if the final answer is wrong
-            3. **Show Your Work**: Explain what the student did correctly and where they made mistakes
-            4. **Be Constructive**: Provide specific, actionable feedback that helps the student improve
-            5. **Check Understanding**: Evaluate whether the student demonstrates understanding of core concepts
-            6. **Minor Errors**: Don't penalize heavily for minor arithmetic errors if the approach is correct
-            7. **Alternative Approaches**: Accept valid alternative solution methods if they're correct
-            8. **Completeness**: Consider whether the student fully addressed all parts of the question
+            ## Directrices de calificación:
+            1. **Ser justo y objetivo**: Calificar según la rúbrica y la corrección del enfoque y la solución
+            2. **Crédito parcial**: Otorgar crédito parcial por metodología correcta aunque la respuesta final sea incorrecta
+            3. **Mostrar el análisis**: Explicar qué hizo bien el estudiante y dónde cometió errores
+            4. **Ser constructivo**: Proporcionar retroalimentación específica y práctica que ayude al estudiante a mejorar
+            5. **Verificar comprensión**: Evaluar si el estudiante demuestra comprensión de los conceptos fundamentales
+            6. **Errores menores**: No penalizar severamente por errores aritméticos menores si el enfoque es correcto
+            7. **Enfoques alternativos**: Aceptar métodos de solución alternativos válidos si son correctos
+            8. **Completitud**: Considerar si el estudiante abordó completamente todas las partes de la pregunta
 {concepts_section}
-            ## Output Format:
-            Please provide your response in the following JSON format:
+            ## Formato de salida:
+            Proporciona tu respuesta en el siguiente formato JSON:
 
             ```json
             {{
-                "score": <numeric score between 0 and {max_score}>,
-                "feedback": "Detailed feedback explaining the grade, highlighting strengths and areas for improvement"{concepts_output}
+                "score": <puntuación numérica entre 0 y {max_score}>,
+                "feedback": "Retroalimentación detallada en español explicando la calificación, destacando fortalezas y áreas de mejora"{concepts_output}
             }}
             ```
 
-            ## Important:
-            - The score MUST be a number between 0 and {max_score}
-            - Provide specific, constructive feedback (3-5 sentences minimum)
-            - Cite specific parts of the student's answer in your feedback
-            - Be encouraging while being honest about mistakes{"" if not available_concepts else """
-            - concepts_tested MUST be a list of concept IDs from the Available Concept IDs list above that are relevant to this assessment
-            - Only include concepts that are actually tested or demonstrated in the student's answer"""}
-            - IMPORTANT: Respond ONLY with the JSON object, no additional text before or after
+            ## Importante:
+            - La puntuación DEBE ser un número entre 0 y {max_score}
+            - Proporcionar retroalimentación específica y constructiva (mínimo 3-5 oraciones)
+            - Citar partes específicas de la respuesta del estudiante en la retroalimentación
+            - Ser alentador mientras se es honesto sobre los errores
+            - TODA la retroalimentación DEBE estar en español{"" if not available_concepts else """
+            - concepts_tested DEBE ser una lista de IDs de conceptos de la lista de IDs disponibles arriba que sean relevantes para esta evaluación
+            - Solo incluir conceptos que realmente se evalúan o demuestran en la respuesta del estudiante"""}
+            - IMPORTANTE: Responder SOLO con el objeto JSON, sin texto adicional antes o después
 
-            Grade the assessment now.
+            Califica la evaluación ahora.
             """
         return prompt
 
@@ -224,7 +226,7 @@ class GradingService:
             parsed = parse_llm_json_response(llm_response)
 
             score = float(parsed.get("score", 0))
-            feedback = parsed.get("feedback", "No feedback provided.")
+            feedback = parsed.get("feedback", "No se proporcionó retroalimentación.")
 
             # Extract concepts_tested if present
             concepts_tested = parsed.get("concepts_tested", [])
