@@ -101,3 +101,9 @@ with st.sidebar:
     - Solicita diferentes estilos de explicación si es necesario
     - Puedes hacer preguntas de seguimiento
     """)
+
+    st.divider()
+    if st.button("Logout", key="logout_btn"):
+        api_client.logout()
+        st.success("¡Cierre de sesión exitoso!")
+        st.rerun()

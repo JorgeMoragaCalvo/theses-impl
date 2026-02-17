@@ -300,3 +300,10 @@ with col2:
     - Keep the system updated
     - Use strong authentication methods
     """)
+
+with st.sidebar:
+    st.divider()
+    if st.button("Logout", key="logout_btn"):
+        api_client.logout()
+        st.success("¡Cierre de sesión exitoso!")
+        st.rerun()

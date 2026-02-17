@@ -657,5 +657,12 @@ with tab3:
 # FOOTER
 # ============================================================================
 
+with st.sidebar:
+    st.divider()
+    if st.button("Logout", key="logout_btn"):
+        api_client.logout()
+        st.success("¡Cierre de sesión exitoso!")
+        st.rerun()
+
 st.divider()
 st.caption("💡 Tip: ¡Realiza evaluaciones para seguir tu progreso e identificar áreas de mejora!")
