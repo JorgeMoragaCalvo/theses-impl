@@ -300,3 +300,9 @@ with col2:
     - Keep the system updated
     - Use strong authentication methods
     """)
+
+with st.sidebar:
+    st.divider()
+    if st.button("Logout", key="logout_btn"):
+        api_client.logout()
+        st.switch_page("app.py")

@@ -657,5 +657,11 @@ with tab3:
 # FOOTER
 # ============================================================================
 
+with st.sidebar:
+    st.divider()
+    if st.button("Logout", key="logout_btn"):
+        api_client.logout()
+        st.switch_page("app.py")
+
 st.divider()
 st.caption("💡 Tip: ¡Realiza evaluaciones para seguir tu progreso e identificar áreas de mejora!")

@@ -193,3 +193,9 @@ with col2:
     - Conecta nuevos conceptos con conocimientos previos
     - Ponte a prueba periódicamente con evaluaciones
     """)
+
+with st.sidebar:
+    st.divider()
+    if st.button("Logout", key="logout_btn"):
+        api_client.logout()
+        st.switch_page("app.py")
