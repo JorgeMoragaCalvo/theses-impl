@@ -215,7 +215,7 @@ async def register(user_data: StudentRegister, db: Session = Depends(get_db)):
     email_domain = str(user_data.email).split('@')[1].lower()
     is_allowed_domain = email_domain == ALLOWED_EMAIL_DOMAIN
 
-    # Create new student with hashed password
+    # Create a new student with a hashed password
     new_student = Student(
         name=user_data.name,
         email=str(user_data.email),
@@ -1068,7 +1068,7 @@ async def get_student_mastery(
     db: Session = Depends(get_db),
     current_user: Student = Depends(get_current_user)
 ):
-    """Get mastery summary for a student in a specific topic."""
+    """Get a mastery summary for a student in a specific topic."""
     if current_user.id != student_id and current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

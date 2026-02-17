@@ -122,7 +122,7 @@ class CompetencyService:
     def seed_concept_hierarchy(self) -> int:
         """
         Idempotently populate ConceptHierarchy from taxonomy JSON files.
-        Returns number of new concepts inserted.
+        Returns the number of new concepts inserted.
         """
         registry = get_taxonomy_registry()
         inserted = 0
