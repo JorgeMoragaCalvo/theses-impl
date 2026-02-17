@@ -32,7 +32,7 @@ class APIClient:
         """
         headers = {"Content-Type": "application/json"}
 
-        # Add Authorization header if token exists
+        # Add an Authorization header if the token exists
         if "access_token" in st.session_state and st.session_state.access_token:
             headers["Authorization"] = f"Bearer {st.session_state.access_token}"
 
@@ -215,7 +215,13 @@ class APIClient:
         # Clear session state
         keys_to_clear = [
             "access_token", "user", "student_id", "student_name",
-            "student_email", "user_role", "messages", "conversation_id"
+            "student_email", "user_role", "messages", "conversation_id",
+            # Assessment page state
+            "current_assessment", "show_assessment_form", "_graded_result_shown",
+            # Chat page state
+            "chat_messages", "chat_conversation_id",
+            # Topic selection
+            "selected_topic",
         ]
         for key in keys_to_clear:
             if key in st.session_state:

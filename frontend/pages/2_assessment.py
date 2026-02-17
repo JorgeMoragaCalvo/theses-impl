@@ -151,6 +151,18 @@ if "current_assessment" not in st.session_state:
 if "show_assessment_form" not in st.session_state:
     st.session_state.show_assessment_form = False
 
+if "_graded_result_shown" not in st.session_state:
+    st.session_state._graded_result_shown = False
+
+# Auto-clear graded assessments after the result has been displayed once.
+# This handles navigation away and back, tab switching, and page refresh.
+if (st.session_state.current_assessment is not None
+        and st.session_state.current_assessment.get("graded_at") is not None
+        and st.session_state._graded_result_shown):
+    st.session_state.current_assessment = None
+    st.session_state.show_assessment_form = False
+    st.session_state._graded_result_shown = False
+
 
 # ============================================================================
 # MAIN PAGE
@@ -469,29 +481,44 @@ with tab3:
                 key=lambda ex: (ex.get('rank', 0) == 0, ex.get('rank', 0))
             )
 
-            # Split into unlocked and locked
-            unlocked_exercises = [ex for ex in exercises_sorted if not ex.get('locked', False)]
+            # Split into unlocked (pending), completed, and locked
+            unlocked_exercises = [
+                ex for ex in exercises_sorted
+                if not ex.get('locked', False) and not ex.get('completed', False)
+            ]
+            completed_exercises = [
+                ex for ex in exercises_sorted
+                if not ex.get('locked', False) and ex.get('completed', False)
+            ]
             locked_exercises = [ex for ex in exercises_sorted if ex.get('locked', False)]
 
+            if completed_exercises:
+                st.success(f"Has completado {len(completed_exercises)} ejercicio(s) en este tema.")
+
             if unlocked_exercises:
-                # Create exercise options with topic, difficulty, and completion status
+                # Create exercise options with a topic, difficulty
                 exercise_options = {}
                 for ex in unlocked_exercises:
                     topic_display = TOPIC_DISPLAY_NAMES.get(ex.get('topic', ''), ex.get('topic', 'Desconocido'))
                     model_type = ex.get('model_type', '')
                     difficulty = ex.get('difficulty', '')
-                    completed = ex.get('completed', False)
-                    prefix = "\u2705 " if completed else ""
-                    label = f"{prefix}[{topic_display}] {ex['id']} - {ex['title']}"
+                    label = f"[{topic_display}] {ex['id']} - {ex['title']}"
                     if model_type:
                         label += f" ({model_type})"
                     if difficulty:
                         label += f" [{difficulty}]"
                     exercise_options[label] = ex['id']
 
+                # Clear cached selectbox value if the options have changed
+                current_options = list(exercise_options.keys())
+                if st.session_state.get("_prev_exercise_options") != current_options:
+                    st.session_state._prev_exercise_options = current_options
+                    if "selected_exercise" in st.session_state:
+                        del st.session_state["selected_exercise"]
+
                 selected_exercise = st.selectbox(
                     "Selecciona un ejercicio:",
-                    list(exercise_options.keys()),
+                    current_options,
                     key="selected_exercise"
                 )
 
@@ -622,6 +649,16 @@ with tab3:
                 if feedback:
                     st.markdown("**Comentario:**")
                     st.success(feedback)
+
+                # Mark the graded result as shown so auto-clear triggers on the next rerun
+                st.session_state._graded_result_shown = True
+
+                st.divider()
+                if st.button("Comenzar nueva evaluación", type="primary", key="new_assessment_after_grade"):
+                    st.session_state.current_assessment = None
+                    st.session_state.show_assessment_form = False
+                    st.session_state._graded_result_shown = False
+                    st.rerun()
             else:
                 st.warning("⏳ Evaluación enviada, pero aún no calificada. Esto es inusual; la calificación debería ser instantánea..")
         else:
