@@ -105,5 +105,4 @@ with st.sidebar:
     st.divider()
     if st.button("Logout", key="logout_btn"):
         api_client.logout()
-        st.success("¡Cierre de sesión exitoso!")
-        st.rerun()
+        st.switch_page("app.py")
