@@ -680,7 +680,7 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             context=context,
         )
 
-        # Generate response with enhanced prompt
+        # Generate a response with an enhanced prompt
         try:
             response = self.llm_service.generate_response(
                 messages=components["messages"],
@@ -731,7 +731,7 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             context=context,
         )
 
-        # Generate response with enhanced prompt (async)
+        # Generate a response with an enhanced prompt (async)
         try:
             response = await self.llm_service.a_generate_response(
                 messages=components["messages"],

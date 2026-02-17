@@ -46,7 +46,7 @@ class GradingSource(str, Enum):
 
 
 class MasteryLevel(str, Enum):
-    """Mastery level for a concept based on mastery score."""
+    """Mastery level for a concept based on a mastery score."""
     NOT_STARTED = "not_started"
     NOVICE = "novice"
     DEVELOPING = "developing"

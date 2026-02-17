@@ -73,6 +73,7 @@ def compute_max_unlocked_rank(completed_ids: set[str], exercises: list[dict[str,
 
     # Rank 1 is always unlocked; check from rank 1 upward
     unlocked = 1
+    # Iterates ranks; updates unlocked rank if any exercise completed
     for rank in range(1, max_rank + 1):
         ids_at_rank = rank_exercises.get(rank, [])
         if any(eid in completed_ids for eid in ids_at_rank):
@@ -89,7 +90,7 @@ def get_exercises_with_progress(
     """
     Return exercises enriched with `locked` and `completed` fields.
 
-    Groups by topic for per-topic gating. If topic is provided, filters to that topic only.
+    Groups by topic for per-topic gating. If a topic is provided, filters to that topic only.
     """
     registry = get_exercise_registry()
 

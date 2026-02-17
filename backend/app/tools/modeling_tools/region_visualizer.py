@@ -368,11 +368,13 @@ La imagen muestra:
             a, b = constraint["coeffs"]
             rhs = constraint["rhs"]
 
+            # Updates x_max based on constraint intercept if applicable
             if abs(a) > 1e-10:
                 x_intercept = rhs / a
                 if x_intercept > 0:
                     x_max = max(x_max, x_intercept * 1.2)
 
+            # Updates y_max based on constraint intercept if applicable
             if abs(b) > 1e-10:
                 y_intercept = rhs / b
                 if y_intercept > 0:
@@ -410,13 +412,14 @@ La imagen muestra:
                 point = self._intersect_lines(all_constraints[i], all_constraints[j])
                 if point is not None:
                     x, y = point
-                    # Check if the point is feasible
+                    # Check if the point is possible
                     if self._is_feasible(x, y, constraints, var_bounds):
                         # Check if not already added (with tolerance)
                         is_duplicate = any(
                             abs(x - cx) < 1e-6 and abs(y - cy) < 1e-6
                             for cx, cy in corners
                         )
+                        # Appends rounded possible intersection point if not duplicate
                         if not is_duplicate and 0 <= x <= x_max + 1 and 0 <= y <= y_max + 1:
                             corners.append((round(x, 4), round(y, 4)))
 
@@ -450,7 +453,7 @@ La imagen muestra:
         constraints: list[dict[str, Any]],
         var_bounds: list[tuple[float, float]]
     ) -> bool:
-        """Check if a point is feasible."""
+        """Check if a point is possible."""
         # Check bounds
         if x < var_bounds[0][0] - 1e-6:
             return False

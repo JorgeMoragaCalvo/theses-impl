@@ -77,7 +77,7 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
             model_json: JSON string with model specification
 
         Returns:
-            Validation result as formatted string
+            Validation result as a formatted string
         """
         errors: list[str] = []
         warnings: list[str] = []

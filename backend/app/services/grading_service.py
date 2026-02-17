@@ -93,6 +93,7 @@ class GradingService:
 
             # Update competencies if service provided
             if competency_service and concepts_tested and assessment.student_id:
+                # Conditionally updates student competencies based on assessment results
                 try:
                     from .competency_service import get_taxonomy_registry
                     registry = get_taxonomy_registry()

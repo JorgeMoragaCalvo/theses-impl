@@ -72,7 +72,7 @@ Estados posibles: optimal, infeasible, unbounded, error."""
             model_json: JSON string with model specification
 
         Returns:
-            Solution result as formatted string
+            Solution result as a formatted string
         """
         if not SCIPY_AVAILABLE:
             return self._format_error(
@@ -296,7 +296,7 @@ Estados posibles: optimal, infeasible, unbounded, error."""
         except ValueError:
             pass
 
-        # Find variable name in term
+        # Find a variable name in the term
         var_found = None
         for var in sorted(var_names, key=len, reverse=True):  # Longest first
             if var in term:

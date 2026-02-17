@@ -295,7 +295,7 @@ def main():
 
             with st.chat_message("assistant"):
                 with st.spinner("Pensando..."):
-                    # Get selected topic from session state
+                    # Get a selected topic from the session state
                     selected_topic = st.session_state.get("selected_topic", DEFAULT_TOPIC)
                     topic_value = TOPIC_OPTIONS[selected_topic]
 

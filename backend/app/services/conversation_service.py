@@ -299,7 +299,7 @@ class ConversationService:
             if conversation.extra_data and "summary" in conversation.extra_data:
                 return conversation.extra_data["summary"]
 
-            # Get first few messages as summary
+            # Get the first few messages as a summary
             messages = self.db.query(Message).filter(
                 Message.conversation_id == conversation_id
             ).order_by(Message.timestamp).limit(3).all()
