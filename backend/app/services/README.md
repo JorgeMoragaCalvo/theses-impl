@@ -280,3 +280,4 @@ def get_my_service(db: Session):
 - **v1.1.0** (2026-02-03): Added some tools, exercise features, basic user restrictiveness to `@usach` domain
 - **v1.1.1** (2026-02-07): New exercises were added.
 - **v1.2.1** (2026-02-13): New functionality for locked and unlocked exercises.
+- **v1.3.1** (2026-02-16): Added concept-level mastery tracking — when assessments are graded.
