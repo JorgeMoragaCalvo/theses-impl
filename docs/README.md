@@ -48,7 +48,7 @@ A la izquierda se encuentra `login` o `register` que cuenta con los campos:
   - Password
   - Repetir Password
 
-Como ya estoy registrado. Paso al `login`.
+Si se está registrado se pasa al `login`.
 
 <img width="1885" height="916" alt="Image" src="https://github.com/user-attachments/assets/b9145666-fa43-4b8e-8fe3-0fe58681591d" />
 

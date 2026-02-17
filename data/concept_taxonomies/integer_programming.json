@@ -1,0 +1,78 @@
+{
+  "topic": "integer_programming",
+  "version": "1.0",
+  "concepts": [
+    {
+      "concept_id": "ip.foundations.integrality",
+      "name": "Integrality Constraints",
+      "bloom_level": "understand",
+      "prerequisites": []
+    },
+    {
+      "concept_id": "ip.foundations.lp_relaxation",
+      "name": "LP Relaxation",
+      "bloom_level": "understand",
+      "prerequisites": ["ip.foundations.integrality"]
+    },
+    {
+      "concept_id": "ip.model_types.pure_ip",
+      "name": "Pure Integer Program",
+      "bloom_level": "apply",
+      "prerequisites": ["ip.foundations.integrality"]
+    },
+    {
+      "concept_id": "ip.model_types.binary_ip",
+      "name": "Binary Integer Program",
+      "bloom_level": "apply",
+      "prerequisites": ["ip.model_types.pure_ip"]
+    },
+    {
+      "concept_id": "ip.model_types.mip",
+      "name": "Mixed Integer Program",
+      "bloom_level": "apply",
+      "prerequisites": ["ip.model_types.pure_ip"]
+    },
+    {
+      "concept_id": "ip.formulation.binary_variables",
+      "name": "Binary Variable Modeling",
+      "bloom_level": "apply",
+      "prerequisites": ["ip.model_types.binary_ip"]
+    },
+    {
+      "concept_id": "ip.formulation.logical_constraints",
+      "name": "Logical Constraints",
+      "bloom_level": "analyze",
+      "prerequisites": ["ip.formulation.binary_variables"]
+    },
+    {
+      "concept_id": "ip.algorithms.branch_bound",
+      "name": "Branch and Bound",
+      "bloom_level": "apply",
+      "prerequisites": ["ip.foundations.lp_relaxation"]
+    },
+    {
+      "concept_id": "ip.algorithms.cutting_planes",
+      "name": "Cutting Planes",
+      "bloom_level": "analyze",
+      "prerequisites": ["ip.algorithms.branch_bound"]
+    },
+    {
+      "concept_id": "ip.applications.assignment",
+      "name": "Assignment Problems",
+      "bloom_level": "apply",
+      "prerequisites": ["ip.model_types.binary_ip"]
+    },
+    {
+      "concept_id": "ip.applications.knapsack",
+      "name": "Knapsack Problem",
+      "bloom_level": "apply",
+      "prerequisites": ["ip.model_types.binary_ip"]
+    },
+    {
+      "concept_id": "ip.applications.set_covering",
+      "name": "Set Covering / Set Packing",
+      "bloom_level": "apply",
+      "prerequisites": ["ip.formulation.binary_variables"]
+    }
+  ]
+}

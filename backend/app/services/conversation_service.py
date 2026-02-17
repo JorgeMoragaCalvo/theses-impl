@@ -130,6 +130,11 @@ class ConversationService:
                     knowledge_gaps = self.get_knowledge_gaps_from_assessments(student_id, topic)
                     context["knowledge_gaps"] = knowledge_gaps
 
+                    # Add competency context
+                    competency_context = self.get_student_competency_context(student_id, topic)
+                    if competency_context:
+                        context["competency_context"] = competency_context
+
             logger.info(f"Retrieved student context for student {student_id}: level={knowledge_level}")
             return context
         except Exception as e:
@@ -450,6 +455,42 @@ class ConversationService:
         except Exception as e:
             logger.error(f"Error identifying knowledge gaps: {str(e)}")
             return []
+
+    def get_student_competency_context(
+        self, student_id: int, topic: str
+    ) -> dict[str, Any]:
+        """
+        Get a concise mastery context for injection into agent prompts.
+
+        Args:
+            student_id: Student ID
+            topic: Topic string
+
+        Returns:
+            Dictionary with mastery_summary, weak_concepts, and next_concepts keys
+        """
+        try:
+            from .competency_service import get_competency_service
+            competency_service = get_competency_service(self.db)
+            summary = competency_service.get_mastery_summary(student_id, topic)
+            next_concepts = competency_service.get_next_concepts_to_learn(student_id, topic)
+
+            weak_concepts = [
+                c for c in summary.get("concepts", [])
+                if c["mastery_level"] in ("novice", "developing") and c["attempts_count"] > 0
+            ][:5]
+
+            return {
+                "mastery_summary": {
+                    "average_score": summary.get("average_mastery_score", 0.0),
+                    "level_counts": summary.get("level_counts", {}),
+                },
+                "weak_concepts": weak_concepts,
+                "next_concepts_to_learn": next_concepts[:3],
+            }
+        except Exception as e:
+            logger.error(f"Error fetching competency context for student {student_id}: {e}")
+            return {}
 
     def compute_student_progress(self, student_id: int) -> ProgressResponse:
         """

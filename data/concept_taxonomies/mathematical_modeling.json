@@ -1,0 +1,90 @@
+{
+  "topic": "mathematical_modeling",
+  "version": "1.0",
+  "concepts": [
+    {
+      "concept_id": "mm.process.problem_identification",
+      "name": "Problem Identification",
+      "bloom_level": "understand",
+      "prerequisites": []
+    },
+    {
+      "concept_id": "mm.process.variable_identification",
+      "name": "Variable Identification",
+      "bloom_level": "apply",
+      "prerequisites": ["mm.process.problem_identification"]
+    },
+    {
+      "concept_id": "mm.process.parameters_vs_variables",
+      "name": "Parameters vs Decision Variables",
+      "bloom_level": "analyze",
+      "prerequisites": ["mm.process.variable_identification"]
+    },
+    {
+      "concept_id": "mm.objective.formulation",
+      "name": "Objective Function Formulation",
+      "bloom_level": "apply",
+      "prerequisites": ["mm.process.variable_identification"]
+    },
+    {
+      "concept_id": "mm.objective.sense",
+      "name": "Optimization Sense (Max/Min)",
+      "bloom_level": "understand",
+      "prerequisites": ["mm.process.problem_identification"]
+    },
+    {
+      "concept_id": "mm.constraints.identification",
+      "name": "Constraint Identification",
+      "bloom_level": "apply",
+      "prerequisites": ["mm.process.variable_identification"]
+    },
+    {
+      "concept_id": "mm.constraints.formulation",
+      "name": "Constraint Formulation",
+      "bloom_level": "apply",
+      "prerequisites": ["mm.constraints.identification"]
+    },
+    {
+      "concept_id": "mm.constraints.nonnegativity",
+      "name": "Non-negativity Constraints",
+      "bloom_level": "remember",
+      "prerequisites": ["mm.process.variable_identification"]
+    },
+    {
+      "concept_id": "mm.model_types.lp",
+      "name": "Linear Programming Model",
+      "bloom_level": "apply",
+      "prerequisites": ["mm.objective.formulation", "mm.constraints.formulation"]
+    },
+    {
+      "concept_id": "mm.model_types.ip",
+      "name": "Integer Programming Model",
+      "bloom_level": "apply",
+      "prerequisites": ["mm.model_types.lp"]
+    },
+    {
+      "concept_id": "mm.model_types.nlp",
+      "name": "Nonlinear Programming Model",
+      "bloom_level": "apply",
+      "prerequisites": ["mm.model_types.lp"]
+    },
+    {
+      "concept_id": "mm.validation.assumptions",
+      "name": "Model Assumptions",
+      "bloom_level": "evaluate",
+      "prerequisites": ["mm.model_types.lp"]
+    },
+    {
+      "concept_id": "mm.validation.completeness",
+      "name": "Model Completeness Check",
+      "bloom_level": "evaluate",
+      "prerequisites": ["mm.constraints.formulation", "mm.objective.formulation"]
+    },
+    {
+      "concept_id": "mm.interpretation.solution",
+      "name": "Solution Interpretation",
+      "bloom_level": "evaluate",
+      "prerequisites": ["mm.model_types.lp"]
+    }
+  ]
+}

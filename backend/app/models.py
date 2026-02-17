@@ -45,6 +45,15 @@ class GradingSource(str, Enum):
     ADMIN = "admin"
 
 
+class MasteryLevel(str, Enum):
+    """Mastery level for a concept based on mastery score."""
+    NOT_STARTED = "not_started"
+    NOVICE = "novice"
+    DEVELOPING = "developing"
+    PROFICIENT = "proficient"
+    MASTERED = "mastered"
+
+
 # Request Models
 class StudentCreate(BaseModel):
     """Request the model for creating a new student."""
@@ -271,3 +280,64 @@ class ProgressResponse(BaseModel):
     average_score: float | None = None
     topics_covered: list[str]
     recent_activity: list[dict[str, Any]]
+
+
+# Competency Tracking
+class ConceptCompetencyResponse(BaseModel):
+    """Response for a single concept's mastery."""
+    concept_id: str
+    concept_name: str
+    mastery_level: str
+    mastery_score: float
+    attempts_count: int
+    correct_count: int | None = None
+    last_attempt_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, obj, **kwargs):
+        """Custom validation to handle enum conversion."""
+        if hasattr(obj, '__dict__'):
+            data = {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
+            if 'mastery_level' in data and hasattr(data['mastery_level'], 'value'):
+                data['mastery_level'] = data['mastery_level'].value
+            if 'topic' in data and hasattr(data['topic'], 'value'):
+                data['topic'] = data['topic'].value
+            return super().model_validate(data, **kwargs)
+        return super().model_validate(obj, **kwargs)
+
+
+class StudentCompetenciesResponse(BaseModel):
+    """Response for all competencies of a student in a topic."""
+    student_id: int
+    topic: str
+    competencies: list[ConceptCompetencyResponse]
+
+
+class MasterySummaryResponse(BaseModel):
+    """Response for mastery summary of a student in a topic."""
+    student_id: int
+    topic: str
+    total_concepts: int
+    level_counts: dict[str, int]
+    average_mastery_score: float
+    concepts: list[dict[str, Any]]
+
+
+class RecommendedConceptResponse(BaseModel):
+    """A single concept recommendation."""
+    concept_id: str
+    concept_name: str
+    bloom_level: str
+    current_mastery_score: float
+    current_mastery_level: str
+    prerequisites: list[str]
+
+
+class RecommendedConceptsResponse(BaseModel):
+    """Response for recommended concepts for a student."""
+    student_id: int
+    topic: str
+    recommendations: list[RecommendedConceptResponse]
