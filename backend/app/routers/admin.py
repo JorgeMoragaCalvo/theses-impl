@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 from ..auth import get_current_admin_user
 from ..config import settings
 from ..database import Assessment, Conversation, Student, UserRole, get_db
-from ..models import StudentResponse
+from ..models import AnalyticsSummaryResponse, StudentResponse
+from ..services.analytics_service import get_analytics_service
 
 """
 Admin-only endpoints for user and system management.
@@ -244,3 +245,100 @@ async def get_system_stats(
         "total_assessments": total_assessments or 0,
         "average_assessment_score": float(avg_assessment_score) if avg_assessment_score else None
     }
+
+
+# Analytics endpoints
+@router.get("/analytics/summary", response_model=AnalyticsSummaryResponse)
+async def get_analytics_summary(
+    days: int = 30,
+    db: Session = Depends(get_db),
+    current_admin: Student = Depends(get_current_admin_user)
+):
+    """Get a comprehensive analytics summary. Admin only."""
+    service = get_analytics_service(db)
+    logger.info(f"Admin {current_admin.id} requested analytics summary ({days} days)")
+    return service.get_analytics_summary(days=days)
+
+
+@router.get("/analytics/dau")
+async def get_dau(
+    days: int = 30,
+    db: Session = Depends(get_db),
+    current_admin: Student = Depends(get_current_admin_user)
+):
+    """Daily get active users. Admin only."""
+    from datetime import date, timedelta
+    service = get_analytics_service(db)
+    end = date.today()
+    start = end - timedelta(days=days)
+    return service.get_daily_active_users(start, end)
+
+
+@router.get("/analytics/sessions")
+async def get_session_durations(
+    days: int = 30,
+    db: Session = Depends(get_db),
+    current_admin: Student = Depends(get_current_admin_user)
+):
+    """Get average session duration by day. Admin only."""
+    from datetime import date, timedelta
+    service = get_analytics_service(db)
+    end = date.today()
+    start = end - timedelta(days=days)
+    return service.get_avg_session_duration(start, end)
+
+
+@router.get("/analytics/peak-hours")
+async def get_peak_hours(
+    days: int = 30,
+    db: Session = Depends(get_db),
+    current_admin: Student = Depends(get_current_admin_user)
+):
+    """Get peak usage hours. Admin only."""
+    from datetime import date, timedelta
+    service = get_analytics_service(db)
+    end = date.today()
+    start = end - timedelta(days=days)
+    return service.get_peak_usage_hours(start, end)
+
+
+@router.get("/analytics/pages")
+async def get_page_popularity(
+    days: int = 30,
+    db: Session = Depends(get_db),
+    current_admin: Student = Depends(get_current_admin_user)
+):
+    """Get page popularity. Admin only."""
+    from datetime import date, timedelta
+    service = get_analytics_service(db)
+    end = date.today()
+    start = end - timedelta(days=days)
+    return service.get_page_popularity(start, end)
+
+
+@router.get("/analytics/topics")
+async def get_topic_popularity(
+    days: int = 30,
+    db: Session = Depends(get_db),
+    current_admin: Student = Depends(get_current_admin_user)
+):
+    """Get topic popularity. Admin only."""
+    from datetime import date, timedelta
+    service = get_analytics_service(db)
+    end = date.today()
+    start = end - timedelta(days=days)
+    return service.get_topic_popularity(start, end)
+
+
+@router.get("/analytics/engagement")
+async def get_engagement_metrics(
+    days: int = 30,
+    db: Session = Depends(get_db),
+    current_admin: Student = Depends(get_current_admin_user)
+):
+    """Get user engagement metrics. Admin only."""
+    from datetime import date, timedelta
+    service = get_analytics_service(db)
+    end = date.today()
+    start = end - timedelta(days=days)
+    return service.get_user_engagement(start, end)
