@@ -1,7 +1,7 @@
 import logging
 from datetime import date, datetime, timedelta, timezone
 
-from sqlalchemy import cast, func, Date
+from sqlalchemy import Date, cast, func
 from sqlalchemy.orm import Session
 
 from ..database import ActivityEvent, EventCategory

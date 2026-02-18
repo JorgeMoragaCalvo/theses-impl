@@ -64,6 +64,7 @@ from .models import (
     TokenResponse,
 )
 from .routers import admin
+from .services.analytics_service import get_analytics_service
 from .services.assessment_service import get_assessment_service
 from .services.competency_service import get_competency_service
 from .services.conversation_service import get_conversation_service
@@ -76,7 +77,6 @@ from .services.exercise_progress_service import (
     get_completed_exercise_ids,
     get_exercises_with_progress,
 )
-from .services.analytics_service import get_analytics_service
 from .services.grading_service import get_grading_service
 
 """

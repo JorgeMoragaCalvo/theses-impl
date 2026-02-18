@@ -9,7 +9,7 @@ from utils.activity_tracker import (
     flush_events,
     track_chat_message,
     track_interaction,
-    track_page_visit
+    track_page_visit,
 )
 from utils.api_client import get_api_client
 from utils.constants import (

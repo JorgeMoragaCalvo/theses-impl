@@ -12,10 +12,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
 
 from utils.activity_tracker import (
     PAGE_ASSESSMENT,
-    flush_events,
     track_assessment_generate,
     track_assessment_submit,
-    track_interaction,
     track_page_visit,
 )
 from utils.api_client import get_api_client
@@ -446,7 +444,7 @@ with tab2:
                         if answer.strip():
                             result = submit_assessment(assessment_id, answer.strip())
                             if result is not None:
-                                track_assessment_submit(assessment_id, a.get("topic", ""))
+                                track_assessment_submit(assessment_id, assessment.get("topic", ""))
                                 st.success("¡Respuesta enviada exitosamente!")
                                 st.rerun()
                         else:
