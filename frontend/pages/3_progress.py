@@ -9,7 +9,9 @@ from dotenv import load_dotenv
 # Add the parent directory to the path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
 
+from utils.activity_tracker import PAGE_PROGRESS, track_page_visit
 from utils.api_client import get_api_client
+from utils.idle_detector import inject_idle_detector
 
 """
 Página de seguimiento del progreso - análisis del aprendizaje de los estudiantes
@@ -31,6 +33,10 @@ if not api_client.is_authenticated():
     st.warning("Please login from the home page first!")
     st.info("Click the link in the sidebar to go to the home page.")
     st.stop()
+
+# Analytics tracking
+track_page_visit(PAGE_PROGRESS)
+inject_idle_detector(backend_url=BACKEND_URL)
 
 # Get student_id from the session
 student_id = st.session_state.get("student_id")

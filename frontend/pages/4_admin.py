@@ -10,7 +10,10 @@ from dotenv import load_dotenv
 # Add the parent directory to the path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
 
+from utils.activity_tracker import PAGE_ADMIN, flush_events, track_page_visit
 from utils.api_client import get_api_client
+from utils.constants import TOPIC_DISPLAY_NAMES
+from utils.idle_detector import inject_idle_detector
 
 """
 Admin Dashboard - User and system management (Admin only).
@@ -39,11 +42,15 @@ if not api_client.is_admin():
     st.info("If you need admin access, please contact your system administrator.")
     st.stop()
 
+# Analytics tracking
+track_page_visit(PAGE_ADMIN)
+inject_idle_detector(backend_url=BACKEND_URL)
+
 # Admin confirmed - show dashboard
 st.success(f"👋 Welcome, Administrator **{st.session_state.get('student_name', 'Admin')}**")
 
 # Create tabs for different admin functions
-tab1, tab2, tab3 = st.tabs(["👥 User Management", "📊 System Statistics", "⚙️ Settings"])
+tab1, tab2, tab3, tab4 = st.tabs(["👥 User Management", "📊 System Statistics", "📈 Analytics", "⚙️ Settings"])
 
 # ============================================================================
 # TAB 1: USER MANAGEMENT
@@ -213,25 +220,8 @@ with tab2:
 
         st.divider()
 
-        # Additional analytics placeholder
-        st.markdown("### 📈 Usage Analytics")
-        st.info("🚧 Detailed usage analytics and charts coming soon!")
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.markdown("#### User Engagement")
-            st.markdown("- Daily active users")
-            st.markdown("- Average session duration")
-            st.markdown("- Peak usage times")
-            st.markdown("- User retention rate")
-
-        with col2:
-            st.markdown("#### Learning Progress")
-            st.markdown("- Topic popularity")
-            st.markdown("- Assessment completion rates")
-            st.markdown("- Average improvement over time")
-            st.markdown("- Common topics of difficulty")
+        st.divider()
+        st.info("📈 Detailed usage analytics are available in the **Analytics** tab.")
 
     elif success:
         st.info("No statistics available yet.")
@@ -240,10 +230,133 @@ with tab2:
         st.error(f"Error: {error_msg}")
 
 # ============================================================================
-# TAB 3: SETTINGS
+# TAB 3: ANALYTICS
 # ============================================================================
 
 with tab3:
+    st.subheader("📈 Usage Analytics")
+
+    # Date range selector
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        days_range = st.selectbox(
+            "Time Range:",
+            options=[7, 14, 30, 60, 90],
+            index=2,
+            format_func=lambda x: f"Last {x} days",
+            key="analytics_days_range"
+        )
+    with col2:
+        st.markdown("")  # spacing
+        if st.button("Refresh Analytics", key="refresh_analytics"):
+            st.rerun()
+
+    # Fetch analytics summary
+    success, analytics = api_client.get("admin/analytics/summary", params={"days": days_range})
+
+    if success and analytics:
+        # Key Engagement Metrics
+        st.markdown("### Key Metrics")
+        engagement = analytics.get("engagement", {})
+
+        col1, col2, col3, col4, col5 = st.columns(5)
+        with col1:
+            st.metric("Total Events", engagement.get("total_events", 0))
+        with col2:
+            st.metric("Unique Sessions", engagement.get("unique_sessions", 0))
+        with col3:
+            avg_dur = engagement.get("avg_session_duration_minutes", 0)
+            st.metric("Avg Session", f"{avg_dur:.1f} min")
+        with col4:
+            st.metric("Chat Messages", engagement.get("total_chat_messages", 0))
+        with col5:
+            st.metric("Assessments Submitted", engagement.get("total_assessments_submitted", 0))
+
+        st.divider()
+
+        # Daily Active Users Chart
+        st.markdown("### Daily Active Users")
+        dau = analytics.get("dau", {})
+        if dau.get("dates"):
+            dau_df = pd.DataFrame({
+                "Date": dau["dates"],
+                "Active Users": dau["counts"]
+            })
+            st.line_chart(dau_df.set_index("Date"))
+        else:
+            st.info("No DAU data available for the selected period.")
+
+        st.divider()
+
+        # Session Duration & Peak Hours
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("### Avg Session Duration")
+            session_data = analytics.get("session_duration", {})
+            if session_data.get("dates"):
+                session_df = pd.DataFrame({
+                    "Date": session_data["dates"],
+                    "Duration (min)": session_data["avg_duration_minutes"]
+                })
+                st.line_chart(session_df.set_index("Date"))
+            else:
+                st.info("No session data available.")
+
+        with col2:
+            st.markdown("### Peak Usage Hours")
+            peak = analytics.get("peak_usage", {})
+            if peak.get("hours"):
+                peak_df = pd.DataFrame({
+                    "Hour": [f"{h:02d}:00" for h in peak["hours"]],
+                    "Events": peak["event_counts"]
+                })
+                st.bar_chart(peak_df.set_index("Hour"))
+            else:
+                st.info("No peak usage data available.")
+
+        st.divider()
+
+        # Page & Topic Popularity
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("### Page Popularity")
+            pages = analytics.get("page_popularity", {})
+            if pages.get("pages"):
+                page_df = pd.DataFrame({
+                    "Page": pages["pages"],
+                    "Visits": pages["visit_counts"],
+                    "Avg Duration (s)": [f"{d:.0f}" for d in pages["avg_duration_seconds"]]
+                })
+                st.bar_chart(page_df.set_index("Page")["Visits"])
+                st.dataframe(page_df, hide_index=True)
+            else:
+                st.info("No page data available.")
+
+        with col2:
+            st.markdown("### Topic Popularity")
+            topics = analytics.get("topic_popularity", {})
+            if topics.get("topics"):
+                topic_df = pd.DataFrame({
+                    "Topic": [TOPIC_DISPLAY_NAMES.get(t, t) for t in topics["topics"]],
+                    "Interactions": topics["interaction_counts"]
+                })
+                st.bar_chart(topic_df.set_index("Topic"))
+            else:
+                st.info("No topic data available.")
+
+    elif success:
+        st.info("No analytics data available yet. Events will appear as users interact with the system.")
+    else:
+        error_msg = analytics.get("error", analytics.get("detail", "Failed to load analytics")) if analytics else "Failed to load analytics"
+        st.error(f"Error: {error_msg}")
+
+# ============================================================================
+# TAB 4: SETTINGS
+# ============================================================================
+
+with tab4:
     st.subheader("⚙️ System Settings")
 
     # Fetch system settings
@@ -304,5 +417,6 @@ with col2:
 with st.sidebar:
     st.divider()
     if st.button("Logout", key="logout_btn"):
+        flush_events()
         api_client.logout()
         st.switch_page("app.py")

@@ -54,6 +54,21 @@ class MasteryLevel(str, Enum):
     MASTERED = "mastered"
 
 
+class EventCategory(str, Enum):
+    """Category of activity event for analytics."""
+    PAGE_VISIT = "page_visit"
+    PAGE_EXIT = "page_exit"
+    WIDGET_INTERACTION = "widget_interaction"
+    CHAT_MESSAGE = "chat_message"
+    ASSESSMENT_GENERATE = "assessment_generate"
+    ASSESSMENT_SUBMIT = "assessment_submit"
+    TOPIC_CHANGE = "topic_change"
+    SESSION_START = "session_start"
+    SESSION_END = "session_end"
+    IDLE_START = "idle_start"
+    IDLE_END = "idle_end"
+
+
 # Request Models
 class StudentCreate(BaseModel):
     """Request the model for creating a new student."""
@@ -341,3 +356,72 @@ class RecommendedConceptsResponse(BaseModel):
     student_id: int
     topic: str
     recommendations: list[RecommendedConceptResponse]
+
+
+# Analytics Models
+class ActivityEventCreate(BaseModel):
+    """Request model for recording a single activity event."""
+    session_id: str = Field(..., min_length=1, max_length=255)
+    event_category: EventCategory
+    event_action: str = Field(..., min_length=1, max_length=255)
+    page_name: str | None = None
+    topic: str | None = None
+    duration_seconds: float | None = None
+    extra_data: dict[str, Any] | None = None
+
+
+class ActivityEventBatchCreate(BaseModel):
+    """Request a model for recording a batch of activity events."""
+    events: list[ActivityEventCreate] = Field(..., min_length=1, max_length=50)
+
+
+class DailyActiveUsersResponse(BaseModel):
+    """DAU over a date range."""
+    dates: list[str]
+    counts: list[int]
+
+
+class SessionDurationResponse(BaseModel):
+    """Average session duration by day."""
+    dates: list[str]
+    avg_duration_minutes: list[float]
+
+
+class PeakUsageResponse(BaseModel):
+    """Events grouped by hour of the day."""
+    hours: list[int]
+    event_counts: list[int]
+
+
+class PagePopularityResponse(BaseModel):
+    """Page visit counts and average duration."""
+    pages: list[str]
+    visit_counts: list[int]
+    avg_duration_seconds: list[float]
+
+
+class TopicPopularityResponse(BaseModel):
+    """Topic interaction counts from analytics events."""
+    topics: list[str]
+    interaction_counts: list[int]
+
+
+class UserEngagementResponse(BaseModel):
+    """User engagement summary metrics."""
+    total_events: int
+    unique_sessions: int
+    avg_events_per_session: float
+    avg_session_duration_minutes: float
+    total_chat_messages: int
+    total_assessments_generated: int
+    total_assessments_submitted: int
+
+
+class AnalyticsSummaryResponse(BaseModel):
+    """Combined analytics summary for the admin dashboard."""
+    dau: DailyActiveUsersResponse
+    session_duration: SessionDurationResponse
+    peak_usage: PeakUsageResponse
+    page_popularity: PagePopularityResponse
+    topic_popularity: TopicPopularityResponse
+    engagement: UserEngagementResponse

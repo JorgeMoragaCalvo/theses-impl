@@ -8,8 +8,16 @@ from dotenv import load_dotenv
 # Add the parent directory to the path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
 
+from utils.activity_tracker import (
+    PAGE_CHAT,
+    flush_events,
+    track_chat_message,
+    track_interaction,
+    track_page_visit,
+)
 from utils.api_client import get_api_client
 from utils.constants import TOPIC_OPTIONS, TOPICS_LIST
+from utils.idle_detector import inject_idle_detector
 
 """
 Página de chat - Interfaz de conversación detallada con selección de temas.
@@ -30,6 +38,10 @@ if not api_client.is_authenticated():
     st.warning("¡Primero inicia sesión desde la página de inicio!")
     st.info("Haga clic en el enlace de la barra lateral para ir a la página de inicio.")
     st.stop()
+
+# Analytics tracking
+track_page_visit(PAGE_CHAT)
+inject_idle_detector(backend_url=BACKEND_URL)
 
 st.sidebar.header("🎯 Select Topic")
 # TODO: Implement auto-detect topic feature in the future
@@ -79,6 +91,7 @@ if prompt := st.chat_input(placeholder="Haz tu pregunta..."):
                     "agent_type": data["agent_type"]
                 })
                 st.session_state.chat_conversation_id = data["conversation_id"]
+                track_chat_message(PAGE_CHAT, TOPIC_OPTIONS[selected_topic], data["conversation_id"])
             else:
                 error_msg = data.get("detail", data.get("error", "Failed to get response"))
                 st.error(f"Error: {error_msg}")
@@ -88,6 +101,8 @@ with st.sidebar:
     st.divider()
 
     if st.button("🗑️ Limpiar conversación"):
+        track_interaction("clear_conversation", PAGE_CHAT)
+        flush_events()
         st.session_state.chat_messages = []
         st.session_state.chat_conversation_id = None
         st.rerun()
@@ -104,5 +119,6 @@ with st.sidebar:
 
     st.divider()
     if st.button("Logout", key="logout_btn"):
+        flush_events()
         api_client.logout()
         st.switch_page("app.py")

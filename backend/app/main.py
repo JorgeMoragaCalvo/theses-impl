@@ -36,6 +36,7 @@ from .database import (
     init_db,
 )
 from .models import (
+    ActivityEventBatchCreate,
     AssessmentAnswerSubmit,
     AssessmentGenerate,
     AssessmentGradeRequest,
@@ -63,6 +64,7 @@ from .models import (
     TokenResponse,
 )
 from .routers import admin
+from .services.analytics_service import get_analytics_service
 from .services.assessment_service import get_assessment_service
 from .services.competency_service import get_competency_service
 from .services.conversation_service import get_conversation_service
@@ -589,6 +591,18 @@ async def create_feedback(
         created_at=new_feedback.created_at,
         extra_data=new_feedback.extra_data,
     )
+
+# Analytics event ingestion endpoint
+@app.post("/analytics/events", status_code=status.HTTP_201_CREATED)
+async def record_activity_events(
+    batch: ActivityEventBatchCreate,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
+    """Record a batch of activity events for the current user. Requires authentication."""
+    analytics_service = get_analytics_service(db)
+    count = analytics_service.record_events(current_user.id, batch.events)
+    return {"recorded": count}
 
 # Progress endpoint
 @app.get("/students/{student_id}/progress", response_model=ProgressResponse)

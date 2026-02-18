@@ -4,6 +4,13 @@ import requests
 import streamlit as st
 from dotenv import load_dotenv
 
+from utils.activity_tracker import (
+    PAGE_HOME,
+    flush_events,
+    track_chat_message,
+    track_interaction,
+    track_page_visit,
+)
 from utils.api_client import get_api_client
 from utils.constants import (
     DEFAULT_TOPIC,
@@ -11,6 +18,7 @@ from utils.constants import (
     TOPIC_OPTIONS,
     TOPICS_LIST,
 )
+from utils.idle_detector import inject_idle_detector
 
 """
 Página principal de la aplicación - Tutor de IA para métodos de optimización.
@@ -24,6 +32,10 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # Get API client
 api_client = get_api_client(BACKEND_URL)
+
+# Store backend URL for activity tracker
+if "_backend_url" not in st.session_state:
+    st.session_state._backend_url = BACKEND_URL
 
 # Page configuration
 st.set_page_config(
@@ -157,6 +169,7 @@ def main():
                 st.info("Rol: Administrador")
 
             if st.button("Logout", key="logout_btn"):
+                flush_events()
                 api_client.logout()
                 st.success("¡Cierre de sesión exitoso!")
                 st.rerun()
@@ -273,6 +286,10 @@ def main():
                 st.markdown("")  # Add spacing
 
     else:
+        # Analytics tracking
+        track_page_visit(PAGE_HOME)
+        inject_idle_detector(backend_url=BACKEND_URL)
+
         # Show the main chat interface for logged-in users
         st.markdown("### 💬 Chatea con un tutor de IA")
         st.markdown("¡Haga preguntas sobre cualquier tema relacionado con el método de optimización!")
@@ -315,6 +332,7 @@ def main():
                             "role": "assistant",
                             "content": assistant_message
                         })
+                        track_chat_message(PAGE_HOME, topic_value, st.session_state.conversation_id)
                     else:
                         error_msg = data.get("detail", data.get("error", "Failed to get response"))
                         st.error(f"Error: {error_msg}")
@@ -323,6 +341,8 @@ def main():
             st.divider()
             if st.session_state.messages:
                 if st.button("🗑️ Limpiar Chat"):
+                    track_interaction("clear_chat", PAGE_HOME)
+                    flush_events()
                     st.session_state.messages = []
                     st.session_state.conversation_id = None
                     st.rerun()

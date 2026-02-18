@@ -10,8 +10,15 @@ from dotenv import load_dotenv
 # Add the parent directory to the path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
 
+from utils.activity_tracker import (
+    PAGE_ASSESSMENT,
+    track_assessment_generate,
+    track_assessment_submit,
+    track_page_visit,
+)
 from utils.api_client import get_api_client
 from utils.constants import TOPIC_DISPLAY_NAMES, TOPIC_OPTIONS, TOPICS_LIST
+from utils.idle_detector import inject_idle_detector
 
 """
 Página de evaluación - Problemas de práctica y cuestionarios.
@@ -31,6 +38,10 @@ if not api_client.is_authenticated():
     st.warning("¡Primero inicia sesión desde la página de inicio!")
     st.info("Haga clic en el enlace de la barra lateral para ir a la página de inicio.")
     st.stop()
+
+# Analytics tracking
+track_page_visit(PAGE_ASSESSMENT)
+inject_idle_detector(backend_url=BACKEND_URL)
 
 # Get student_id from the session
 student_id = st.session_state.get("student_id")
@@ -433,6 +444,7 @@ with tab2:
                         if answer.strip():
                             result = submit_assessment(assessment_id, answer.strip())
                             if result is not None:
+                                track_assessment_submit(assessment_id, assessment.get("topic", ""))
                                 st.success("¡Respuesta enviada exitosamente!")
                                 st.rerun()
                         else:
@@ -539,6 +551,9 @@ with tab3:
                         if result is not None:
                             st.session_state.current_assessment = result
                             st.session_state.show_assessment_form = True
+                            track_assessment_generate(
+                                result.get("topic", ""), exercise_id=exercise_id
+                            )
                             st.success("¡Evaluación generada exitosamente!")
                             st.rerun()
             else:
@@ -597,6 +612,7 @@ with tab3:
                 if result is not None:
                     st.session_state.current_assessment = result
                     st.session_state.show_assessment_form = True
+                    track_assessment_generate(topic_value, difficulty=new_difficulty)
                     st.success("¡Evaluación generada exitosamente!")
                     st.rerun()
 
@@ -677,6 +693,7 @@ with tab3:
                     if answer.strip():
                         result = submit_assessment(assessment_id, answer.strip())
                         if result is not None:
+                            track_assessment_submit(assessment_id, current.get("topic", ""))
                             st.success("¡Respuesta enviada exitosamente!")
                             st.session_state.current_assessment = result
                             st.rerun()

@@ -78,6 +78,21 @@ class MasteryLevel(str, enum.Enum):
     MASTERED = "mastered"       # 0.85+
 
 
+class EventCategory(str, enum.Enum):
+    """Category of activity event for analytics."""
+    PAGE_VISIT = "page_visit"
+    PAGE_EXIT = "page_exit"
+    WIDGET_INTERACTION = "widget_interaction"
+    CHAT_MESSAGE = "chat_message"
+    ASSESSMENT_GENERATE = "assessment_generate"
+    ASSESSMENT_SUBMIT = "assessment_submit"
+    TOPIC_CHANGE = "topic_change"
+    SESSION_START = "session_start"
+    SESSION_END = "session_end"
+    IDLE_START = "idle_start"
+    IDLE_END = "idle_end"
+
+
 # Database Models
 class Student(Base):
     """Student profile model."""
@@ -229,6 +244,22 @@ class ConceptHierarchy(Base):
     parent_concept_id = Column(String(255), nullable=True)
     bloom_level = Column(String(50), nullable=False)
     prerequisites = Column(JSON, default=[])
+    extra_data = Column(JSON, default={})
+
+
+class ActivityEvent(Base):
+    """Tracks user activity events for analytics (admin-only visibility)."""
+    __tablename__ = "activity_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, nullable=False, index=True)
+    session_id = Column(String(255), nullable=False, index=True)
+    event_category = Column(Enum(EventCategory), nullable=False, index=True)
+    event_action = Column(String(255), nullable=False)
+    page_name = Column(String(255), nullable=True, index=True)
+    topic = Column(String(255), nullable=True)
+    timestamp = Column(DateTime, default=datetime.now(timezone.utc), index=True)
+    duration_seconds = Column(Float, nullable=True)
     extra_data = Column(JSON, default={})
 
 
