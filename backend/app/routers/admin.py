@@ -257,7 +257,8 @@ async def get_analytics_summary(
     """Get a comprehensive analytics summary. Admin only."""
     service = get_analytics_service(db)
     current_admin_for_log = _sanitize_log_value(current_admin.id)
-    logger.info(f"Admin {current_admin_for_log} requested analytics summary ({days} days)")
+    days_for_log = _sanitize_log_value(days)
+    logger.info(f"Admin {current_admin_for_log} requested analytics summary ({days_for_log} days)")
     return service.get_analytics_summary(days=days)
 
 
