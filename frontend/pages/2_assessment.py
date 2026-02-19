@@ -713,7 +713,7 @@ with tab3:
 
 with st.sidebar:
     st.divider()
-    if st.button("Logout", key="logout_btn"):
+    if st.button("Logout", key="logout_btn", type="primary"):
         api_client.logout()
         st.switch_page("app.py")
 
