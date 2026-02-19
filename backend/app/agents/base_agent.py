@@ -257,8 +257,43 @@ class BaseAgent(ABC):
         response = response.strip()
         return response
 
-    # Adaptive Learning & Alternative Explanations Methods
+    # Spaced Repetition Context
+    @staticmethod
+    def format_review_context(due_reviews: list) -> str:
+        """
+        Format due spaced-repetition reviews into a string for the agent's
+        system prompt so the agent can remind the student.
 
+        Args:
+            due_reviews: List of StudentCompetency objects that are due for review.
+
+        Returns:
+            A prompt section string, or empty string if no reviews are due.
+        """
+        if not due_reviews:
+            return ""
+
+        lines = [
+            f"- {r.concept_name} (mastery: {r.mastery_score:.0%}, "
+            f"level: {r.mastery_level.value})"
+            for r in due_reviews
+        ]
+        concept_list = "\n".join(lines)
+
+        return (
+            "\n" + "=" * 80
+            + "\n📅 SPACED REPETITION REMINDER\n"
+            + "=" * 80
+            + f"\nThe student has {len(due_reviews)} concept(s) due for review:\n"
+            + concept_list
+            + "\n\nWhen appropriate, gently remind the student about reviewing these "
+            "concepts. You can weave review questions into the conversation or "
+            "suggest they start a dedicated review session."
+            + "\n" + "=" * 80 + "\n"
+        )
+
+
+    # Adaptive Learning & Alternative Explanations Methods
     @staticmethod
     def detect_student_confusion(
         user_message: str,
