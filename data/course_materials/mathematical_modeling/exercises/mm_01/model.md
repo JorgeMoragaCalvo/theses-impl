@@ -6,7 +6,7 @@ $x_i$ = toneladas de materia prima $i$ a utilizar $(i = 1, 2, ..., 7)$
 
 ## Función objetivo
 
-min Z = 200x₁ + 250x₂ + 150x₃ + 220x₄ + 240x₅ + 200x₆ + 165x₇
+min Z = $200x_1 + 250x_2 + 150x_)3 + 220x_4 + 240x_5 + 200x_6 + 165x_7$
 
 ## Restricciones
 

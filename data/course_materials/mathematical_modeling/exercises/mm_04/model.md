@@ -24,7 +24,7 @@ $x_j$ = número de rollos de 100 cm cortados con el patrón j (j = 1, ..., 6)
 
 ## Función objetivo
 
-min Z = $10x_1 + 25x_2 + 20x_3 + 10x_4 + 5x_5$
+min $Z = 10x_1 + 25x_2 + 20x_3 + 10x_4 + 5x_5$
 
 ## Restricciones
 
