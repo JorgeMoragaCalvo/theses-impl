@@ -213,3 +213,5 @@ settings.temperature = 0.7
 - **v1.3.1** (2026-02-16): Added concept-level mastery tracking — when assessments are graded.
 - **v1.3.2** (2026-02-17): Added and fixed logout functionality.
 - **v1.3.3** (2026-02-17): Fixed assessment behavior.
+- **v1.4.3** (2026-02-18): Record student's activity.
+- **v1.5.3** (2026-02-19): Spaced Repetition System.
