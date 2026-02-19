@@ -257,6 +257,34 @@ class BaseAgent(ABC):
         response = response.strip()
         return response
 
+    def build_enhanced_system_prompt(
+        self,
+        base_system_prompt: str,
+        adaptive_prompt: str,
+        context: dict[str, Any],
+    ) -> str:
+        """
+        Assemble the final system prompt from base, adaptive, and review sections.
+
+        Args:
+            base_system_prompt: The agent's base system prompt
+            adaptive_prompt: Adaptive teaching instructions (maybe empty)
+            context: Context dictionary (may contain "due_reviews")
+
+        Returns:
+            Fully assembled system prompt
+        """
+        if adaptive_prompt:
+            prompt = base_system_prompt + "\n\n" + adaptive_prompt
+        else:
+            prompt = base_system_prompt
+
+        review_section = self.format_review_context(context.get("due_reviews", []))
+        if review_section:
+            prompt += review_section
+
+        return prompt
+
     # Spaced Repetition Context
     @staticmethod
     def format_review_context(due_reviews: list) -> str:
@@ -291,7 +319,6 @@ class BaseAgent(ABC):
             "suggest they start a dedicated review session."
             + "\n" + "=" * 80 + "\n"
         )
-
 
     # Adaptive Learning & Alternative Explanations Methods
     @staticmethod
