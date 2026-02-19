@@ -267,8 +267,11 @@ class SpacedRepetitionService:
         self.db.commit()
         self.db.refresh(session)
 
+        # Sanitize user-provided values before logging to avoid log injection
+        sanitized_performance_quality = _sanitize_log_value(str(performance_quality))
+
         logger.info(
-            f"Completed review session {session.id}: quality={performance_quality}, "
+            f"Completed review session {session.id}: quality={sanitized_performance_quality}, "
             f"next_review={next_review_at.isoformat()}, ease={new_ease_factor:.2f}"
         )
         return session
