@@ -6,7 +6,7 @@ $x_i$ = número de porciones del alimento $i$ ($i$ = 1: Avena, 2: Pollo, 3: Huev
 
 ## Función objetivo
 
-min Z = $23x_1 + 240x_2 + 83x_3 + 210x_4 + 620x_5 + 89x_6$
+min $Z = 23x_1 + 240x_2 + 83x_3 + 210x_4 + 620x_5 + 89x_6$
 
 ## Restricciones
 

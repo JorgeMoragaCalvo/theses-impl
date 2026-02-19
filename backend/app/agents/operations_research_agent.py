@@ -528,11 +528,9 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
         # Get base system prompt
         base_system_prompt = self.get_system_prompt(context)
 
-        # Inject adaptive instructions if needed
-        if adaptive_prompt:
-            enhanced_system_prompt = base_system_prompt + "\n\n" + adaptive_prompt
-        else:
-            enhanced_system_prompt = base_system_prompt
+        enhanced_system_prompt = self.build_enhanced_system_prompt(
+            base_system_prompt, adaptive_prompt, context
+        )
 
         # Build messages list
         messages = conversation_history.copy()

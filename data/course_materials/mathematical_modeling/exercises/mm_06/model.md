@@ -5,8 +5,8 @@
 $x_{ij}$ = cantidad en kg de materia prima $i$ utilizada para el producto $j$
 
 Donde:
-- i ∈ {a (avena), m (maíz), l (melaza)}
-- j ∈ {g (gránulos), p (polvo)}
+- $i \in$ {a (avena), m (maíz), l (melaza)}
+- $j \in$ {g (gránulos), p (polvo)}
 
 Variables específicas:
 - $x_{ag}$, $x_{ap}$ = kg de avena para gránulos y polvo

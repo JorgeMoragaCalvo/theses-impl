@@ -417,6 +417,74 @@ class UserEngagementResponse(BaseModel):
     total_assessments_submitted: int
 
 
+# Spaced Repetition / Review Models
+class DueReviewResponse(BaseModel):
+    """A single concept due for review."""
+    concept_id: str
+    concept_name: str
+    mastery_level: str
+    mastery_score: float
+    next_review_at: datetime
+    last_attempt_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, obj, **kwargs):
+        if hasattr(obj, '__dict__'):
+            data = {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
+            if 'mastery_level' in data and hasattr(data['mastery_level'], 'value'):
+                data['mastery_level'] = data['mastery_level'].value
+            if 'topic' in data and hasattr(data['topic'], 'value'):
+                data['topic'] = data['topic'].value
+            return super().model_validate(data, **kwargs)
+        return super().model_validate(obj, **kwargs)
+
+
+class DueReviewsResponse(BaseModel):
+    """Response listing concepts due for review."""
+    student_id: int
+    topic: str | None = None
+    due_reviews: list[DueReviewResponse]
+
+
+class StartReviewRequest(BaseModel):
+    """Request to start a review session for a concept."""
+    concept_id: str = Field(..., min_length=1)
+
+
+class StartReviewResponse(BaseModel):
+    """Response after starting a review session."""
+    review_session_id: int
+    concept_id: str
+    concept_name: str
+    scheduled_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class CompleteReviewRequest(BaseModel):
+    """Request to complete a review session."""
+    performance_quality: int = Field(..., ge=0, le=5)
+    response_time_seconds: float | None = None
+
+
+class CompleteReviewResponse(BaseModel):
+    """Response after completing a review session."""
+    review_session_id: int
+    concept_id: str
+    performance_quality: int
+    next_review_scheduled: datetime | None = None
+    updated_mastery_score: float
+    updated_mastery_level: str
+    updated_ease_factor: float
+
+    class Config:
+        from_attributes = True
+
+
 class AnalyticsSummaryResponse(BaseModel):
     """Combined analytics summary for the admin dashboard."""
     dau: DailyActiveUsersResponse

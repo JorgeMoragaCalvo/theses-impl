@@ -357,11 +357,9 @@ La calificaci√≥n de restricciones (LICQ) garantiza que los multiplicadores son √
         # Get base system prompt
         base_system_prompt = self.get_system_prompt(context)
 
-        # Inject adaptive instructions
-        if adaptative_prompt:
-            enhanced_system_prompt = base_system_prompt + "\n\n" + adaptative_prompt
-        else:
-            enhanced_system_prompt = base_system_prompt
+        enhanced_system_prompt = self.build_enhanced_system_prompt(
+            base_system_prompt, adaptative_prompt, context
+        )
 
         # Build messages
         messages = conversation_history.copy()

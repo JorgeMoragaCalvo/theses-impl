@@ -257,8 +257,70 @@ class BaseAgent(ABC):
         response = response.strip()
         return response
 
-    # Adaptive Learning & Alternative Explanations Methods
+    def build_enhanced_system_prompt(
+        self,
+        base_system_prompt: str,
+        adaptive_prompt: str,
+        context: dict[str, Any],
+    ) -> str:
+        """
+        Assemble the final system prompt from base, adaptive, and review sections.
 
+        Args:
+            base_system_prompt: The agent's base system prompt
+            adaptive_prompt: Adaptive teaching instructions (maybe empty)
+            context: Context dictionary (may contain "due_reviews")
+
+        Returns:
+            Fully assembled system prompt
+        """
+        if adaptive_prompt:
+            prompt = base_system_prompt + "\n\n" + adaptive_prompt
+        else:
+            prompt = base_system_prompt
+
+        review_section = self.format_review_context(context.get("due_reviews", []))
+        if review_section:
+            prompt += review_section
+
+        return prompt
+
+    # Spaced Repetition Context
+    @staticmethod
+    def format_review_context(due_reviews: list) -> str:
+        """
+        Format due spaced-repetition reviews into a string for the agent's
+        system prompt so the agent can remind the student.
+
+        Args:
+            due_reviews: List of StudentCompetency objects that are due for review.
+
+        Returns:
+            A prompt section string, or empty string if no reviews are due.
+        """
+        if not due_reviews:
+            return ""
+
+        lines = [
+            f"- {r.concept_name} (mastery: {r.mastery_score:.0%}, "
+            f"level: {r.mastery_level.value})"
+            for r in due_reviews
+        ]
+        concept_list = "\n".join(lines)
+
+        return (
+            "\n" + "=" * 80
+            + "\n📅 SPACED REPETITION REMINDER\n"
+            + "=" * 80
+            + f"\nThe student has {len(due_reviews)} concept(s) due for review:\n"
+            + concept_list
+            + "\n\nWhen appropriate, gently remind the student about reviewing these "
+            "concepts. You can weave review questions into the conversation or "
+            "suggest they start a dedicated review session."
+            + "\n" + "=" * 80 + "\n"
+        )
+
+    # Adaptive Learning & Alternative Explanations Methods
     @staticmethod
     def detect_student_confusion(
         user_message: str,

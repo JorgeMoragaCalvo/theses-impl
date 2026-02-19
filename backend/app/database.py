@@ -247,6 +247,22 @@ class ConceptHierarchy(Base):
     extra_data = Column(JSON, default={})
 
 
+class ReviewSession(Base):
+    """Tracks spaced repetition review sessions for a concept."""
+    __tablename__ = "review_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, nullable=False, index=True)
+    concept_id = Column(String(255), nullable=False, index=True)
+    assessment_id = Column(Integer, nullable=True)
+    performance_quality = Column(Integer, nullable=True)  # 0-5 SM-2 scale
+    response_time_seconds = Column(Float, nullable=True)
+    scheduled_at = Column(DateTime, nullable=False)
+    completed_at = Column(DateTime, nullable=True)
+    next_review_scheduled = Column(DateTime, nullable=True)
+    extra_data = Column(JSON, default={})
+
+
 class ActivityEvent(Base):
     """Tracks user activity events for analytics (admin-only visibility)."""
     __tablename__ = "activity_events"
