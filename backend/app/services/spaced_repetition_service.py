@@ -17,6 +17,19 @@ Schedules concept reviews at increasing intervals based on recall quality.
 
 logger = logging.getLogger(__name__)
 
+
+def _sanitize_log_value(value: str) -> str:
+    """
+    Sanitize a value for safe logging by stripping newline characters.
+
+    This helps prevent log injection when values may come from user input.
+    """
+    if value is None:
+        return ""
+    # Remove carriage returns and newlines that could inject extra log entries
+    return value.replace("\r", "").replace("\n", "")
+
+
 # SM-2 initial intervals in days (used for first successful reviews)
 INITIAL_INTERVALS = [1, 3, 7, 14, 30, 60]
 
@@ -120,7 +133,8 @@ class SpacedRepetitionService:
                 topic_enum = Topic(topic)
                 query = query.filter(StudentCompetency.topic == topic_enum)
             except ValueError:
-                logger.warning(f"Unknown topic for due reviews: {topic}")
+                safe_topic = _sanitize_log_value(str(topic))
+                logger.warning(f"Unknown topic for due reviews: {safe_topic}")
                 return []
 
         return (
@@ -160,9 +174,12 @@ class SpacedRepetitionService:
         self.db.commit()
         self.db.refresh(session)
 
+        safe_student_id = _sanitize_log_value(str(student_id))
+        safe_concept = _sanitize_log_value(str(concept_id))
+
         logger.info(
-            f"Created review session {session.id} for student={student_id}, "
-            f"concept={concept_id}"
+            f"Created review session {session.id} for student={safe_student_id}, "
+            f"concept={safe_concept}"
         )
         return session
 
