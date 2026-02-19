@@ -4,13 +4,11 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from ..database import (
-    Assessment,
-    MasteryLevel,
     ReviewSession,
     StudentCompetency,
     Topic,
 )
-from .competency_service import CompetencyService, get_taxonomy_registry
+from .competency_service import CompetencyService
 
 """
 Spaced Repetition Service - SM-2 algorithm implementation.
@@ -67,11 +65,11 @@ class SpacedRepetitionService:
         ease_factor = competency.decay_factor or DEFAULT_EASE_FACTOR
 
         if performance_quality < QUALITY_PASSING_THRESHOLD:
-            # Failed recall — reset to short interval, decrease ease factor
+            # Failed recall — reset to a short interval, decrease an ease factor
             interval_days = INITIAL_INTERVALS[0]
             ease_factor = max(MIN_EASE_FACTOR, ease_factor - 0.2)
         else:
-            # Successful recall — compute new ease factor
+            # Successful recall — compute a new ease factor
             ease_bonus = 0.1 - (5 - performance_quality) * (0.08 + (5 - performance_quality) * 0.02)
             ease_factor = max(MIN_EASE_FACTOR, ease_factor + ease_bonus)
 
@@ -80,7 +78,7 @@ class SpacedRepetitionService:
             if review_count < len(INITIAL_INTERVALS):
                 interval_days = INITIAL_INTERVALS[review_count]
             else:
-                # After initial ramp-up, multiply last interval by ease factor
+                # After the initial ramp-up, multiply the last interval by ease factor
                 prev_interval = _get_previous_interval_days(competency)
                 interval_days = int(prev_interval * ease_factor)
 
@@ -190,7 +188,7 @@ class SpacedRepetitionService:
             The updated ReviewSession
 
         Raises:
-            ValueError: If review session not found or already completed
+            ValueError: If a review session is not found or already completed
         """
         session = self.db.query(ReviewSession).filter(
             ReviewSession.id == review_session_id,
