@@ -9,6 +9,7 @@ from ..utils import (
     detect_confusion_signals,
     detect_repeated_topic,
     format_error_message,
+    get_explanation_strategies_from_context,
     should_request_feedback,
 )
 
@@ -51,6 +52,17 @@ class BaseAgent(ABC):
 
         Returns:
             System prompt string
+        """
+        pass
+
+    @abstractmethod
+    def get_available_strategies(self) -> list[str]:
+        """
+        Return the list of explanation strategies available for this agent.
+        Must be implemented by subclasses.
+
+        Returns:
+            List of strategy name strings
         """
         pass
 
@@ -596,3 +608,99 @@ class BaseAgent(ABC):
             prompt = random.choice(prompts)
 
         return response + prompt
+
+    # ── Shared adaptive-learning helpers (used by subclass generate_response) ──
+
+    def _validate_and_preprocess(self, user_message: str) -> tuple[str | None, str | None]:
+        """Validate and preprocess the incoming message."""
+        if not self.validate_message(user_message):
+            return None, "No recibí un mensaje válido. ¿Podrías intentar de nuevo?"
+
+        preprocessed_message = self.preprocess_message(user_message)
+        return preprocessed_message, None
+
+    def _prepare_generation_components(
+            self,
+            preprocessed_message: str,
+            conversation_history: list[dict[str, str]],
+            context: dict[str, Any]
+    ) -> dict[str, Any]:
+        """
+        Prepare all shared components needed to generate a response
+        (used by both sync and async paths).
+        """
+        # ADAPTIVE LEARNING: Detect confusion
+        confusion_analysis = self.detect_student_confusion(
+            preprocessed_message,
+            conversation_history
+        )
+
+        # Get previously used strategies from context
+        previous_strategies = get_explanation_strategies_from_context(context)
+
+        # Select the appropriate explanation strategy
+        knowledge_level = context.get("student", {}).get("knowledge_level", "beginner")
+        selected_strategy = self.select_explanation_strategy(
+            confusion_level=confusion_analysis["level"],
+            knowledge_level=knowledge_level,
+            previous_strategies=previous_strategies,
+            all_available_strategies=self.get_available_strategies()
+        )
+
+        # Build adaptive prompt section
+        adaptive_prompt = self.build_adaptive_prompt_section(
+            confusion_analysis=confusion_analysis,
+            selected_strategy=selected_strategy,
+            context=context
+        )
+
+        # Get base system prompt
+        base_system_prompt = self.get_system_prompt(context)
+
+        enhanced_system_prompt = self.build_enhanced_system_prompt(
+            base_system_prompt, adaptive_prompt, context
+        )
+
+        # Build messages list
+        messages = conversation_history.copy()
+        messages.append({"role": "user", "content": preprocessed_message})
+
+        return {
+            "messages": messages,
+            "system_prompt": enhanced_system_prompt,
+            "selected_strategy": selected_strategy,
+            "confusion_analysis": confusion_analysis
+        }
+
+    def _postprocess_with_feedback(
+            self,
+            raw_response: str,
+            conversation_history: list[dict[str, str]],
+            context: dict[str, Any],
+            confusion_analysis: dict[str, Any],
+            selected_strategy: str,
+            async_mode: bool = False
+    ) -> str:
+        """
+        Shared postprocessing and feedback-augmentation for sync & async flows.
+        """
+        final_response = self.postprocess_response(raw_response)
+
+        if self.should_add_feedback_request(
+            response_text=final_response,
+            conversation_history=conversation_history,
+            context=context,
+            confusion_detected=confusion_analysis["detected"]
+        ):
+            final_response = self.add_feedback_request_to_response(
+                response=final_response,
+                confusion_level=confusion_analysis["level"],
+                selected_strategy=selected_strategy
+            )
+
+        mode_label = "async" if async_mode else "sync"
+        logger.info(
+            f"Generated {mode_label} {self.agent_name} response with strategy={selected_strategy}, "
+            f"confusion={confusion_analysis['level']}"
+        )
+        return final_response

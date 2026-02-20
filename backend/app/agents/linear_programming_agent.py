@@ -2,7 +2,6 @@ import logging
 import os
 from typing import Any
 
-from ..utils import get_explanation_strategies_from_context
 from .base_agent import BaseAgent
 
 """
@@ -406,6 +405,13 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
 ¿Te interesa profundizar en algún método específico?
 ---"""
 
+    def get_available_strategies(self) -> list[str]:
+        """Return available explanation strategies for Linear Programming."""
+        return [
+            "paso a paso", "basado en ejemplos", "conceptual", "visual",
+            "matemático-formal", "comparativo"
+        ]
+
     @staticmethod
     def is_lp_related(message: str) -> bool:
         """
@@ -452,26 +458,6 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in lp_keywords)
 
-    def _validate_and_preprocess(self, user_message: str) -> tuple[str | None, str | None]:
-        """Validate and preprocess the incoming message."""
-        if not self.validate_message(user_message):
-            return None, "No recibí un mensaje válido. ¿Podrías intentar de nuevo?"
-
-        preprocessed_message = self.preprocess_message(user_message)
-        return preprocessed_message, None
-
-    @staticmethod
-    def _sanitize_for_log(value: Any) -> str:
-        """
-        Sanitize a value before logging to prevent log injection.
-
-        Removes newline and carriage-return characters and ensures the value is represented as a string.
-        """
-        text = str(value)
-        # Strip CR/LF to avoid log injection via forged lines
-        text = text.replace("\r", "").replace("\n", "")
-        return text
-
     @staticmethod
     def _get_off_topic_response() -> str:
         """
@@ -487,103 +473,6 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
             "- Análisis de ejemplos y aplicaciones de PL\n"
             "\n¿Te gustaría preguntar sobre alguno de estos temas de Programación Lineal?"
         )
-
-    def _prepare_generation_components(
-            self,
-            preprocessed_message: str,
-            conversation_history: list[dict[str, str]],
-            context: dict[str, Any]
-    ) -> dict[str, Any]:
-        """
-        Prepare all shared components needed to generate a response
-        (used by both sync and async paths).
-        """
-        # ADAPTIVE LEARNING: Detect confusion
-        confusion_analysis = self.detect_student_confusion(
-            preprocessed_message,
-            conversation_history
-        )
-
-        # Define available explanation strategies for LP
-        available_strategies = [
-            # "step-by-step", "example-based", "conceptual",
-            # "visual", "formal-mathematical", "comparative"
-            "paso a paso", "basado en ejemplos", "conceptual", "visual",
-            "matemático-formal", "comparativo"
-        ]
-
-        # Get previously used strategies from context
-        previous_strategies = get_explanation_strategies_from_context(context)
-
-        # Select the appropriate explanation strategy
-        knowledge_level = context.get("student", {}).get("knowledge_level", "beginner")
-        selected_strategy = self.select_explanation_strategy(
-            confusion_level=confusion_analysis["level"],
-            knowledge_level=knowledge_level,
-            previous_strategies=previous_strategies,
-            all_available_strategies=available_strategies
-        )
-
-        # Build adaptive prompt section
-        adaptive_prompt = self.build_adaptive_prompt_section(
-            confusion_analysis=confusion_analysis,
-            selected_strategy=selected_strategy,
-            context=context
-        )
-
-        # Get base system prompt
-        base_system_prompt = self.get_system_prompt(context)
-
-        enhanced_system_prompt = self.build_enhanced_system_prompt(
-            base_system_prompt, adaptive_prompt, context
-        )
-
-        # Build messages list
-        messages = conversation_history.copy()
-        messages.append({"role": "user", "content": preprocessed_message})
-
-        return {
-            "messages": messages,
-            "system_prompt": enhanced_system_prompt,
-            "selected_strategy": selected_strategy,
-            "confusion_analysis": confusion_analysis
-        }
-
-    def _postprocess_with_feedback(
-            self,
-            raw_response: str,
-            conversation_history: list[dict[str, str]],
-            context: dict[str, Any],
-            confusion_analysis: dict[str, Any],
-            selected_strategy: str,
-            async_mode: bool = False
-    ) -> str:
-        """
-        Shared postprocessing and feedback-augmentation for sync & async flows.
-        """
-
-        final_response = self.postprocess_response(raw_response)
-
-        if self.should_add_feedback_request(
-            response_text=final_response,
-            conversation_history=conversation_history,
-            context=context,
-            confusion_detected=confusion_analysis["detected"]
-        ):
-            final_response = self.add_feedback_request_to_response(
-                response=final_response,
-                confusion_level=confusion_analysis["level"],
-                selected_strategy=selected_strategy
-            )
-
-        mode_label = "async" if async_mode else "sync"
-        safe_strategy = self._sanitize_for_log(selected_strategy)
-        safe_confusion = self._sanitize_for_log(confusion_analysis['level'])
-        logger.info(
-            f"Generated {mode_label} LP response with strategy={safe_strategy}, "
-            f"confusion={safe_confusion}"
-        )
-        return final_response
 
     def generate_response(self, user_message: str,
                           conversation_history: list[dict[str, str]],
