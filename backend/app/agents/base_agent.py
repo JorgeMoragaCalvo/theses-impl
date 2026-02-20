@@ -672,6 +672,55 @@ class BaseAgent(ABC):
             "confusion_analysis": confusion_analysis
         }
 
+    def _generate_and_postprocess(
+            self,
+            components: dict[str, Any],
+            conversation_history: list[dict[str, str]],
+            context: dict[str, Any],
+    ) -> str:
+        """Call LLM, handle errors, and postprocess the response (sync)."""
+        try:
+            response = self.llm_service.generate_response(
+                messages=components["messages"],
+                system_prompt=components["system_prompt"]
+            )
+        except Exception as e:
+            logger.error(f"Error in {self.agent_name} response generation: {str(e)}")
+            return format_error_message(e)
+
+        return self._postprocess_with_feedback(
+            raw_response=response,
+            conversation_history=conversation_history,
+            context=context,
+            confusion_analysis=components["confusion_analysis"],
+            selected_strategy=components["selected_strategy"],
+        )
+
+    async def _a_generate_and_postprocess(
+            self,
+            components: dict[str, Any],
+            conversation_history: list[dict[str, str]],
+            context: dict[str, Any],
+    ) -> str:
+        """Call LLM, handle errors, and postprocess the response (async)."""
+        try:
+            response = await self.llm_service.a_generate_response(
+                messages=components["messages"],
+                system_prompt=components["system_prompt"]
+            )
+        except Exception as e:
+            logger.error(f"Error in {self.agent_name} async response generation: {str(e)}")
+            return format_error_message(e)
+
+        return self._postprocess_with_feedback(
+            raw_response=response,
+            conversation_history=conversation_history,
+            context=context,
+            confusion_analysis=components["confusion_analysis"],
+            selected_strategy=components["selected_strategy"],
+            async_mode=True,
+        )
+
     def _postprocess_with_feedback(
             self,
             raw_response: str,

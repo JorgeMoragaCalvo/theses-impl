@@ -330,23 +330,7 @@ La calificaci√≥n de restricciones (LICQ) garantiza que los multiplicadores son √
             context=context,
         )
 
-        try:
-            response = self.llm_service.generate_response(
-                messages=components["messages"],
-                system_prompt=components["system_prompt"]
-            )
-        except Exception as e:
-            logger.error(f"Error in {self.agent_name} response generation: {str(e)}")
-            from ..utils import format_error_message
-            return format_error_message(e)
-
-        return self._postprocess_with_feedback(
-            raw_response=response,
-            conversation_history=conversation_history,
-            context=context,
-            confusion_analysis=components["confusion_analysis"],
-            selected_strategy=components["selected_strategy"],
-        )
+        return self._generate_and_postprocess(components, conversation_history, context)
 
     async def a_generate_response(
             self,
@@ -369,24 +353,7 @@ La calificaci√≥n de restricciones (LICQ) garantiza que los multiplicadores son √
             context=context,
         )
 
-        try:
-            response = await self.llm_service.a_generate_response(
-                messages=components["messages"],
-                system_prompt=components["system_prompt"]
-            )
-        except Exception as e:
-            logger.error(f"Error in {self.agent_name} async response generation: {str(e)}")
-            from ..utils import format_error_message
-            return format_error_message(e)
-
-        return self._postprocess_with_feedback(
-            raw_response=response,
-            conversation_history=conversation_history,
-            context=context,
-            confusion_analysis=components["confusion_analysis"],
-            selected_strategy=components["selected_strategy"],
-            async_mode=True
-        )
+        return await self._a_generate_and_postprocess(components, conversation_history, context)
 
 
 # ==================== SINGLETON INSTANCE ====================
