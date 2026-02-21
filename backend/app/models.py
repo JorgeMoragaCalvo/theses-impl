@@ -143,6 +143,21 @@ class AssessmentGradeRequest(BaseModel):
     feedback: str | None= None
 
 
+# Base class for responses that need enum-to-string conversion
+class EnumSerializerModel(BaseModel):
+    """Base model that auto-converts Enum fields to their string values."""
+
+    @classmethod
+    def model_validate(cls, obj, **kwargs):
+        if hasattr(obj, '__dict__'):
+            data = {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
+            for key, value in data.items():
+                if isinstance(value, Enum):
+                    data[key] = value.value
+            return super().model_validate(data, **kwargs)
+        return super().model_validate(obj, **kwargs)
+
+
 # Response Models (data output. How the API responds)
 class StudentResponse(BaseModel):
     """Response model for student data."""
@@ -204,7 +219,7 @@ class ConversationResponse(BaseModel):
         from_attributes = True
 
 
-class AssessmentResponse(BaseModel):
+class AssessmentResponse(EnumSerializerModel):
     """Response model for assessment data."""
     id: int
     student_id: int
@@ -226,20 +241,6 @@ class AssessmentResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-    @classmethod
-    def model_validate(cls, obj, **kwargs):
-        """Custom validation to handle enum conversion."""
-        if hasattr(obj, '__dict__'):
-            data = {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
-            # Convert topic enum to string value if it's an enum
-            if 'topic' in data and hasattr(data['topic'], 'value'):
-                data['topic'] = data['topic'].value
-            # Convert graded_by enum to string value if it's an enum
-            if 'graded_by' in data and hasattr(data['graded_by'], 'value'):
-                data['graded_by'] = data['graded_by'].value
-            return super().model_validate(data, **kwargs)
-        return super().model_validate(obj, **kwargs)
 
 
 class FeedbackResponse(BaseModel):
@@ -298,7 +299,7 @@ class ProgressResponse(BaseModel):
 
 
 # Competency Tracking
-class ConceptCompetencyResponse(BaseModel):
+class ConceptCompetencyResponse(EnumSerializerModel):
     """Response for a single concept's mastery."""
     concept_id: str
     concept_name: str
@@ -310,18 +311,6 @@ class ConceptCompetencyResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-    @classmethod
-    def model_validate(cls, obj, **kwargs):
-        """Custom validation to handle enum conversion."""
-        if hasattr(obj, '__dict__'):
-            data = {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
-            if 'mastery_level' in data and hasattr(data['mastery_level'], 'value'):
-                data['mastery_level'] = data['mastery_level'].value
-            if 'topic' in data and hasattr(data['topic'], 'value'):
-                data['topic'] = data['topic'].value
-            return super().model_validate(data, **kwargs)
-        return super().model_validate(obj, **kwargs)
 
 
 class StudentCompetenciesResponse(BaseModel):
@@ -418,7 +407,7 @@ class UserEngagementResponse(BaseModel):
 
 
 # Spaced Repetition / Review Models
-class DueReviewResponse(BaseModel):
+class DueReviewResponse(EnumSerializerModel):
     """A single concept due for review."""
     concept_id: str
     concept_name: str
@@ -429,17 +418,6 @@ class DueReviewResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-    @classmethod
-    def model_validate(cls, obj, **kwargs):
-        if hasattr(obj, '__dict__'):
-            data = {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
-            if 'mastery_level' in data and hasattr(data['mastery_level'], 'value'):
-                data['mastery_level'] = data['mastery_level'].value
-            if 'topic' in data and hasattr(data['topic'], 'value'):
-                data['topic'] = data['topic'].value
-            return super().model_validate(data, **kwargs)
-        return super().model_validate(obj, **kwargs)
 
 
 class DueReviewsResponse(BaseModel):
