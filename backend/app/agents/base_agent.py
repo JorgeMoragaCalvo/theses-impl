@@ -436,7 +436,6 @@ class BaseAgent(ABC):
     def build_adaptive_prompt_section(
         confusion_analysis: dict[str, Any],
         selected_strategy: str,
-        context: dict[str, Any]
     ) -> str:
         """
         Build adaptive instructions to inject into system prompt based on confusion analysis.
@@ -444,7 +443,6 @@ class BaseAgent(ABC):
         Args:
             confusion_analysis: Results from detect_student_confusion()
             selected_strategy: Selected explanation strategy
-            context: Full conversation context
 
         Returns:
             String with adaptive instructions for the LLM
@@ -562,7 +560,6 @@ class BaseAgent(ABC):
     def add_feedback_request_to_response(
         response: str,
         confusion_level: str,
-        selected_strategy: str
     ) -> str:
         """
         Append an understanding check-in to the response.
@@ -570,7 +567,6 @@ class BaseAgent(ABC):
         Args:
             response: Generated response text
             confusion_level: Detected confusion level
-            selected_strategy: Strategy used for explanation
 
         Returns:
             Response with feedback request appended
@@ -651,7 +647,6 @@ class BaseAgent(ABC):
         adaptive_prompt = self.build_adaptive_prompt_section(
             confusion_analysis=confusion_analysis,
             selected_strategy=selected_strategy,
-            context=context
         )
 
         # Get base system prompt
@@ -744,7 +739,6 @@ class BaseAgent(ABC):
             final_response = self.add_feedback_request_to_response(
                 response=final_response,
                 confusion_level=confusion_analysis["level"],
-                selected_strategy=selected_strategy
             )
 
         mode_label = "async" if async_mode else "sync"
