@@ -2,15 +2,17 @@
 
 ## Overview
 
-This module contains shared utility functions and classes used across all frontend pages. It provides centralized API communication and constant definitions.
+This module contains shared utility functions and classes used across all frontend pages. It provides centralized API communication, constant definitions, and analytics tracking.
 
 ## File Structure
 
 ```diagram
 utils/
-├── __init__.py      # Python package marker
-├── api_client.py    # HTTP client with JWT authentication
-└── constants.py     # Shared constants and topic definitions
+├── __init__.py          # Python package marker
+├── activity_tracker.py  # Event-based analytics tracking (Python/server-side)
+├── api_client.py        # HTTP client with JWT authentication
+├── constants.py         # Shared constants and topic definitions
+└── idle_detector.py     # JavaScript-based idle/focus detection (client-side)
 ```
 
 ---
@@ -21,7 +23,7 @@ utils/
 
 **Purpose:** Centralized HTTP client for all API calls with JWT token management
 
-**Size:** ~324 lines
+**Size:** ~330 lines
 
 #### APIClient Class
 
@@ -109,7 +111,7 @@ if success:
 | `load_token_from_browser()`   | Load token from localStorage              |
 
 **Token Storage:**
-- Primary: Streamlit session state (`st.session_state.token`)
+- Primary: Streamlit session state (`st.session_state.access_token`)
 - Secondary: Browser localStorage (via JavaScript injection)
 
 ---
@@ -131,8 +133,8 @@ if success:
 ```python
 def get_api_client(base_url: str) -> APIClient:
     """
-    Returns singleton APIClient instance from session state.
-    Creates new instance if not exists.
+    Returns a singleton APIClient instance from a session state.
+    Creates a new instance if not exists.
     """
 ```
 
@@ -158,11 +160,11 @@ api_client = get_api_client(BACKEND_URL)
 Maps internal topic keys to Spanish display names:
 ```python
 TOPIC_DISPLAY_NAMES = {
-    "operations_research": "Investigacion de Operaciones",
-    "mathematical_modeling": "Modelado Matematico",
-    "linear_programming": "Programacion Lineal",
-    "integer_programming": "Programacion Entera",
-    "nonlinear_programming": "Programacion No Lineal"
+    "operations_research": "Investigación de Operaciones",
+    "mathematical_modeling": "Modelado Matemático",
+    "linear_programming": "Programación Lineal",
+    "integer_programming": "Programación Entera",
+    "nonlinear_programming": "Programación No Lineal"
 }
 ```
 
@@ -170,8 +172,8 @@ TOPIC_DISPLAY_NAMES = {
 Reverse mapping from display names to internal keys:
 ```python
 TOPIC_OPTIONS = {
-    "Investigacion de Operaciones": "operations_research",
-    "Modelado Matematico": "mathematical_modeling",
+    "Investigación de Operaciones": "operations_research",
+    "Modelado Matemático": "mathematical_modeling",
     # ... etc
 }
 ```
@@ -180,19 +182,28 @@ TOPIC_OPTIONS = {
 Ordered list of topic display names for dropdowns:
 ```python
 TOPICS_LIST = [
-    "Programacion Lineal",
-    "Programacion Entera",
-    "Programacion No Lineal",
-    "Modelado Matematico",
-    "Investigacion de Operaciones"
+    "Investigación de Operaciones",
+    "Modelado Matemático",
+    "Programación Lineal",
+    "Programación Entera",
+    "Programación No Lineal"
 ]
 ```
 
 **TOPIC_DESCRIPTIONS**
-Detailed descriptions for each topic (used in UI):
+Subtopic lists for each topic (used in the welcome screen UI):
 ```python
 TOPIC_DESCRIPTIONS = {
-    "linear_programming": "Learn to optimize...",
+    "Investigación de Operaciones": [
+        "Introducción a la optimización",
+        "Fundamentos de formulación de problemas",
+        "Marcos de toma de decisiones"
+    ],
+    "Programación Lineal": [
+        "Formulación y solución de PL",
+        "Método Simplex",
+        "Teoría de dualidad"
+    ],
     # ... etc
 }
 ```
@@ -200,7 +211,7 @@ TOPIC_DESCRIPTIONS = {
 **DEFAULT_TOPIC**
 Default selected topic:
 ```python
-DEFAULT_TOPIC = "Programacion Lineal"
+DEFAULT_TOPIC = "Programación Lineal"
 ```
 
 ---
@@ -221,7 +232,109 @@ internal_key = TOPIC_OPTIONS[selected_display]
 
 # Converting internal key to display
 display_name = TOPIC_DISPLAY_NAMES["linear_programming"]
-# Returns: "Programacion Lineal"
+# Returns: "Programación Lineal"
+```
+
+---
+
+### activity_tracker.py
+
+**Purpose:** Server-side (Python) event-based analytics tracking that batches events in Streamlit session state and sends them to the backend
+
+**Size:** ~165 lines
+
+#### Page Constants
+
+```python
+PAGE_HOME = "home"
+PAGE_CHAT = "chat"
+PAGE_ASSESSMENT = "assessment"
+PAGE_PROGRESS = "progress"
+PAGE_ADMIN = "admin"
+```
+
+#### Tracking Functions
+
+| Function                      | Purpose                                                     |
+|-------------------------------|-------------------------------------------------------------|
+| `track_page_visit()`          | Track page visits with automatic duration on page exit      |
+| `track_interaction()`         | Track widget interactions (clicks, selections)              |
+| `track_chat_message()`        | Track chat messages sent with conversation ID               |
+| `track_assessment_generate()` | Track assessment generation with topic and difficulty       |
+| `track_assessment_submit()`   | Track assessment submissions with assessment ID             |
+| `track_topic_change()`        | Track topic selection changes                               |
+| `flush_events()`              | Send buffered events to the backend via `/analytics/events` |
+
+#### Internal Functions
+
+| Function               | Purpose                                          |
+|------------------------|--------------------------------------------------|
+| `_get_session_id()`    | Get or create a unique UUID session ID           |
+| `_get_event_buffer()`  | Get the event buffer list from session state     |
+| `_add_event()`         | Add an event to the buffer; auto-flushes at 10   |
+
+#### Event Buffering
+
+Events are accumulated in `st.session_state._analytics_event_buffer` and automatically flushed when the buffer reaches 10 events. The `flush_events()` function can also be called manually. All flushes silently fail to never break the user experience.
+
+#### Usage Example
+
+```python
+from utils.activity_tracker import track_page_visit, track_chat_message, flush_events
+
+# Track a page visit (automatically tracks duration on page exit)
+track_page_visit("chat", topic="linear_programming")
+
+# Track a chat message
+track_chat_message("chat", topic="linear_programming", conversation_id=42)
+
+# Manually flush buffered events
+flush_events()
+```
+
+---
+
+### idle_detector.py
+
+**Purpose:** Client-side (JavaScript) idle detection and window focus/blur tracking injected into the browser via Streamlit components
+
+**Size:** ~153 lines
+
+#### Function
+
+```python
+def inject_idle_detector(
+    backend_url: str = "http://localhost:8000",
+    idle_timeout_seconds: int = 300,
+)
+```
+
+#### Behavior
+
+The injected JavaScript script:
+- Tracks window **focus/blur** events (`session_start`/`session_end`)
+- Detects **idle** after `idle_timeout_seconds` (default 300 s) of no mouse/keyboard/scroll activity
+- Posts events directly to the backend via `fetch()` using the JWT token from `localStorage`
+- Batches events in `localStorage` and flushes every 30 seconds
+- Prevents multiple injections with a `window._idleDetectorInitialized` guard
+
+#### Events Tracked
+
+| Event Category   | Event Action    | Trigger                            |
+|------------------|-----------------|------------------------------------|
+| `session_start`  | `page_load`     | Initial page load with focus       |
+| `session_start`  | `window_focus`  | Window regains focus               |
+| `session_end`    | `window_blur`   | Window loses focus                 |
+| `idle_start`     | `user_idle`     | No activity for idle timeout       |
+| `idle_end`       | `user_active`   | Activity detected after idle state |
+
+#### Usage Example
+
+```python
+from utils.idle_detector import inject_idle_detector
+
+# Inject once per page (typically in the main app)
+inject_idle_detector(backend_url="http://localhost:8000", idle_timeout_seconds=300)
 ```
 
 ---
@@ -266,14 +379,41 @@ The APIClient integrates with Streamlit's session state:
 
 ```python
 # Stored automatically on login
-st.session_state.token = "jwt_token_here"
+st.session_state.access_token = "jwt_token_here"
 st.session_state.user = {"name": "...", "email": "...", "role": "..."}
 st.session_state.student_id = "..."
-st.session_state.is_admin = True/False
+st.session_state.student_name = "..."
+st.session_state.student_email = "..."
+st.session_state.user_role = "admin" | "student"
 
 # Accessed via APIClient methods
-api_client.is_authenticated()  # Checks st.session_state.token
-api_client.is_admin()          # Checks st.session_state.is_admin
+api_client.is_authenticated()  # Checks st.session_state.access_token
+api_client.is_admin()          # Checks st.session_state.user_role == "admin"
+```
+
+### Analytics Architecture
+
+The analytics system operates in two layers:
+
+```diagram
+┌──────────────────────────────────────────────────┐
+│               Frontend Analytics                 │
+├──────────────────────┬───────────────────────────┤
+│  activity_tracker.py │     idle_detector.py      │
+│  (Python / server)   │     (JavaScript / client) │
+├──────────────────────┼───────────────────────────┤
+│  Page visits         │  Window focus/blur        │
+│  Widget interactions │  Idle detection           │
+│  Chat messages       │  User activity monitoring │
+│  Assessment actions  │                           │
+│  Topic changes       │                           │
+├──────────────────────┼───────────────────────────┤
+│  Buffers in session  │  Buffers in localStorage  │
+│  state (10 events)   │  Flushes every 30 seconds │
+├──────────────────────┴───────────────────────────┤
+│          POST /analytics/events                  │
+│          (backend API)                           │
+└──────────────────────────────────────────────────┘
 ```
 
 ### Topic System Consistency
