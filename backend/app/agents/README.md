@@ -77,10 +77,10 @@ The `agents/` directory contains specialized AI tutoring agents for different op
 
 ### Message Processing Methods
 
-| Method                         | Description                            |
-|--------------------------------|----------------------------------------|
-| `validate_message(message)`    | Validates message format and length    |
-| `preprocess_message(message)`  | Cleans and normalizes user message     |
+| Method                           | Description                         |
+|----------------------------------|-------------------------------------|
+| `validate_message(message)`      | Validates message format and length |
+| `preprocess_message(message)`    | Cleans and normalizes user message  |
 | `postprocess_response(response)` | Cleans response before returning    |
 
 ### Adaptive Learning Methods
@@ -95,22 +95,22 @@ The `agents/` directory contains specialized AI tutoring agents for different op
 
 ### Spaced Repetition Methods
 
-| Method                                                      | Description                                        |
-|-------------------------------------------------------------|----------------------------------------------------|
-| `build_enhanced_system_prompt(base, adaptive, context)`     | Combines base, adaptive, and review prompts        |
-| `format_review_context(due_reviews)`                        | Formats spaced repetition reviews into prompt section |
+| Method                                                  | Description                                           |
+|---------------------------------------------------------|-------------------------------------------------------|
+| `build_enhanced_system_prompt(base, adaptive, context)` | Combines base, adaptive, and review prompts           |
+| `format_review_context(due_reviews)`                    | Formats spaced repetition reviews into prompt section |
 
 ### Internal Helper Methods
 
 These shared methods reduce code duplication across agent subclasses:
 
-| Method                                              | Description                                     |
-|-----------------------------------------------------|-------------------------------------------------|
-| `_validate_and_preprocess(message)`                 | Validates and preprocesses user message         |
-| `_prepare_generation_components(message, history, context)` | Prepares all components for response generation |
-| `_generate_and_postprocess(components, history, context)`   | Generates response and postprocesses (sync)     |
-| `_a_generate_and_postprocess(components, history, context)` | Generates response and postprocesses (async)    |
-| `_postprocess_with_feedback(response, history, context, ...)` | Shared postprocessing with feedback logic     |
+| Method                                                        | Description                                     |
+|---------------------------------------------------------------|-------------------------------------------------|
+| `_validate_and_preprocess(message)`                           | Validates and preprocesses user message         |
+| `_prepare_generation_components(message, history, context)`   | Prepares all components for response generation |
+| `_generate_and_postprocess(components, history, context)`     | Generates response and postprocesses (sync)     |
+| `_a_generate_and_postprocess(components, history, context)`   | Generates response and postprocesses (async)    |
+| `_postprocess_with_feedback(response, history, context, ...)` | Shared postprocessing with feedback logic       |
 
 ### Confusion Detection
 
@@ -160,8 +160,8 @@ AGENT_REGISTRY = {
    - Format conversation history
    - Load course materials if available
    - Detect confusion signals and determine confusion level
-   - Select explanation strategy based on knowledge and confusion level
-   - Build adaptive prompt section (if confusion is detected)
+   - Select an explanation strategy based on knowledge and confusion level
+   - Build an adaptive prompt section (if confusion is detected)
    - Build enhanced system prompt with spaced repetition reviews
 
 3. **Response Generation** (`_generate_and_postprocess` / `_a_generate_and_postprocess`)
