@@ -20,34 +20,45 @@ The `agents/` directory contains specialized AI tutoring agents for different op
 ## Architecture
 
 ```diagram
-                    ┌─────────────────────┐
-                    │     BaseAgent       │
-                    │     (Abstract)      │
-                    ├─────────────────────┤
-                    │ - agent_name        │
-                    │ - agent_type        │
-                    │ - llm_service       │
-                    │ - course_materials  │
-                    ├─────────────────────┤
-                    │ + get_system_prompt │
-                    │ + generate_response │
-                    │ + detect_confusion  │
-                    │ + select_strategy   │
-                    └──────────┬──────────┘
-                               │
-        ┌──────────┬───────────┼───────────┬──────────┐
-        │          │           │           │          │
-        ▼          ▼           ▼           ▼          ▼
-   ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
-   │   LP    │ │   IP    │ │   NLP   │ │   MM    │ │   OR    │
-   │  Agent  │ │  Agent  │ │  Agent  │ │  Agent  │ │  Agent  │
-   └─────────┘ └─────────┘ └─────────┘ └────┬────┘ └─────────┘
-                                            │
-                                            ▼
-                                    ┌───────────────┐
-                                    │ Modeling      │
-                                    │ Tools         │
-                                    └───────────────┘
+                    ┌──────────────────────────────┐
+                    │          BaseAgent            │
+                    │          (Abstract)           │
+                    ├──────────────────────────────┤
+                    │ - agent_name                 │
+                    │ - agent_type                 │
+                    │ - llm_service                │
+                    │ - course_materials           │
+                    ├──────────────────────────────┤
+                    │ + get_system_prompt()        │
+                    │ + get_available_strategies() │
+                    │ + generate_response()        │
+                    │ + a_generate_response()      │
+                    │ + detect_confusion()         │
+                    │ + select_strategy()          │
+                    │ + validate_message()         │
+                    │ + format_review_context()    │
+                    │ + build_enhanced_prompt()    │
+                    │ + get_agent_info()           │
+                    └──────────────┬───────────────┘
+                                   │
+          ┌──────────┬─────────────┼─────────────┬──────────┐
+          │          │             │             │          │
+          ▼          ▼             ▼             ▼          ▼
+     ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
+     │   LP    │ │   IP    │ │   NLP   │ │   MM    │ │   OR    │
+     │  Agent  │ │  Agent  │ │  Agent  │ │  Agent  │ │  Agent  │
+     └─────────┘ └─────────┘ └─────────┘ └────┬────┘ └─────────┘
+                                               │
+                                               ▼
+                                ┌───────────────────────────┐
+                                │      Modeling Tools       │
+                                ├───────────────────────────┤
+                                │ ModelValidatorTool        │
+                                │ ProblemSolverTool         │
+                                │ RegionVisualizerTool      │
+                                │ ExercisePracticeTool      │
+                                │ ExerciseValidatorTool     │
+                                └───────────────────────────┘
 ```
 
 ## BaseAgent Features
@@ -57,10 +68,20 @@ The `agents/` directory contains specialized AI tutoring agents for different op
 | Method                                         | Description                                       |
 |------------------------------------------------|---------------------------------------------------|
 | `get_system_prompt(context)`                   | Abstract - generates topic-specific system prompt |
+| `get_available_strategies()`                   | Abstract - returns list of explanation strategies |
 | `generate_response(message, history, context)` | Generates AI response using LLM                   |
 | `a_generate_response(...)`                     | Async version of generate_response                |
 | `load_course_materials(path)`                  | Loads course materials from file                  |
 | `format_context_for_prompt(context)`           | Formats student context for prompts               |
+| `get_agent_info()`                             | Returns agent information dictionary              |
+
+### Message Processing Methods
+
+| Method                         | Description                            |
+|--------------------------------|----------------------------------------|
+| `validate_message(message)`    | Validates message format and length    |
+| `preprocess_message(message)`  | Cleans and normalizes user message     |
+| `postprocess_response(response)` | Cleans response before returning    |
 
 ### Adaptive Learning Methods
 
@@ -71,6 +92,25 @@ The `agents/` directory contains specialized AI tutoring agents for different op
 | `build_adaptive_prompt_section(analysis, strategy, context)`  | Creates adaptive instructions       |
 | `should_add_feedback_request(...)`                            | Determines if feedback check needed |
 | `add_feedback_request_to_response(...)`                       | Appends understanding check-in      |
+
+### Spaced Repetition Methods
+
+| Method                                                      | Description                                        |
+|-------------------------------------------------------------|----------------------------------------------------|
+| `build_enhanced_system_prompt(base, adaptive, context)`     | Combines base, adaptive, and review prompts        |
+| `format_review_context(due_reviews)`                        | Formats spaced repetition reviews into prompt section |
+
+### Internal Helper Methods
+
+These shared methods reduce code duplication across agent subclasses:
+
+| Method                                              | Description                                     |
+|-----------------------------------------------------|-------------------------------------------------|
+| `_validate_and_preprocess(message)`                 | Validates and preprocesses user message         |
+| `_prepare_generation_components(message, history, context)` | Prepares all components for response generation |
+| `_generate_and_postprocess(components, history, context)`   | Generates response and postprocesses (sync)     |
+| `_a_generate_and_postprocess(components, history, context)` | Generates response and postprocesses (async)    |
+| `_postprocess_with_feedback(response, history, context, ...)` | Shared postprocessing with feedback logic     |
 
 ### Confusion Detection
 
@@ -111,41 +151,39 @@ AGENT_REGISTRY = {
 
 ### Response Generation Flow
 
-1. **Context Preparation**
+1. **Validation & Preprocessing** (`_validate_and_preprocess`)
+   - Validate message format and length
+   - Clean and normalize user input
+
+2. **Component Preparation** (`_prepare_generation_components`)
    - Get student knowledge level
    - Format conversation history
    - Load course materials if available
+   - Detect confusion signals and determine confusion level
+   - Select explanation strategy based on knowledge and confusion level
+   - Build adaptive prompt section (if confusion is detected)
+   - Build enhanced system prompt with spaced repetition reviews
 
-2. **Confusion Analysis**
-   - Detect confusion signals in a message
-   - Check for repeated topics
-   - Determine confusion level
-
-3. **Strategy Selection**
-   - Consider knowledge level
-   - Consider the confusion level
-   - Avoid recently used strategies
-
-4. **Prompt Construction**
-   - Base system prompt (topic-specific)
-   - Context section (student info)
-   - Adaptive instructions (if confusion is detected)
-   - Course materials reference
-
-5. **Response Generation**
+3. **Response Generation** (`_generate_and_postprocess` / `_a_generate_and_postprocess`)
    - Send to LLM via LLMService
    - Optional: Execute tools (MathematicalModelingAgent)
    - Post-process response
 
-6. **Feedback Check**
+4. **Feedback & Postprocessing** (`_postprocess_with_feedback`)
+   - Clean and normalize LLM output
    - Optionally append understanding check-in
 
 ### Mathematical Modeling Agent (Special)
 
 The Mathematical Modeling Agent has additional capabilities:
 - Uses LangChain tools for validation and solving
-- Can execute `ModelValidatorTool`, `ProblemSolverTool`, etc.
 - Generates responses with tool calling support
+- Available tools:
+  - `ModelValidatorTool` - Validates optimization model formulations
+  - `ProblemSolverTool` - Solves optimization problems
+  - `RegionVisualizerTool` - Visualizes 2D feasible regions
+  - `ExercisePracticeTool` - Provides practice exercises
+  - `ExerciseValidatorTool` - Validates student formulations
 
 ## Usage
 

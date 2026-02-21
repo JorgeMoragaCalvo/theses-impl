@@ -184,6 +184,7 @@ La imagen muestra:
             for op in ["<=", ">=", "="]:
                 if op in expression:
                     parts = expression.split(op, 1)
+                    # Parses constraint expression; extracts coefficients, sense, and RHS
                     if len(parts) == 2:
                         lhs, rhs = parts[0].strip(), parts[1].strip()
                         coeffs = self._parse_expression(lhs, var_names)
