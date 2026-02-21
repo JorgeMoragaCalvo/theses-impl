@@ -14,6 +14,10 @@ The `services/` directory contains the business logic layer of the application. 
 | `grading_service.py`             | Automatic assessment grading using LLM                     |
 | `exercise_manager.py`            | Exercise loading and management                            |
 | `exercise_assessment_service.py` | Exercise-based assessment creation                         |
+| `exercise_progress_service.py`   | Exercise completion tracking and progression gating        |
+| `competency_service.py`          | Concept-level mastery tracking using EWA                   |
+| `analytics_service.py`           | Student activity recording and admin dashboard metrics     |
+| `spaced_repetition_service.py`   | SM-2 spaced repetition scheduling for concept reviews      |
 | `llm_response_parser.py`         | JSON extraction from LLM responses                         |
 | `__init__.py`                    | Package initialization                                     |
 
@@ -45,10 +49,15 @@ The `services/` directory contains the business logic layer of the application. 
 │  │  └─────────┘  └─────────┘  └─────────┘                      ││
 │  └─────────────────────────────────────────────────────────────┘│
 │                                                                 │
-│  ┌─────────────────┐  ┌─────────────────┐                       │
-│  │ Exercise        │  │ Exercise        │                       │
-│  │ Manager         │  │ Assessment Svc  │                       │
-│  └─────────────────┘  └─────────────────┘                       │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Exercise        │  │ Exercise        │  │ Exercise        │  │
+│  │ Manager         │  │ Assessment Svc  │  │ Progress Svc    │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+│                                                                 │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Competency      │  │ Spaced          │  │ Analytics       │  │
+│  │ Service         │  │ Repetition Svc  │  │ Service         │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
@@ -197,6 +206,96 @@ The `services/` directory contains the business logic layer of the application. 
 - Markdown code blocks
 - Nested JSON
 - Fallback parsing
+
+### ExerciseProgressService (`exercise_progress_service.py`)
+
+**Purpose**: Track student exercise completion and enforce per-topic progression gating.
+
+**Key Functions**:
+
+| Function                                          | Description                                       |
+|---------------------------------------------------|---------------------------------------------------|
+| `get_completed_exercise_ids(db, student_id, topic)` | Get exercise IDs the student has completed (>=50% score) |
+| `compute_max_unlocked_rank(completed_ids, exercises)` | Compute the highest unlocked rank for a topic     |
+| `get_exercises_with_progress(db, student_id, topic)` | Return exercises enriched with `locked` and `completed` fields |
+
+**Progression Rules**:
+- Rank 1 exercises are always unlocked
+- Rank 0 (unranked) exercises are always unlocked
+- Completing any exercise at rank N unlocks rank N+1
+- "Completing" means achieving >= 50% of max_score
+
+### CompetencyService (`competency_service.py`)
+
+**Purpose**: Track student mastery of individual concepts using Exponentially Weighted Average (EWA).
+
+**Key Methods**:
+
+| Method                                              | Description                                     |
+|-----------------------------------------------------|-------------------------------------------------|
+| `seed_concept_hierarchy()`                          | Populate ConceptHierarchy from taxonomy JSON files |
+| `update_competency(student_id, concept_id, is_correct, score)` | Update mastery record using EWA              |
+| `get_student_competencies(student_id, topic)`       | Get all competency records for a student/topic  |
+| `get_mastery_summary(student_id, topic)`            | Summarize mastery levels across all concepts    |
+| `get_next_concepts_to_learn(student_id, topic)`     | Recommend concepts based on prerequisite mastery |
+
+**Mastery Levels** (thresholds):
+- `MASTERED`: score >= 0.85, min 5 attempts
+- `PROFICIENT`: score >= 0.60, min 3 attempts
+- `DEVELOPING`: score >= 0.30
+- `NOVICE`: score < 0.30
+- `NOT_STARTED`: 0 attempts
+
+**EWA Parameters**:
+- Learning rate (alpha): 0.3
+- Formula: `new_score = alpha * performance + (1 - alpha) * old_score`
+
+**Includes**: `ConceptTaxonomyRegistry` singleton that loads and caches concept taxonomy JSON files from `data/concept_taxonomies/`.
+
+### AnalyticsService (`analytics_service.py`)
+
+**Purpose**: Record student activity events and provide aggregated metrics for the admin dashboard.
+
+**Key Methods**:
+
+| Method                                         | Description                              |
+|------------------------------------------------|------------------------------------------|
+| `record_events(student_id, events)`            | Batch insert activity events             |
+| `get_daily_active_users(start, end)`           | Count distinct students per day          |
+| `get_avg_session_duration(start, end)`         | Average session duration per day         |
+| `get_peak_usage_hours(start, end)`             | Event counts per hour of day             |
+| `get_page_popularity(start, end)`              | Visit counts and avg duration per page   |
+| `get_topic_popularity(start, end)`             | Interaction counts per topic             |
+| `get_user_engagement(start, end)`              | Aggregated engagement metrics            |
+| `get_analytics_summary(days=30)`               | Combined summary for the last N days     |
+
+### SpacedRepetitionService (`spaced_repetition_service.py`)
+
+**Purpose**: SM-2 algorithm implementation for scheduling concept reviews at increasing intervals based on recall quality.
+
+**Key Methods**:
+
+| Method                                                     | Description                                    |
+|------------------------------------------------------------|------------------------------------------------|
+| `calculate_next_review(competency, quality)`               | SM-2: compute next review date and ease factor |
+| `get_due_reviews(student_id, topic, limit)`                | Get competencies due for review                |
+| `create_review_session(student_id, concept_id)`            | Start a new review session                     |
+| `complete_review(session_id, quality, response_time)`      | Record result and schedule next review         |
+| `schedule_initial_review(student_id, concept_id)`          | Schedule first review after initial study      |
+
+**SM-2 Quality Scale** (0-5):
+- 0: Complete blackout
+- 1: Incorrect; correct answer remembered on seeing it
+- 2: Incorrect; correct answer seemed easy to recall
+- 3: Correct with serious difficulty
+- 4: Correct after hesitation
+- 5: Perfect response
+
+**SM-2 Parameters**:
+- Initial intervals: 1, 3, 7, 14, 30, 60 days
+- Minimum ease factor: 1.3
+- Default ease factor: 2.5
+- Passing threshold: quality >= 3
 
 ## Business Logic
 
