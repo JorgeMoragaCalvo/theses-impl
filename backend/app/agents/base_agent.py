@@ -255,6 +255,19 @@ class BaseAgent(ABC):
         return message
 
     @staticmethod
+    def _sanitize_for_log(value: Any) -> str:
+        """
+        Sanitize a value before including it in log messages.
+
+        Removes newline and carriage-return characters to reduce
+        the risk of log injection or forged log entries.
+        """
+        if not isinstance(value, str):
+            value = str(value)
+        # Replace CR/LF with spaces to keep log output on a single line
+        return value.replace("\r", " ").replace("\n", " ")
+
+    @staticmethod
     def postprocess_response(response: str) -> str:
         """
         Postprocess LLM response before returning to the user.
@@ -742,8 +755,12 @@ class BaseAgent(ABC):
             )
 
         mode_label = "async" if async_mode else "sync"
+        safe_strategy = self._sanitize_for_log(selected_strategy)
+        safe_confusion_level = self._sanitize_for_log(
+            confusion_analysis.get("level", "")
+        )
         logger.info(
-            f"Generated {mode_label} {self.agent_name} response with strategy={selected_strategy}, "
-            f"confusion={confusion_analysis['level']}"
+            f"Generated {mode_label} {self.agent_name} response with strategy={safe_strategy}, "
+            f"confusion={safe_confusion_level}"
         )
         return final_response
