@@ -246,6 +246,48 @@ class LLMService:
                     return f"Error executing tool '{tool_name}': {str(e)}"
         return f"Tool '{tool_name}' not found"
 
+    def _process_tool_calls(self, response, langchain_messages: list,
+                            tools: list[BaseTool], iteration: int,
+                            is_async: bool = False) -> str | None:
+        """
+        Process tool calls from an LLM response.
+
+        If the response contains no tool calls, returns the response content.
+        Otherwise, executes each tool and appends results to langchain_messages,
+        returning None to signal the caller to continue the loop.
+
+        Args:
+            response: LLM response object
+            langchain_messages: Conversation messages list (mutated in place)
+            tools: List of available tools
+            iteration: Current iteration number (for logging)
+            is_async: Whether this is called from an async context (for logging)
+
+        Returns:
+            Response content string if no tool calls, None if tools were executed
+        """
+        if not hasattr(response, 'tool_calls') or not response.tool_calls:
+            prefix = "async " if is_async else ""
+            logger.info(f"Generated {prefix}response with tools (iteration {iteration + 1}): {len(response.content)} chars")
+            return response.content
+
+        langchain_messages.append(response)
+
+        for tool_call in response.tool_calls:
+            tool_name = tool_call.get("name", "")
+            tool_args = tool_call.get("args", {})
+            tool_id = tool_call.get("id", "")
+
+            logger.info(f"Executing tool '{tool_name}' with args: {tool_args}")
+
+            tool_result = self._execute_tool(tools, tool_name, tool_args)
+
+            langchain_messages.append(
+                ToolMessage(content=tool_result, tool_call_id=tool_id)
+            )
+
+        return None
+
     def generate_response_with_tools(
         self,
         messages: list[dict[str, str]],
@@ -291,30 +333,9 @@ class LLMService:
             for iteration in range(max_tool_iterations):
                 response = llm_with_tools.invoke(langchain_messages)
 
-                # Check if there are tool calls
-                if not hasattr(response, 'tool_calls') or not response.tool_calls:
-                    # No tool calls, return the content
-                    logger.info(f"Generated response with tools (iteration {iteration + 1}): {len(response.content)} chars")
-                    return response.content
-
-                # Add an AI message with tool calls to conversation
-                langchain_messages.append(response)
-
-                # Execute each tool call
-                for tool_call in response.tool_calls:
-                    tool_name = tool_call.get("name", "")
-                    tool_args = tool_call.get("args", {})
-                    tool_id = tool_call.get("id", "")
-
-                    logger.info(f"Executing tool '{tool_name}' with args: {tool_args}")
-
-                    # Execute the tool
-                    tool_result = self._execute_tool(tools, tool_name, tool_args)
-
-                    # Add a tool result to messages
-                    langchain_messages.append(
-                        ToolMessage(content=tool_result, tool_call_id=tool_id)
-                    )
+                result = self._process_tool_calls(response, langchain_messages, tools, iteration)
+                if result is not None:
+                    return result
 
             # Max iterations reached, get a final response without tools
             logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")
@@ -364,29 +385,9 @@ class LLMService:
             for iteration in range(max_tool_iterations):
                 response = await llm_with_tools.ainvoke(langchain_messages)
 
-                # Check if there are tool calls
-                if not hasattr(response, 'tool_calls') or not response.tool_calls:
-                    logger.info(f"Generated async response with tools (iteration {iteration + 1}): {len(response.content)} chars")
-                    return response.content
-
-                # Add an AI message with tool calls to conversation
-                langchain_messages.append(response)
-
-                # Execute each tool call
-                for tool_call in response.tool_calls:
-                    tool_name = tool_call.get("name", "")
-                    tool_args = tool_call.get("args", {})
-                    tool_id = tool_call.get("id", "")
-
-                    logger.info(f"Executing tool '{tool_name}' with args: {tool_args}")
-
-                    # Execute the tool (tools are sync, but that's okay)
-                    tool_result = self._execute_tool(tools, tool_name, tool_args)
-
-                    # Add a tool result to messages
-                    langchain_messages.append(
-                        ToolMessage(content=tool_result, tool_call_id=tool_id)
-                    )
+                result = self._process_tool_calls(response, langchain_messages, tools, iteration, is_async=True)
+                if result is not None:
+                    return result
 
             # Max iterations reached
             logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")

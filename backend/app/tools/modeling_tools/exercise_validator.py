@@ -62,17 +62,17 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
     exercise_manager: Any  # ExerciseManager
     llm_service: Any  # LLMService
 
-    def _run(self, input_json: str) -> str:
+    def _parse_and_validate_input(self, input_json: str) -> tuple[str, str, str] | str:
         """
-        Validate a student's formulation against the reference solution.
+        Parse and validate the input JSON for exercise validation.
 
         Args:
             input_json: JSON string with exercise_id and student_formulation
 
         Returns:
-            Detailed validation feedback
+            Tuple of (exercise_id, student_formulation, reference) on success,
+            or an error message string on failure.
         """
-        # Parse input
         try:
             params = json.loads(input_json)
         except json.JSONDecodeError as e:
@@ -84,7 +84,6 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
         exercise_id = params.get("exercise_id")
         student_formulation = params.get("student_formulation", "")
 
-        # Validate inputs
         if not exercise_id:
             return self._format_error("Se requiere 'exercise_id'")
 
@@ -97,12 +96,27 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
                 f"Usa la herramienta exercise_practice con action='list' para ver los disponibles."
             )
 
-        # Get reference solution
         reference = self.exercise_manager.get_solution(exercise_id)
         if not reference:
             return self._format_error(f"No hay solución de referencia para '{exercise_id}'")
 
-        # Perform validation
+        return exercise_id, student_formulation, reference
+
+    def _run(self, input_json: str) -> str:
+        """
+        Validate a student's formulation against the reference solution.
+
+        Args:
+            input_json: JSON string with exercise_id and student_formulation
+
+        Returns:
+            Detailed validation feedback
+        """
+        result = self._parse_and_validate_input(input_json)
+        if isinstance(result, str):
+            return result
+
+        exercise_id, student_formulation, reference = result
         return self._validate(exercise_id, student_formulation, reference)
 
     def _validate(
@@ -415,30 +429,11 @@ Responde de forma constructiva y pedagógica, reconociendo lo que está bien y g
 
     async def _arun(self, input_json: str) -> str:
         """Async version of the validation."""
-        # Parse input synchronously
-        try:
-            params = json.loads(input_json)
-        except json.JSONDecodeError as e:
-            return self._format_error(f"Error al parsear JSON: {str(e)}")
+        result = self._parse_and_validate_input(input_json)
+        if isinstance(result, str):
+            return result
 
-        if not isinstance(params, dict):
-            return self._format_error("La entrada debe ser un objeto JSON")
-
-        exercise_id = params.get("exercise_id")
-        student_formulation = params.get("student_formulation", "")
-
-        if not exercise_id:
-            return self._format_error("Se requiere 'exercise_id'")
-
-        if not student_formulation or not student_formulation.strip():
-            return self._format_error("Se requiere 'student_formulation' con contenido")
-
-        if not self.exercise_manager.exercise_exists(exercise_id):
-            return self._format_error(f"Ejercicio '{exercise_id}' no encontrado")
-
-        reference = self.exercise_manager.get_solution(exercise_id)
-        if not reference:
-            return self._format_error(f"No hay solución de referencia para '{exercise_id}'")
+        exercise_id, student_formulation, reference = result
 
         # Structured parsing (sync)
         ref_components = self._parse_model_markdown(reference)

@@ -1,7 +1,6 @@
 import logging
 from typing import Any
 
-from ..utils import get_explanation_strategies_from_context
 from .base_agent import BaseAgent
 
 logger = logging.getLogger(__name__)
@@ -266,6 +265,13 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
 ¿Quieres ver por qué falla sin LICQ?
 ---"""
 
+    def get_available_strategies(self) -> list[str]:
+        """Return available explanation strategies for NLP."""
+        return [
+            "algorítmico", "geométrico", "cálculo",
+            "ejemplo", "conceptual", "comparativo"
+        ]
+
     @staticmethod
     def is_nlp_related(message: str) -> bool:
         """
@@ -296,14 +302,6 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in nlp_keywords)
 
-    def _validate_and_preprocess(self, user_message: str) -> tuple[str | None, str | None]:
-        """Validate and preprocess the incoming message."""
-        if not self.validate_message(user_message):
-            return None, "No recibí un mensaje válido. ¿Podrías intentar de nuevo?"
-
-        preprocessed_message = self.preprocess_message(user_message)
-        return preprocessed_message, None
-
     @staticmethod
     def _get_off_topic_response() -> str:
         """Response when query is outside NLP scope."""
@@ -314,94 +312,6 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
             "métodos de penalización/barrera, y aplicaciones en ML e ingeniería.\n\n"
             "¿Tienes alguna pregunta sobre estos temas?"
         )
-
-    def _prepare_generation_components(
-            self,
-            preprocessed_message: str,
-            conversation_history: list[dict[str, str]],
-            context: dict[str, Any]
-    ) -> dict[str, Any]:
-        """Prepare all components needed for response generation."""
-
-        # Detect confusion (this should be replaced with LLM-as-judge in production)
-        confusion_analysis = self.detect_student_confusion(
-            preprocessed_message,
-            conversation_history
-        )
-
-        # Available strategies
-        available_strategies = [
-            "algorítmico", "geométrico", "cálculo",
-            "ejemplo", "conceptual", "comparativo"
-        ]
-
-        # Get previously used strategies
-        previous_strategies = get_explanation_strategies_from_context(context)
-
-        # Select strategy
-        knowledge_level = context.get("student", {}).get("knowledge_level", "beginner")
-        selected_strategy = self.select_explanation_strategy(
-            confusion_level=confusion_analysis["level"],
-            knowledge_level=knowledge_level,
-            previous_strategies=previous_strategies,
-            all_available_strategies=available_strategies
-        )
-
-        # Build adaptive prompt section
-        adaptative_prompt = self.build_adaptive_prompt_section(
-            confusion_analysis=confusion_analysis,
-            selected_strategy=selected_strategy,
-            context=context
-        )
-
-        # Get base system prompt
-        base_system_prompt = self.get_system_prompt(context)
-
-        enhanced_system_prompt = self.build_enhanced_system_prompt(
-            base_system_prompt, adaptative_prompt, context
-        )
-
-        # Build messages
-        messages = conversation_history.copy()
-        messages.append({"role": "user", "content": preprocessed_message})
-
-        return {
-            "messages": messages,
-            "system_prompt": enhanced_system_prompt,
-            "selected_strategy": selected_strategy,
-            "confusion_analysis": confusion_analysis
-        }
-
-    def _postprocess_with_feedback(
-            self,
-            raw_response: str,
-            conversation_history: list[dict[str, str]],
-            context: dict[str, Any],
-            confusion_analysis: dict[str, Any],
-            selected_strategy: str,
-            async_mode: bool = False
-    ) -> str:
-        """Postprocess response and add feedback request if appropriate."""
-        final_response = self.postprocess_response(raw_response)
-
-        if self.should_add_feedback_request(
-            response_text=final_response,
-            conversation_history=conversation_history,
-            context=context,
-            confusion_detected=confusion_analysis["detected"]
-        ):
-            final_response = self.add_feedback_request_to_response(
-                response=final_response,
-                confusion_level=confusion_analysis["level"],
-                selected_strategy=selected_strategy
-            )
-
-        mode_label = "async" if async_mode else "sync"
-        logger.info(
-            f"Generated {mode_label} NLP response | strategy={selected_strategy} | "
-            f"confusion={confusion_analysis['level']}"
-        )
-        return final_response
 
     def generate_response(self, user_message: str,
                           conversation_history: list[dict[str, str]],
@@ -420,23 +330,7 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
             context=context,
         )
 
-        try:
-            response = self.llm_service.generate_response(
-                messages=components["messages"],
-                system_prompt=components["system_prompt"]
-            )
-        except Exception as e:
-            logger.error(f"Error in {self.agent_name} response generation: {str(e)}")
-            from ..utils import format_error_message
-            return format_error_message(e)
-
-        return self._postprocess_with_feedback(
-            raw_response=response,
-            conversation_history=conversation_history,
-            context=context,
-            confusion_analysis=components["confusion_analysis"],
-            selected_strategy=components["selected_strategy"],
-        )
+        return self._generate_and_postprocess(components, conversation_history, context)
 
     async def a_generate_response(
             self,
@@ -459,24 +353,7 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
             context=context,
         )
 
-        try:
-            response = await self.llm_service.a_generate_response(
-                messages=components["messages"],
-                system_prompt=components["system_prompt"]
-            )
-        except Exception as e:
-            logger.error(f"Error in {self.agent_name} async response generation: {str(e)}")
-            from ..utils import format_error_message
-            return format_error_message(e)
-
-        return self._postprocess_with_feedback(
-            raw_response=response,
-            conversation_history=conversation_history,
-            context=context,
-            confusion_analysis=components["confusion_analysis"],
-            selected_strategy=components["selected_strategy"],
-            async_mode=True
-        )
+        return await self._a_generate_and_postprocess(components, conversation_history, context)
 
 
 # ==================== SINGLETON INSTANCE ====================

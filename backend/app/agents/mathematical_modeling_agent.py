@@ -10,7 +10,6 @@ from ..tools.modeling_tools import (
     ProblemSolverTool,
     RegionVisualizerTool,
 )
-from ..utils import get_explanation_strategies_from_context
 from .base_agent import BaseAgent
 
 """
@@ -452,6 +451,13 @@ Si permites violación con probabilidad ≤ α:
 ¿Qué información tienes sobre la incertidumbre: rangos, escenarios discretos, o distribución continua?
 ---"""
 
+    def get_available_strategies(self) -> list[str]:
+        """Return available explanation strategies for Mathematical Modeling."""
+        return [
+            "problema primero", "componente por componente", "reconocimiento de patrones",
+            "ingeniería inversa", "analógico", "basado en plantillas"
+        ]
+
     @staticmethod
     def is_modeling_related(message: str) -> bool:
         """
@@ -500,14 +506,6 @@ Si permites violación con probabilidad ≤ α:
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in modeling_keywords)
 
-    def _validate_and_preprocess(self, user_message: str) -> tuple[str | None, str | None]:
-        """Validate and preprocess the incoming message."""
-        if not self.validate_message(user_message):
-            return None, "No recibí un mensaje válido. ¿Podrías intentar de nuevo?"
-
-        preprocessed_message = self.preprocess_message(user_message)
-        return preprocessed_message, None
-
     @staticmethod
     def _get_off_topic_response() -> str:
         """Response when query is outside modeling scope."""
@@ -518,94 +516,6 @@ Si permites violación con probabilidad ≤ α:
             "problemas de transporte, asignación, producción, y más.\n\n"
             "¿Tienes alguna pregunta sobre estos temas?"
         )
-
-    def _prepare_generation_components(
-            self,
-            preprocessed_message: str,
-            conversation_history: list[dict[str, str]],
-            context: dict[str, Any]
-    ) -> dict[str, Any]:
-        """Prepare all components needed for response generation."""
-
-        # Detect confusion
-        confusion_analysis = self.detect_student_confusion(
-            preprocessed_message,
-            conversation_history
-        )
-
-        # Available strategies for Mathematical Modeling
-        available_strategies = [
-            "problema primero", "componente por componente", "reconocimiento de patrones",
-            "ingeniería inversa", "analógico", "basado en plantillas"
-        ]
-
-        # Get previously used strategies
-        previous_strategies = get_explanation_strategies_from_context(context)
-
-        # Select strategy
-        knowledge_level = context.get("student", {}).get("knowledge_level", "beginner")
-        selected_strategy = self.select_explanation_strategy(
-            confusion_level=confusion_analysis["level"],
-            knowledge_level=knowledge_level,
-            previous_strategies=previous_strategies,
-            all_available_strategies=available_strategies
-        )
-
-        # Build adaptive prompt section
-        adaptive_prompt = self.build_adaptive_prompt_section(
-            confusion_analysis=confusion_analysis,
-            selected_strategy=selected_strategy,
-            context=context
-        )
-
-        # Get base system prompt
-        base_system_prompt = self.get_system_prompt(context)
-
-        enhanced_system_prompt = self.build_enhanced_system_prompt(
-            base_system_prompt, adaptive_prompt, context
-        )
-
-        # Build messages
-        messages = conversation_history.copy()
-        messages.append({"role": "user", "content": preprocessed_message})
-
-        return {
-            "messages": messages,
-            "system_prompt": enhanced_system_prompt,
-            "selected_strategy": selected_strategy,
-            "confusion_analysis": confusion_analysis
-        }
-
-    def _postprocess_with_feedback(
-            self,
-            raw_response: str,
-            conversation_history: list[dict[str, str]],
-            context: dict[str, Any],
-            confusion_analysis: dict[str, Any],
-            selected_strategy: str,
-            async_mode: bool = False
-    ) -> str:
-        """Postprocess response and add feedback request if appropriate."""
-        final_response = self.postprocess_response(raw_response)
-
-        if self.should_add_feedback_request(
-            response_text=final_response,
-            conversation_history=conversation_history,
-            context=context,
-            confusion_detected=confusion_analysis["detected"]
-        ):
-            final_response = self.add_feedback_request_to_response(
-                response=final_response,
-                confusion_level=confusion_analysis["level"],
-                selected_strategy=selected_strategy
-            )
-
-        mode_label = "async" if async_mode else "sync"
-        logger.info(
-            f"Generated {mode_label} Modeling response | strategy={selected_strategy} | "
-            f"confusion={confusion_analysis['level']}"
-        )
-        return final_response
 
     def generate_response(self, user_message: str,
                           conversation_history: list[dict[str, str]],

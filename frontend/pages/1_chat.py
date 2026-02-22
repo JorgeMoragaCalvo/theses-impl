@@ -118,7 +118,31 @@ with st.sidebar:
     """)
 
     st.divider()
-    if st.button("Logout", key="logout_btn"):
+    st.html("""
+        <script>
+        function styleLogoutBtn() {
+            const buttons = window.parent.document.querySelectorAll(
+                'button[data-testid="stBaseButton-secondary"]'
+            );
+            buttons.forEach(btn => {
+                if (btn.textContent.trim() === 'Logout') {
+                    btn.style.setProperty('background-color', '#ff4b4b', 'important');
+                    btn.style.setProperty('color', 'white', 'important');
+                    btn.style.setProperty('border-color', '#ff4b4b', 'important');
+                }
+            });
+        }
+        // Retry until the button exists in the DOM
+        const interval = setInterval(() => {
+            const btn = window.parent.document.querySelector(
+                'button[data-testid="stBaseButton-secondary"]'
+            );
+            if (btn) { styleLogoutBtn(); clearInterval(interval); }
+        }, 100);
+        setTimeout(() => clearInterval(interval), 5000);
+        </script>
+    """)
+    if st.button("Logout", key="logout_btn", type="primary"):
         flush_events()
         api_client.logout()
         st.switch_page("app.py")

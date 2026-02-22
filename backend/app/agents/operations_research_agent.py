@@ -2,7 +2,6 @@ import logging
 from typing import Any
 
 from ..tools.or_tools import ProblemClassifierTool, TimelineExplorerTool
-from ..utils import get_explanation_strategies_from_context
 from .base_agent import BaseAgent
 
 """
@@ -324,6 +323,13 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
 ¿Qué tamaño tiene tu instancia? ¿Cuánto tiempo tienes para la solución?
 ---"""
 
+    def get_available_strategies(self) -> list[str]:
+        """Return available explanation strategies for Operations Research."""
+        return [
+            "conceptual", "basado en ejemplos", "perspectiva histórica",
+            "comparativo", "centrado en la aplicación", "basado en el framework"
+        ]
+
     @staticmethod
     def is_or_related(message: str) -> bool:
         """
@@ -452,19 +458,6 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
 
         return keyword_match or is_general_or_question
 
-    def _validate_and_preprocess(self, user_message: str) -> tuple[str | None, str | None]:
-        """
-        Validate and preprocess the incoming message.
-
-        Returns:
-            (preprocessed_message, error_message)
-        """
-        if not self.validate_message(user_message):
-            return None, "I didn't receive a valid message. Could you please try again?"
-
-        preprocessed_message = self.preprocess_message(user_message)
-        return preprocessed_message, None
-
     @staticmethod
     def _get_off_topic_response() -> str:
         """
@@ -481,100 +474,6 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
             "- Comprender los marcos de toma de decisiones y los enfoques de resolución de problemas\n"
             "\n¿Te gustaría preguntar sobre alguno de estos temas de Investigación de Operaciones?"
         )
-
-    def _prepare_generation_components(
-        self,
-        preprocessed_message: str,
-        conversation_history: list[dict[str, str]],
-        context: dict[str, Any]
-    ) -> dict[str, Any]:
-        """
-        Prepare all shared components needed to generate a response.
-        (Used by both sync and async paths)
-        """
-        # ADAPTIVE LEARNING: Detect confusion
-        confusion_analysis = self.detect_student_confusion(
-            preprocessed_message,
-            conversation_history
-        )
-
-        # Define available explanation strategies for OR
-        available_strategies = [
-            # "conceptual", "example-based", "historical-perspective",
-            # "comparative", "application-focused", "framework-based"
-            "conceptual", "basado en ejemplos", "perspectiva histórica",
-            "comparativo", "centrado en la aplicación", "basado en el framework"
-        ]
-
-        # Get previously used strategies from context
-        previous_strategies = get_explanation_strategies_from_context(context)
-
-        # Select the appropriate explanation strategy
-        knowledge_level = context.get("student", {}).get("knowledge_level", "beginner")
-        selected_strategy = self.select_explanation_strategy(
-            confusion_level=confusion_analysis["level"],
-            knowledge_level=knowledge_level,
-            previous_strategies=previous_strategies,
-            all_available_strategies=available_strategies
-        )
-
-        # Build adaptive prompt section
-        adaptive_prompt = self.build_adaptive_prompt_section(
-            confusion_analysis=confusion_analysis,
-            selected_strategy=selected_strategy,
-            context=context
-        )
-
-        # Get base system prompt
-        base_system_prompt = self.get_system_prompt(context)
-
-        enhanced_system_prompt = self.build_enhanced_system_prompt(
-            base_system_prompt, adaptive_prompt, context
-        )
-
-        # Build messages list
-        messages = conversation_history.copy()
-        messages.append({"role": "user", "content": preprocessed_message})
-
-        return {
-            "messages": messages,
-            "system_prompt": enhanced_system_prompt,
-            "selected_strategy": selected_strategy,
-            "confusion_analysis": confusion_analysis
-        }
-
-    def _postprocess_with_feedback(
-        self,
-        raw_response: str,
-        conversation_history: list[dict[str, str]],
-        context: dict[str, Any],
-        confusion_analysis: dict[str, Any],
-        selected_strategy: str,
-        async_mode: bool = False
-    ) -> str:
-        """
-        Shared postprocessing and feedback-augmentation for sync & async flows.
-        """
-        final_response = self.postprocess_response(raw_response)
-
-        if self.should_add_feedback_request(
-            response_text=final_response,
-            conversation_history=conversation_history,
-            context=context,
-            confusion_detected=confusion_analysis["detected"]
-        ):
-            final_response = self.add_feedback_request_to_response(
-                response=final_response,
-                confusion_level=confusion_analysis["level"],
-                selected_strategy=selected_strategy
-            )
-
-        mode_label = "async" if async_mode else "sync"
-        logger.info(
-            f"Generated {mode_label} OR response with strategy={selected_strategy}, "
-            f"confusion={confusion_analysis['level']}"
-        )
-        return final_response
 
     def generate_response(
         self,
