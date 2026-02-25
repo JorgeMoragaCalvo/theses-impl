@@ -1,0 +1,100 @@
+{
+  "topic": "operations_research",
+  "version": "1.0",
+  "concepts": [
+    {
+      "concept_id": "or.foundations.definition",
+      "name": "Definition of Operations Research",
+      "bloom_level": "remember",
+      "prerequisites": []
+    },
+    {
+      "concept_id": "or.foundations.methodology",
+      "name": "OR Methodology Phases",
+      "bloom_level": "understand",
+      "prerequisites": ["or.foundations.definition"]
+    },
+    {
+      "concept_id": "or.foundations.problem_formulation",
+      "name": "Problem Formulation and Definition",
+      "bloom_level": "apply",
+      "prerequisites": ["or.foundations.methodology"]
+    },
+    {
+      "concept_id": "or.foundations.decision_variables",
+      "name": "Decision Variables and Parameters",
+      "bloom_level": "understand",
+      "prerequisites": ["or.foundations.problem_formulation"]
+    },
+    {
+      "concept_id": "or.foundations.objective_constraints",
+      "name": "Objectives and Constraints",
+      "bloom_level": "understand",
+      "prerequisites": ["or.foundations.decision_variables"]
+    },
+    {
+      "concept_id": "or.classification.deterministic_stochastic",
+      "name": "Deterministic vs Stochastic Problems",
+      "bloom_level": "understand",
+      "prerequisites": ["or.foundations.methodology"]
+    },
+    {
+      "concept_id": "or.classification.continuous_discrete",
+      "name": "Continuous vs Discrete Problems",
+      "bloom_level": "understand",
+      "prerequisites": ["or.foundations.decision_variables"]
+    },
+    {
+      "concept_id": "or.classification.linear_nonlinear",
+      "name": "Linear vs Nonlinear Problems",
+      "bloom_level": "analyze",
+      "prerequisites": ["or.foundations.objective_constraints"]
+    },
+    {
+      "concept_id": "or.classification.technique_selection",
+      "name": "Technique Selection",
+      "bloom_level": "analyze",
+      "prerequisites": [
+        "or.classification.deterministic_stochastic",
+        "or.classification.continuous_discrete",
+        "or.classification.linear_nonlinear"
+      ]
+    },
+    {
+      "concept_id": "or.classic_problems.network",
+      "name": "Network and Graph Problems",
+      "bloom_level": "apply",
+      "prerequisites": ["or.foundations.objective_constraints"]
+    },
+    {
+      "concept_id": "or.classic_problems.scheduling",
+      "name": "Scheduling and Planning",
+      "bloom_level": "apply",
+      "prerequisites": ["or.foundations.objective_constraints"]
+    },
+    {
+      "concept_id": "or.classic_problems.resource_allocation",
+      "name": "Resource Allocation",
+      "bloom_level": "apply",
+      "prerequisites": ["or.foundations.objective_constraints"]
+    },
+    {
+      "concept_id": "or.validation.solution_interpretation",
+      "name": "Solution Interpretation",
+      "bloom_level": "evaluate",
+      "prerequisites": ["or.foundations.problem_formulation"]
+    },
+    {
+      "concept_id": "or.validation.model_validation",
+      "name": "Model Validation and Verification",
+      "bloom_level": "evaluate",
+      "prerequisites": ["or.validation.solution_interpretation"]
+    },
+    {
+      "concept_id": "or.applications.real_world",
+      "name": "Real-World OR Applications",
+      "bloom_level": "evaluate",
+      "prerequisites": ["or.classification.technique_selection"]
+    }
+  ]
+}
