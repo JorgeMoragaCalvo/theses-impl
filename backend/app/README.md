@@ -215,3 +215,4 @@ settings.temperature = 0.7
 - **v1.3.3** (2026-02-17): Fixed assessment behavior.
 - **v1.4.3** (2026-02-18): Record student's activity.
 - **v1.5.3** (2026-02-19): Spaced Repetition System.
+- **v1.5.4** (2026-02-25): Fixed some bugs.
