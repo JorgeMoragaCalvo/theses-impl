@@ -46,6 +46,8 @@ TOPIC_TAXONOMY_FILES = {
     "linear_programming": "linear_programming.json",
     "mathematical_modeling": "mathematical_modeling.json",
     "integer_programming": "integer_programming.json",
+    "nonlinear_programming": "nonlinear_programming.json",
+    "operations_research": "operations_research.json",
 }
 
 

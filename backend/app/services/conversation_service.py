@@ -545,7 +545,9 @@ class ConversationService:
         # Count messages (with error handling)
         total_messages = 0
         try:
-            total_messages = self.db.query(Message).join(Conversation).filter(
+            total_messages = self.db.query(Message).join(
+                Conversation, Message.conversation_id == Conversation.id
+            ).filter(
                 Conversation.student_id == student_id
             ).count()
             logger.debug(f"Student {safe_student_id}: {total_messages} messages")

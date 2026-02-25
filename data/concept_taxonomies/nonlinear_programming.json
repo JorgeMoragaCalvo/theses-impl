@@ -1,0 +1,114 @@
+{
+  "topic": "nonlinear_programming",
+  "version": "1.0",
+  "concepts": [
+    {
+      "concept_id": "nlp.foundations.convex_sets",
+      "name": "Convex Sets",
+      "bloom_level": "understand",
+      "prerequisites": []
+    },
+    {
+      "concept_id": "nlp.foundations.convex_functions",
+      "name": "Convex and Concave Functions",
+      "bloom_level": "understand",
+      "prerequisites": ["nlp.foundations.convex_sets"]
+    },
+    {
+      "concept_id": "nlp.foundations.gradient",
+      "name": "Gradient Vector",
+      "bloom_level": "remember",
+      "prerequisites": []
+    },
+    {
+      "concept_id": "nlp.foundations.hessian",
+      "name": "Hessian Matrix",
+      "bloom_level": "understand",
+      "prerequisites": ["nlp.foundations.gradient"]
+    },
+    {
+      "concept_id": "nlp.foundations.definiteness",
+      "name": "Positive/Negative Definiteness",
+      "bloom_level": "apply",
+      "prerequisites": ["nlp.foundations.hessian"]
+    },
+    {
+      "concept_id": "nlp.optimality.first_order",
+      "name": "First-Order Optimality Conditions",
+      "bloom_level": "understand",
+      "prerequisites": ["nlp.foundations.gradient"]
+    },
+    {
+      "concept_id": "nlp.optimality.second_order",
+      "name": "Second-Order Optimality Conditions",
+      "bloom_level": "apply",
+      "prerequisites": ["nlp.optimality.first_order", "nlp.foundations.definiteness"]
+    },
+    {
+      "concept_id": "nlp.optimality.critical_points",
+      "name": "Critical Point Classification",
+      "bloom_level": "apply",
+      "prerequisites": ["nlp.optimality.second_order"]
+    },
+    {
+      "concept_id": "nlp.optimality.global_vs_local",
+      "name": "Global vs Local Optima",
+      "bloom_level": "analyze",
+      "prerequisites": ["nlp.optimality.critical_points", "nlp.foundations.convex_functions"]
+    },
+    {
+      "concept_id": "nlp.unconstrained.gradient_descent",
+      "name": "Gradient Descent Method",
+      "bloom_level": "apply",
+      "prerequisites": ["nlp.optimality.first_order"]
+    },
+    {
+      "concept_id": "nlp.unconstrained.line_search",
+      "name": "Line Search and Step Size",
+      "bloom_level": "apply",
+      "prerequisites": ["nlp.unconstrained.gradient_descent"]
+    },
+    {
+      "concept_id": "nlp.unconstrained.newton_method",
+      "name": "Newton's Method",
+      "bloom_level": "apply",
+      "prerequisites": ["nlp.unconstrained.gradient_descent", "nlp.foundations.hessian"]
+    },
+    {
+      "concept_id": "nlp.unconstrained.convergence",
+      "name": "Convergence Analysis",
+      "bloom_level": "analyze",
+      "prerequisites": ["nlp.unconstrained.newton_method"]
+    },
+    {
+      "concept_id": "nlp.constrained.lagrange",
+      "name": "Lagrange Multipliers",
+      "bloom_level": "apply",
+      "prerequisites": ["nlp.optimality.first_order"]
+    },
+    {
+      "concept_id": "nlp.constrained.kkt",
+      "name": "KKT Conditions",
+      "bloom_level": "apply",
+      "prerequisites": ["nlp.constrained.lagrange"]
+    },
+    {
+      "concept_id": "nlp.constrained.active_set",
+      "name": "Active Constraints",
+      "bloom_level": "analyze",
+      "prerequisites": ["nlp.constrained.kkt"]
+    },
+    {
+      "concept_id": "nlp.constrained.penalty_methods",
+      "name": "Penalty and Barrier Methods",
+      "bloom_level": "analyze",
+      "prerequisites": ["nlp.constrained.kkt"]
+    },
+    {
+      "concept_id": "nlp.constrained.sensitivity",
+      "name": "Multiplier Interpretation and Sensitivity",
+      "bloom_level": "analyze",
+      "prerequisites": ["nlp.constrained.kkt"]
+    }
+  ]
+}
