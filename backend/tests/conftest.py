@@ -23,6 +23,7 @@ os.environ.setdefault("LLM_PROVIDER", "gemini")
 # Patch create_engine BEFORE app.database is imported so the module-level
 # engine creation doesn't fail with PostgreSQL-only kwargs on SQLite.
 from unittest.mock import MagicMock, patch  # noqa: E402
+
 import sqlalchemy  # noqa: E402
 
 _original_create_engine = sqlalchemy.create_engine
@@ -39,16 +40,15 @@ def _patched_create_engine(url, **kwargs):
 patch("sqlalchemy.create_engine", _patched_create_engine).start()
 # Also patch the reference in sqlalchemy.engine.create
 import sqlalchemy.engine.create  # noqa: E402
+
 sqlalchemy.engine.create.create_engine = _patched_create_engine
 
 import pytest  # noqa: E402
+from app.auth import create_access_token, get_password_hash  # noqa: E402
+from app.database import Base, Student, UserRole, get_db  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine, event  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402
-
-from app.auth import create_access_token, get_password_hash  # noqa: E402
-from app.database import Base, Student, UserRole, get_db  # noqa: E402
-
 
 # ---------------------------------------------------------------------------
 # 2. SQLite in-memory engine & session
@@ -231,8 +231,8 @@ def admin_auth_headers(test_admin):
 @pytest.fixture(autouse=True)
 def reset_singletons():
     """Reset cached singletons so each test starts fresh."""
-    import app.services.llm_service as llm_mod
     import app.services.competency_service as comp_mod
+    import app.services.llm_service as llm_mod
 
     old_llm = llm_mod._llm_service
     old_tax = comp_mod._taxonomy_registry
