@@ -3,6 +3,8 @@ Unit tests for SpacedRepetitionService.calculate_next_review — SM-2 algorithm.
 """
 from unittest.mock import MagicMock
 
+import pytest
+
 from app.services.spaced_repetition_service import (
     DEFAULT_EASE_FACTOR,
     MIN_EASE_FACTOR,
@@ -60,7 +62,3 @@ class TestCalculateNextReview:
         delta_days = (next_review - now).total_seconds() / 86400
         # correct_count=0 → INITIAL_INTERVALS[0] = 1 day
         assert 0.9 < delta_days < 1.5
-
-
-# Need pytest import for approx
-import pytest # noqa: E402
