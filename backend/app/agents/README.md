@@ -258,3 +258,4 @@ class Topic(str, enum.Enum):
 - **v1.4.3** (2026-02-18): Record student's activity.
 - **v1.5.3** (2026-02-19): Spaced Repetition System.
 - **v1.5.4** (2026-02-25): Fixed some bugs.
+- **v1.6.4** (2026-02-27): Added testing implementation. 
