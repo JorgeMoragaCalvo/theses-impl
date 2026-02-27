@@ -57,3 +57,13 @@ jobs:
         run: |
           cd backend
           python -c "from app.main import app; print('✓ FastAPI app imports successfully')"
+
+      - name: Run tests
+        env:
+          DATABASE_URL: "sqlite:///test.db"
+          SECRET_KEY: "ci-test-secret-key"
+          GOOGLE_API_KEY: "fake-key-for-ci"
+          LLM_PROVIDER: "gemini"
+        run: |
+          cd backend
+          python -m pytest tests/ -v --tb=short
