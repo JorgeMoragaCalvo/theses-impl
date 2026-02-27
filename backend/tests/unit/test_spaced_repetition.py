@@ -63,4 +63,4 @@ class TestCalculateNextReview:
 
 
 # Need pytest import for approx
-import pytest
+import pytest # noqa: E402
