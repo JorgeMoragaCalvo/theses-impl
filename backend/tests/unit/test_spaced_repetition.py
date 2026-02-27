@@ -4,7 +4,6 @@ Unit tests for SpacedRepetitionService.calculate_next_review — SM-2 algorithm.
 from unittest.mock import MagicMock
 
 import pytest
-
 from app.services.spaced_repetition_service import (
     DEFAULT_EASE_FACTOR,
     MIN_EASE_FACTOR,
