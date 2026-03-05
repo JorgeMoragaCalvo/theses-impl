@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 """
 Pydantic models for API request/response validation.
@@ -172,8 +172,7 @@ class StudentResponse(BaseModel):
     updated_at: datetime
     last_login: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TokenResponse(BaseModel):
@@ -200,8 +199,7 @@ class MessageResponse(BaseModel):
     agent_type: str | None = None
     extra_data: dict[str, Any]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ConversationResponse(BaseModel):
@@ -215,8 +213,7 @@ class ConversationResponse(BaseModel):
     messages: list[MessageResponse] | None = None
     extra_data: dict[str, Any]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AssessmentResponse(EnumSerializerModel):
@@ -239,8 +236,7 @@ class AssessmentResponse(EnumSerializerModel):
     graded_at: datetime | None = None
     extra_data: dict[str, Any]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FeedbackResponse(BaseModel):
@@ -254,8 +250,7 @@ class FeedbackResponse(BaseModel):
     created_at: datetime
     extra_data: dict[str, Any]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Chat Models
@@ -309,8 +304,7 @@ class ConceptCompetencyResponse(EnumSerializerModel):
     correct_count: int | None = None
     last_attempt_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class StudentCompetenciesResponse(BaseModel):
@@ -416,8 +410,7 @@ class DueReviewResponse(EnumSerializerModel):
     next_review_at: datetime
     last_attempt_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DueReviewsResponse(BaseModel):
@@ -439,8 +432,7 @@ class StartReviewResponse(BaseModel):
     concept_name: str
     scheduled_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CompleteReviewRequest(BaseModel):
@@ -459,8 +451,7 @@ class CompleteReviewResponse(BaseModel):
     updated_mastery_level: str
     updated_ease_factor: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AnalyticsSummaryResponse(BaseModel):
