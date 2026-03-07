@@ -43,9 +43,10 @@ WORKDIR /app/backend
 # Copy pre-built Python packages from the builder stage
 COPY --from=builder /install /usr/local
 
-# Copy application code and data
+# Copy application code, config, and data
 COPY backend/app/  ./app/
 COPY backend/init_db.py ./
+COPY backend/gunicorn.conf.py ./
 COPY data/ /app/data/
 
 RUN chown -R appuser:appuser /app
@@ -57,4 +58,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["gunicorn", "-c", "gunicorn.conf.py", "app.main:app"]

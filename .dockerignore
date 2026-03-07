@@ -33,6 +33,9 @@ backend/tests/
 backend/pytest.ini
 backend/reset_db.py
 
+# SSL certificates (mounted as volume, not baked into images)
+nginx/ssl/*.pem
+
 # Misc
 .ruff_cache
 .claude
