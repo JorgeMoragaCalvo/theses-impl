@@ -10,7 +10,6 @@ import logging
 from typing import Any
 
 from langchain_core.tools import BaseTool
-from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
