@@ -2,8 +2,11 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -168,6 +171,18 @@ async def lifespan(_: FastAPI):
     # Shutdown
     logger.info("Shutting down AI Tutoring System...")
 
+# Rate limiter (per-IP by default)
+limiter = Limiter(key_func=get_remote_address)
+
+
+def _rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=429,
+        content={"detail": f"Rate limit exceeded: {exc.detail}"},
+    )
+
+
 # Create FastAPI app
 app = FastAPI(
     title="AI Tutoring System for Optimization Methods",
@@ -176,6 +191,10 @@ app = FastAPI(
     debug=settings.debug,
     lifespan=lifespan
 )
+
+# Register rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Configure CORS
 cors_origins = (
@@ -217,7 +236,8 @@ async def health_check(db: Session = Depends(get_db)):
 ALLOWED_EMAIL_DOMAIN = "usach.cl"
 
 @app.post("/auth/register", response_model=TokenResponse | RegistrationPendingResponse, status_code=status.HTTP_201_CREATED)
-async def register(user_data: StudentRegister, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+async def register(request: Request, user_data: StudentRegister, db: Session = Depends(get_db)):
     """Register a new user and return the JWT token."""
     # Check if email already exists
     existing_user = db.query(Student).filter(Student.email == user_data.email).first()
@@ -271,7 +291,8 @@ async def register(user_data: StudentRegister, db: Session = Depends(get_db)):
     )
 
 @app.post("/auth/login", response_model=TokenResponse)
-async def login(credentials: StudentLogin, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+async def login(request: Request, credentials: StudentLogin, db: Session = Depends(get_db)):
     """Login with email and password, return JWT token."""
     # Authenticate user
     student = authenticate_user(db, str(credentials.email), credentials.password)
@@ -408,7 +429,9 @@ async def list_students(
 
 # Chat endpoint (placeholder - will be implemented with agents)
 @app.post("/chat", response_model=ChatResponse)
+@limiter.limit("10/minute")
 async def chat(
+    request: Request,
     chat_request: ChatRequest,
     db: Session = Depends(get_db),
     current_user: Student = Depends(get_current_user)
@@ -725,7 +748,9 @@ async def get_assessment(
     return AssessmentResponse.model_validate(assessment)
 
 @app.post("/assessments/generate", response_model=AssessmentResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 async def generate_assessment(
+    request: Request,
     assessment_data: AssessmentGenerate,
     db: Session = Depends(get_db),
     current_user: Student = Depends(get_current_user)
@@ -840,8 +865,10 @@ async def get_exercise_preview(exercise_id: str):
 
 
 @app.post("/assessments/generate/from-exercise", response_model=AssessmentResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 async def generate_assessment_from_exercise(
-    request: ExerciseAssessmentGenerate,
+    request: Request,
+    exercise_data: ExerciseAssessmentGenerate,
     db: Session = Depends(get_db),
     current_user: Student = Depends(get_current_user)
 ):
@@ -856,17 +883,17 @@ async def generate_assessment_from_exercise(
 
     # Get registry to determine topic from exercise
     registry = get_exercise_registry()
-    topic = registry.get_topic_for_exercise(request.exercise_id)
+    topic = registry.get_topic_for_exercise(exercise_data.exercise_id)
 
     if topic is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Exercise '{request.exercise_id}' not found"
+            detail=f"Exercise '{exercise_data.exercise_id}' not found"
         )
 
     # Gating: check if the exercise is locked for this student
     exercises = registry.list_exercises_by_topic(topic)
-    target_exercise = next((ex for ex in exercises if ex["id"] == request.exercise_id), None)
+    target_exercise = next((ex for ex in exercises if ex["id"] == exercise_data.exercise_id), None)
     if target_exercise:
         target_rank = target_exercise.get("rank", 0)
         if target_rank > 0:
@@ -893,8 +920,8 @@ async def generate_assessment_from_exercise(
 
     try:
         generated = service.create_assessment(
-            exercise_id=request.exercise_id,
-            mode=request.mode
+            exercise_id=exercise_data.exercise_id,
+            mode=exercise_data.mode
         )
 
         question = generated.get("question", "")
@@ -935,8 +962,8 @@ async def generate_assessment_from_exercise(
     db.refresh(new_assessment)
 
     # Sanitize user-controlled values before logging to prevent log injection
-    safe_exercise_id = str(request.exercise_id).replace("\r", "").replace("\n", "")
-    safe_mode = str(request.mode).replace("\r", "").replace("\n", "")
+    safe_exercise_id = str(exercise_data.exercise_id).replace("\r", "").replace("\n", "")
+    safe_mode = str(exercise_data.mode).replace("\r", "").replace("\n", "")
 
     logger.info(
         f"Generated exercise assessment {new_assessment.id} for student {student_id} "
@@ -946,7 +973,9 @@ async def generate_assessment_from_exercise(
 
 
 @app.post("/assessments/{assessment_id}/submit", response_model=AssessmentResponse)
+@limiter.limit("10/minute")
 async def submit_assessment_answer(
+    request: Request,
     assessment_id: int,
     answer_data: AssessmentAnswerSubmit,
     db: Session = Depends(get_db),
