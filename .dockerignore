@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+.venv
+*.egg-info
+.pytest_cache
+.mypy_cache
+.coverage
+htmlcov/
+dist/
+build/
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Environment
+.env
+
+# Documentation (not needed in image)
+*.md
+docs/
+
+# Tests (not needed in production image)
+backend/tests/
+backend/pytest.ini
+backend/reset_db.py
+
+# SSL certificates (mounted as volume, not baked into images)
+nginx/ssl/*.pem
+
+# Misc
+.ruff_cache
+.claude

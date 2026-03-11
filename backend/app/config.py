@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     chroma_persist_directory: str = "./chroma_db"
     chroma_collection_name: str = "course_materials"
 
+    # CORS Configuration
+    cors_origins: str = ""  # Comma-separated allowed origins (e.g., "https://example.com,https://app.example.com")
+
     # Application Configuration
     version: str = "1.6.4"
     debug: bool = True

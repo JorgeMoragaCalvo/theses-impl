@@ -96,7 +96,9 @@ class GradingService:
                 # Conditionally updates student competencies based on assessment results
                 try:
                     from .competency_service import get_taxonomy_registry
+                    from .spaced_repetition_service import get_spaced_repetition_service
                     registry = get_taxonomy_registry()
+                    srs = get_spaced_repetition_service(self.db)
                     valid_concepts = [c for c in concepts_tested if registry.concept_exists(c)]
                     performance_score = score / assessment.max_score if assessment.max_score else 0.0
                     is_correct = performance_score >= 0.6
@@ -107,6 +109,11 @@ class GradingService:
                                 concept_id=concept_id,
                                 is_correct=is_correct,
                                 performance_score=performance_score,
+                            )
+                            # Schedule first spaced repetition review for newly encountered concepts
+                            srs.schedule_initial_review(
+                                student_id=assessment.student_id,
+                                concept_id=concept_id,
                             )
                         except Exception as e:
                             logger.error(f"Error updating competency for {concept_id}: {e}")
