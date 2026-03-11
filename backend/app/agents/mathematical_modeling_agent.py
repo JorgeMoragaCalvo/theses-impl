@@ -536,9 +536,10 @@ Si permites violación con probabilidad ≤ α:
 
         # Generate response with tools
         try:
+            all_tools = self.tools + context.get("tools", [])
             response = self.llm_service.generate_response_with_tools(
                 messages=components["messages"],
-                tools=self.tools,
+                tools=all_tools,
                 system_prompt=components["system_prompt"]
             )
         except Exception as e:
@@ -585,9 +586,10 @@ Si permites violación con probabilidad ≤ α:
 
         # Generate response with tools (async)
         try:
+            all_tools = self.tools + context.get("tools", [])
             response = await self.llm_service.a_generate_response_with_tools(
                 messages=components["messages"],
-                tools=self.tools,
+                tools=all_tools,
                 system_prompt=components["system_prompt"]
             )
         except Exception as e:

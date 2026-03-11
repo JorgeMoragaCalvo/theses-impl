@@ -85,6 +85,7 @@ from .services.exercise_progress_service import (
 )
 from .services.grading_service import get_grading_service
 from .services.spaced_repetition_service import get_spaced_repetition_service
+from .tools.spaced_repetition_tool import SpacedRepetitionReviewTool
 
 """
 FastAPI main application entry point.
@@ -477,6 +478,12 @@ async def chat(
         # Fetch due spaced-repetition reviews and attach to context
         srs = get_spaced_repetition_service(db)
         context["due_reviews"] = srs.get_due_reviews(student_id, topic=topic_value)
+
+        # Provide spaced repetition tool so the agent can record review results
+        if context["due_reviews"]:
+            context["tools"] = [
+                SpacedRepetitionReviewTool(db=db, student_id=student_id)
+            ]
 
         # Generate AI response using the selected agent
         response_text = agent.generate_response(

@@ -688,10 +688,18 @@ class BaseAgent(ABC):
     ) -> str:
         """Call LLM, handle errors, and postprocess the response (sync)."""
         try:
-            response = self.llm_service.generate_response(
-                messages=components["messages"],
-                system_prompt=components["system_prompt"]
-            )
+            context_tools = context.get("tools", [])
+            if context_tools:
+                response = self.llm_service.generate_response_with_tools(
+                    messages=components["messages"],
+                    tools=context_tools,
+                    system_prompt=components["system_prompt"]
+                )
+            else:
+                response = self.llm_service.generate_response(
+                    messages=components["messages"],
+                    system_prompt=components["system_prompt"]
+                )
         except Exception as e:
             logger.error(f"Error in {self.agent_name} response generation: {str(e)}")
             return format_error_message(e)
@@ -712,10 +720,18 @@ class BaseAgent(ABC):
     ) -> str:
         """Call LLM, handle errors, and postprocess the response (async)."""
         try:
-            response = await self.llm_service.a_generate_response(
-                messages=components["messages"],
-                system_prompt=components["system_prompt"]
-            )
+            context_tools = context.get("tools", [])
+            if context_tools:
+                response = await self.llm_service.a_generate_response_with_tools(
+                    messages=components["messages"],
+                    tools=context_tools,
+                    system_prompt=components["system_prompt"]
+                )
+            else:
+                response = await self.llm_service.a_generate_response(
+                    messages=components["messages"],
+                    system_prompt=components["system_prompt"]
+                )
         except Exception as e:
             logger.error(f"Error in {self.agent_name} async response generation: {str(e)}")
             return format_error_message(e)
