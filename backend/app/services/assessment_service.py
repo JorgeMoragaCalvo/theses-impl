@@ -4,7 +4,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from ..database import Topic
+from ..enums import Topic
 from ..services.conversation_service import ConversationService
 from ..services.llm_service import get_llm_service
 from .llm_response_parser import parse_llm_json_response

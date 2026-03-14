@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 from ..database import (
     ReviewSession,
     StudentCompetency,
-    Topic,
 )
+from ..enums import Topic
 from .competency_service import CompetencyService
 
 """

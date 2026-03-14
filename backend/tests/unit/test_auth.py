@@ -69,7 +69,8 @@ class TestAuthenticateUser:
 
     def test_inactive_user(self, test_db):
         """Inactive user cannot authenticate even with the correct password."""
-        from app.database import Student, UserRole
+        from app.database import Student
+        from app.enums import UserRole
         inactive = Student(
             name="Inactive",
             email="inactive@usach.cl",

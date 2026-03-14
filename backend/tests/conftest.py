@@ -45,7 +45,8 @@ sqlalchemy.engine.create.create_engine = _patched_create_engine
 
 import pytest  # noqa: E402
 from app.auth import create_access_token, get_password_hash  # noqa: E402
-from app.database import Base, Student, UserRole, get_db  # noqa: E402
+from app.database import Base, Student, get_db  # noqa: E402
+from app.enums import UserRole  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine, event  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402

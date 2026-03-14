@@ -4,7 +4,8 @@ Integration tests for assessment endpoints.
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
-from app.database import Assessment, Topic
+from app.database import Assessment
+from app.enums import Topic
 
 
 class TestGenerateAssessment:

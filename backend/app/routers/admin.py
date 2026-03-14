@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 
 from ..auth import get_current_admin_user
 from ..config import settings
-from ..database import Assessment, Conversation, Student, UserRole, get_db
+from ..database import Assessment, Conversation, Student, get_db
+from ..enums import UserRole
 from ..models import AnalyticsSummaryResponse, StudentResponse
 from ..services.analytics_service import get_analytics_service
 

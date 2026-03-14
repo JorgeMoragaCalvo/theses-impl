@@ -4,7 +4,8 @@ from datetime import date, datetime, timedelta, timezone
 from sqlalchemy import Date, cast, func
 from sqlalchemy.orm import Session
 
-from ..database import ActivityEvent, EventCategory
+from ..database import ActivityEvent
+from ..enums import EventCategory
 from ..models import (
     ActivityEventCreate,
     AnalyticsSummaryResponse,

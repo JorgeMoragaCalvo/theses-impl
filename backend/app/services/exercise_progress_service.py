@@ -12,7 +12,8 @@ from typing import Any
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
-from ..database import Assessment, Topic
+from ..database import Assessment
+from ..enums import Topic
 from .exercise_assessment_service import get_exercise_registry
 
 logger = logging.getLogger(__name__)
