@@ -29,15 +29,13 @@ from .database import (
     Assessment,
     Conversation,
     Feedback,
-    GradingSource,
     Message,
     SessionLocal,
     Student,
-    Topic,
-    UserRole,
     get_db,
     init_db,
 )
+from .enums import GradingSource, Topic, UserRole
 from .models import (
     ActivityEventBatchCreate,
     AssessmentAnswerSubmit,
@@ -95,11 +93,36 @@ FastAPI main application entry point.
 AI Tutoring System for Optimization Methods.
 """
 
-logging.basicConfig(
-    level=settings.log_level.upper(),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+if settings.debug:
+    logging.basicConfig(
+        level=settings.log_level.upper(),
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+else:
+    from pythonjsonlogger import json
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(json.JsonFormatter(
+        "%(asctime)s %(name)s %(levelname)s %(message)s",
+        rename_fields={"asctime": "timestamp", "levelname": "level", "name": "logger"},
+    ))
+    logging.root.handlers = [handler]
+    logging.root.setLevel(settings.log_level.upper())
+
 logger = logging.getLogger(__name__)
+
+# --- Sentry error tracking (opt-in via SENTRY_DSN) ---
+if settings.sentry_dsn:
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        traces_sample_rate=0.0 if settings.debug else settings.sentry_traces_sample_rate,
+        send_default_pii=False,
+        environment="development" if settings.debug else "production",
+        release=settings.version,
+    )
+    logger.info("Sentry initialized (environment=%s)", "development" if settings.debug else "production")
 
 # Agent Registry - Maps topic names to agent getter functions
 AGENT_REGISTRY = {
@@ -213,6 +236,21 @@ app.add_middleware(
 
 # Include routers
 app.include_router(admin.router)
+
+# --- Prometheus metrics (opt-in via ENABLE_PROMETHEUS) ---
+if settings.enable_prometheus:
+    from prometheus_fastapi_instrumentator import Instrumentator
+
+    Instrumentator(
+        should_group_status_codes=False,
+        should_ignore_untemplated=True,
+        excluded_handlers=["/health", "/metrics"],
+        inprogress_name="http_requests_inprogress",
+        inprogress_labels=True,
+    ).instrument(app).expose(
+        app, endpoint="/metrics", include_in_schema=False, should_gzip=True
+    )
+    logger.info("Prometheus metrics enabled at /metrics")
 
 # Health check endpoint
 @app.get("/health", response_model=HealthResponse)
@@ -502,7 +540,7 @@ async def chat(
         srs = get_spaced_repetition_service(db)
         context["due_reviews"] = srs.get_due_reviews(student_id, topic=topic_value)
 
-        # Provide spaced repetition tool so the agent can record review results
+        # Provide a spaced repetition tool so the agent can record review results
         if context["due_reviews"]:
             context["tools"] = [
                 SpacedRepetitionReviewTool(db=db, student_id=student_id)
