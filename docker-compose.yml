@@ -36,6 +36,8 @@ services:
       DEBUG: ${DEBUG:-false}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      ENABLE_PROMETHEUS: ${ENABLE_PROMETHEUS:-true}
     env_file:
       - .env
 
