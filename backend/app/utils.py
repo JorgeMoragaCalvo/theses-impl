@@ -5,6 +5,11 @@ from typing import Any
 Utility functions for the AI Tutoring System.
 """
 
+
+def sanitize_log_value(value: Any) -> str:
+    """Sanitize a value for safe logging (prevent log injection)."""
+    return str(value).replace("\r", "").replace("\n", "")
+
 def format_message_for_llm(role: str, content: str) -> dict[str, str]:
     """
     Format a message for LLM consumption.
@@ -309,7 +314,7 @@ def get_explanation_strategies_from_context(context: dict[str, Any]) -> list[str
     Returns:
         List of strategy names used in recent messages
     """
-    strategies = []
+    # strategies = []
 
     # Check conversation history for strategy metadata
     history = context.get("conversation_history", [])
