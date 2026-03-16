@@ -7,7 +7,8 @@ from typing import Any
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from ..database import ConceptHierarchy, MasteryLevel, StudentCompetency, Topic
+from ..database import ConceptHierarchy, StudentCompetency
+from ..enums import MasteryLevel, Topic
 
 """
 Competency Service - Tracks student mastery of individual concepts.

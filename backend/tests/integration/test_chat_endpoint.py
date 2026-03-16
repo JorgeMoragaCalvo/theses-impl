@@ -8,7 +8,7 @@ class TestChatEndpoint:
 
     def test_chat_creates_conversation(self, client, auth_headers):
         """POST /chat → creates a new conversation and returns conversation_id."""
-        with patch("app.main.get_agent_for_topic") as mock_get_agent:
+        with patch("app.routers.chat.get_agent_for_topic") as mock_get_agent:
             mock_agent = MagicMock()
             mock_agent.generate_response.return_value = "Hello student!"
             mock_agent.agent_type = "linear_programming"
@@ -25,7 +25,7 @@ class TestChatEndpoint:
 
     def test_chat_returns_response(self, client, auth_headers):
         """Response includes message content."""
-        with patch("app.main.get_agent_for_topic") as mock_get_agent:
+        with patch("app.routers.chat.get_agent_for_topic") as mock_get_agent:
             mock_agent = MagicMock()
             mock_agent.generate_response.return_value = "The simplex method is..."
             mock_agent.agent_type = "linear_programming"

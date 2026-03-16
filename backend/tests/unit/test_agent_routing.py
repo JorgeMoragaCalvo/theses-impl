@@ -2,7 +2,7 @@
 Unit tests for agent registry and routing (app.main).
 """
 
-from app.main import AGENT_REGISTRY, get_agent_for_topic
+from app.routers.chat import AGENT_REGISTRY, get_agent_for_topic
 
 
 class TestAgentRegistry:

@@ -1,7 +1,7 @@
 """
 Unit tests for CompetencyService — EWA mastery calculation (needs test_db).
 """
-from app.database import MasteryLevel
+from app.enums import MasteryLevel
 from app.services.competency_service import (
     MASTERY_ALPHA,
     MIN_ATTEMPTS_FOR_MASTERED,
@@ -28,7 +28,8 @@ class TestUpdateCompetency:
         svc = CompetencyService(test_db)
         # Need a student
         from app.auth import get_password_hash
-        from app.database import Student, UserRole
+        from app.database import Student
+        from app.enums import UserRole
         student = Student(
             name="Comp Student",
             email="comp@usach.cl",
@@ -55,7 +56,8 @@ class TestUpdateCompetency:
         """Verify EWA: new = ALPHA * perf + (1 - ALPHA) * old."""
         svc = CompetencyService(test_db)
         from app.auth import get_password_hash
-        from app.database import Student, UserRole
+        from app.database import Student
+        from app.enums import UserRole
         student = Student(
             name="EWA Student",
             email="ewa@usach.cl",
@@ -78,7 +80,8 @@ class TestUpdateCompetency:
         """High score with too few attempts should NOT reach MASTERED."""
         svc = CompetencyService(test_db)
         from app.auth import get_password_hash
-        from app.database import Student, UserRole
+        from app.database import Student
+        from app.enums import UserRole
         student = Student(
             name="Guard Student",
             email="guard@usach.cl",

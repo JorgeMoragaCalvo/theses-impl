@@ -9,7 +9,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-tutoring_db}"]
       interval: 10s
       timeout: 5s
       start_period: 30s
@@ -36,6 +36,8 @@ services:
       DEBUG: ${DEBUG:-false}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      ENABLE_PROMETHEUS: ${ENABLE_PROMETHEUS:-true}
     env_file:
       - .env
 
@@ -69,6 +71,37 @@ services:
       - "${HTTPS_PORT:-443}:443"
     volumes:
       - ./nginx/ssl:/etc/nginx/ssl:ro
+
+  backup:
+    build:
+      context: .
+      dockerfile: scripts/backup/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-0 2 * * *}
+      BACKUP_RUN_ON_STARTUP: ${BACKUP_RUN_ON_STARTUP:-false}
+      BACKUP_DIR: /backups
+      BACKUP_RETENTION_COUNT: ${BACKUP_RETENTION_COUNT:-7}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+      BACKUP_MAX_AGE_SECONDS: ${BACKUP_MAX_AGE_SECONDS:-172800}
+      RESTORE_SMOKE_TEST_SCHEDULE: ${RESTORE_SMOKE_TEST_SCHEDULE:-30 3 * * 0}
+      RESTORE_SMOKE_DB_PREFIX: ${RESTORE_SMOKE_DB_PREFIX:-restore_smoke}
+      RESTORE_SMOKE_KEEP_DB: ${RESTORE_SMOKE_KEEP_DB:-false}
+      RESTORE_SMOKE_TIMEOUT_SECONDS: ${RESTORE_SMOKE_TIMEOUT_SECONDS:-600}
+      DB_HOST: db
+      DB_PORT: 5432
+      CHROMA_SOURCE_DIR: ${CHROMA_SOURCE_DIR:-/data/chroma_db}
+      CHROMA_TARGET_DIR: ${CHROMA_TARGET_DIR:-/data/chroma_db}
+    volumes:
+      - ./backups:/backups
+      - ./chroma_db:/data/chroma_db:ro
+    profiles:
+      - backup
 
 volumes:
   pgdata:

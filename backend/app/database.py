@@ -1,4 +1,3 @@
-import enum
 from collections.abc import Generator
 from datetime import datetime, timezone
 
@@ -18,6 +17,14 @@ from sqlalchemy import (
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from .config import settings
+from .enums import (  # noqa: F401
+    EventCategory,
+    GradingSource,
+    KnowledgeLevel,
+    MasteryLevel,
+    Topic,
+    UserRole,
+)
 
 """
 Database configuration and session management for PostgreSQL.
@@ -37,59 +44,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Create the Base class for models
 Base = declarative_base()
-
-
-# Enums
-class KnowledgeLevel(str, enum.Enum):
-    """Student knowledge level for each topic."""
-    BEGINNER = "beginner"
-    INTERMEDIATE = "intermediate"
-    ADVANCED = "advanced"
-
-
-class Topic(str, enum.Enum):
-    """Optimization method topics."""
-    OPERATIONS_RESEARCH = "operations_research"
-    MATHEMATICAL_MODELING = "mathematical_modeling"
-    LINEAR_PROGRAMMING = "linear_programming"
-    INTEGER_PROGRAMMING = "integer_programming"
-    NONLINEAR_PROGRAMMING = "nonlinear_programming"
-
-
-class UserRole(str, enum.Enum):
-    """User role for authorization."""
-    USER = "user"
-    ADMIN = "admin"
-
-
-class GradingSource(str, enum.Enum):
-    """Source of assessment grading."""
-    AUTO = "auto"
-    ADMIN = "admin"
-
-
-class MasteryLevel(str, enum.Enum):
-    """Mastery level for a concept based on a mastery score."""
-    NOT_STARTED = "not_started"
-    NOVICE = "novice"           # 0.0 - 0.30
-    DEVELOPING = "developing"   # 0.30 - 0.60
-    PROFICIENT = "proficient"   # 0.60 - 0.85
-    MASTERED = "mastered"       # 0.85+
-
-
-class EventCategory(str, enum.Enum):
-    """Category of activity event for analytics."""
-    PAGE_VISIT = "page_visit"
-    PAGE_EXIT = "page_exit"
-    WIDGET_INTERACTION = "widget_interaction"
-    CHAT_MESSAGE = "chat_message"
-    ASSESSMENT_GENERATE = "assessment_generate"
-    ASSESSMENT_SUBMIT = "assessment_submit"
-    TOPIC_CHANGE = "topic_change"
-    SESSION_START = "session_start"
-    SESSION_END = "session_end"
-    IDLE_START = "idle_start"
-    IDLE_END = "idle_end"
 
 
 # Database Models

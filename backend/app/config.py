@@ -53,6 +53,11 @@ class Settings(BaseSettings):
     debug: bool = True
     log_level: str = "INFO"
 
+    # Monitoring & Observability
+    sentry_dsn: str = ""
+    sentry_traces_sample_rate: float = 0.1
+    enable_prometheus: bool = True
+
     # Backend API Configuration
     backend_host: str = "0.0.0.0"
     backend_port: int = 8000

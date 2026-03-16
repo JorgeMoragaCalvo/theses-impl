@@ -6,12 +6,189 @@ The `routers/` directory contains FastAPI APIRouter instances that group related
 
 ## Contents
 
-| File          | Description                                                    |
-|---------------|----------------------------------------------------------------|
-| `admin.py`    | Admin-only endpoints for user management, settings & analytics |
-| `__init__.py` | Package initialization                                         |
+| File              | Description                                                    |
+|-------------------|----------------------------------------------------------------|
+| `admin.py`        | Admin-only endpoints for user management, settings & analytics |
+| `auth.py`         | Registration, login, current user                              |
+| `students.py`     | Student profile CRUD & progress                                |
+| `chat.py`         | Chat with AI tutor, conversation history                       |
+| `feedback.py`     | Message feedback submission                                    |
+| `analytics.py`    | Activity event recording                                       |
+| `assessments.py`  | Assessment generation, submission & grading                    |
+| `exercises.py`    | Exercise listing & progress                                    |
+| `competencies.py` | Concept mastery & recommendations                              |
+| `reviews.py`      | Spaced repetition review sessions                              |
+| `__init__.py`     | Package initialization                                         |
+
+---
+
+## Auth Router
+
+**Prefix:** `/auth` | **Tags:** `auth`
+
+| Method | Endpoint         | Description                    | Auth   |
+|--------|------------------|--------------------------------|--------|
+| POST   | `/auth/register` | Register new user              | Public |
+| POST   | `/auth/login`    | Login with email/password      | Public |
+| GET    | `/auth/me`       | Get current authenticated user | User   |
+
+### Business Logic
+
+- **Registration**: Rate limited (5/min). Users with `@usach.cl` email are auto-activated; others require admin approval. Initializes knowledge levels for all five topics as "beginner."
+- **Login**: Rate limited (5/min). Updates `last_login` timestamp. Returns JWT token.
+- **Me**: Returns authenticated user's profile data.
+
+---
+
+## Students Router
+
+**Prefix:** `/students` | **Tags:** `students`
+
+| Method | Endpoint                          | Description                        | Auth       |
+|--------|-----------------------------------|------------------------------------|------------|
+| POST   | `/students`                       | Create new student profile         | Public     |
+| GET    | `/students`                       | List all students                  | Public     |
+| GET    | `/students/{student_id}`          | Get student profile by ID          | Self/Admin |
+| PUT    | `/students/{student_id}`          | Update student profile             | Self       |
+| GET    | `/students/{student_id}/progress` | Get comprehensive progress metrics | Self/Admin |
+
+### Business Logic
+
+- **Create**: Checks email uniqueness. Initializes default knowledge levels if not provided.
+- **Update**: Partial updates supported (name, email, knowledge_levels, preferences). Users can only update their own profile.
+- **Progress**: Aggregates conversation-based metrics via `conversation_service.compute_student_progress()`.
+
+---
+
+## Chat Router
+
+**Prefix:** none | **Tags:** `chat`
+
+| Method | Endpoint                               | Description                         | Auth       |
+|--------|----------------------------------------|-------------------------------------|------------|
+| POST   | `/chat`                                | Send message & get AI response      | User       |
+| GET    | `/conversations/{conversation_id}`     | Get full conversation with messages | Self/Admin |
+| GET    | `/students/{student_id}/conversations` | List conversations for a student    | Self/Admin |
+
+### Business Logic
+
+- **Chat**: Rate limited (10/min). Creates or retrieves conversation based on `conversation_id`. Selects agent by topic from `AGENT_REGISTRY`. Builds student context with adaptive learning data, injects spaced repetition reviews if due. Stores both user and assistant messages.
+- **Agent selection**: `operations_research`, `linear_programming`, `mathematical_modeling`, `nonlinear_programming`, `integer_programming`. Default fallback: Linear Programming Agent.
+
+---
+
+## Feedback Router
+
+**Prefix:** none | **Tags:** `feedback`
+
+| Method | Endpoint    | Description                      | Auth |
+|--------|-------------|----------------------------------|------|
+| POST   | `/feedback` | Create feedback for a message    | User |
+
+### Business Logic
+
+- Verifies a message exists before creating feedback (404 if not found).
+- Accepts `message_id`, `rating`, `is_helpful`, and `comment`.
+- Returns 201 on success.
+
+---
+
+## Analytics Router
+
+**Prefix:** `/analytics` | **Tags:** `analytics`
+
+| Method | Endpoint            | Description                        | Auth |
+|--------|---------------------|------------------------------------|------|
+| POST   | `/analytics/events` | Record batch of activity events    | User |
+
+### Business Logic
+
+- Accepts `ActivityEventBatchCreate` (batch of events).
+- Returns count of recorded events: `{"recorded": count}`.
+- Returns 201 on success.
+
+---
+
+## Assessments Router
+
+**Prefix:** none | **Tags:** `assessments`
+
+| Method | Endpoint                                  | Description                            | Auth       |
+|--------|-------------------------------------------|----------------------------------------|------------|
+| GET    | `/students/{student_id}/assessments`      | List assessments for a student         | Self/Admin |
+| GET    | `/assessments/{assessment_id}`            | Get specific assessment by ID          | Self/Admin |
+| POST   | `/assessments/generate`                   | Generate personalized assessment (LLM) | User       |
+| POST   | `/assessments/generate/from-exercise`     | Generate assessment from exercise      | User       |
+| POST   | `/assessments/{assessment_id}/submit`     | Submit answer & auto-grade             | User       |
+| POST   | `/assessments/{assessment_id}/grade`      | Admin override grading                 | Admin      |
+
+### Business Logic
+
+- **List**: Filterable by `topic`, supports `skip`/`limit` pagination.
+- **Generate**: Rate limited (5/min). Uses LLM to create personalized assessment. Max score: 7.0 (Chilean scale).
+- **Generate from exercise**: Rate limited (5/min). Supports `practice` (use directly) and `similar` (LLM generates similar) modes. Exercise gating enforces sequential progression — 403 if prerequisite exercises not completed.
+- **Submit**: Rate limited (10/min). Prevents resubmission. Auto-grades via `grading_service` with `GradingSource.AUTO`.
+- **Admin grade**: Requires assessment to be submitted first. Sets `GradingSource.ADMIN` and tracks override timestamp.
+
+---
+
+## Exercises Router
+
+**Prefix:** `/exercises` | **Tags:** `exercises`
+
+| Method | Endpoint                    | Description                                   | Auth   |
+|--------|-----------------------------|-----------------------------------------------|--------|
+| GET    | `/exercises`                | List available exercises                      | Public |
+| GET    | `/exercises/progress`       | Exercises with locked/completed status        | User   |
+| GET    | `/exercises/{exercise_id}`  | Get exercise preview (statement, no solution) | Public |
+
+### Business Logic
+
+- **List**: Filterable by `topic`. Returns exercises from `exercise_registry`.
+- **Progress**: Enriches exercises with student-specific locked/completed status via `get_exercises_with_progress()`.
+- **Preview**: Returns an exercise statement only (no solution). 404 if not found.
+
+---
+
+## Competencies Router
+
+**Prefix:** none | **Tags:** `competencies`
+
+| Method | Endpoint                                                  | Description                    | Auth       |
+|--------|-----------------------------------------------------------|--------------------------------|------------|
+| GET    | `/students/{student_id}/competencies`                     | Get competency records         | Self/Admin |
+| GET    | `/students/{student_id}/mastery/{topic}`                  | Get mastery summary for topic  | Self/Admin |
+| GET    | `/students/{student_id}/recommended-concepts/{topic}`     | Get recommended next concepts  | Self/Admin |
+
+### Business Logic
+
+- **Competencies**: Requires `topic` query parameter (400 if missing).
+- **Mastery**: Returns mastery summary for a specific topic using Bloom taxonomy concept hierarchy.
+- **Recommendations**: Suggests next concepts to learn based on the current mastery state.
+
+---
+
+## Reviews Router
+
+**Prefix:** none | **Tags:** `reviews`
+
+| Method | Endpoint                                  | Description                                | Auth       |
+|--------|-------------------------------------------|--------------------------------------------|------------|
+| GET    | `/students/{student_id}/reviews/due`      | Get concepts due for review                | Self/Admin |
+| POST   | `/students/{student_id}/reviews/start`    | Start a review session for a concept       | Self       |
+| POST   | `/reviews/{review_id}/complete`           | Complete review with quality rating (0-5)  | Owner      |
+
+### Business Logic
+
+- **Due reviews**: Filterable by `topic`, `limit` defaults to 5. Uses SM-2 spaced repetition algorithm.
+- **Start review**: Verifies competency exists (404 if not found). Returns 201 with session details.
+- **Complete review**: Validates review exists and is not yet completed. Accepts `performance_quality` (0–5) and `response_time_seconds`. Returns updated mastery score, mastery level, and ease factor.
+
+---
 
 ## Admin Router
+
+**Prefix:** `/admin` | **Tags:** `admin`
 
 ### User Management Endpoints
 
@@ -107,41 +284,27 @@ Returns a combined `AnalyticsSummaryResponse` with all analytics in one call:
 
 Each subfield matches the response of its individual endpoint (`/analytics/dau`, `/analytics/sessions`, etc.).
 
-## Business Logic
-
-### User Management
+### Admin Business Logic
 
 - **List users**: Returns all users with computed progress metrics (conversation count, assessment stats). Supports `skip` and `limit` pagination parameters.
-- **User status**: Admins cannot deactivate their own account (self-protection)
+- **User status**: Admins cannot deactivate their own account (self-protection).
 - **Role change**: Admins cannot change their own role (prevents lockout). Only `"user"` and `"admin"` roles are valid.
+- **Statistics**: Computed in real-time from the database (total/active user counts, conversation/assessment totals, average scores).
+- **Analytics**: Computed in real-time via `AnalyticsService`. All endpoints accept a `days` parameter (default: `30`).
 
-### Statistics
+---
 
-System stats are computed in real-time from the database:
-- Total and active user counts
-- Conversation and assessment totals
-- Average assessment scores (excluding ungraded)
+## Security
 
-### Analytics
-
-Analytics data is computed in real-time via `AnalyticsService`:
-- **DAU** – Daily active user counts over time
-- **Session duration** – Average session length per day
-- **Peak hours** – Most active hours of the day
-- **Page popularity** – Most visited pages
-- **Topic popularity** – Most studied topics
-- **Engagement** - User engagement metrics
-- **Summary** – All of the above in a single response
-
-All analytics endpoints accept a `days` parameter (default: `30`) to control the lookback window.
-
-### Security
-
-All admin endpoints require:
+All endpoints (except public ones) require:
 1. Valid JWT token
-2. User role = `admin`
+2. Appropriate user role
 
-Enforced via `Depends(get_current_admin_user)` dependency.
+**Auth levels:**
+- **Public**: No authentication required
+- **User**: Valid JWT token via `Depends(get_current_user)`
+- **Self/Admin**: Authenticated user can only access their own data; admins can access any
+- **Admin**: User role = `admin` via `Depends(get_current_admin_user)`
 
 Admin actions are logged with sanitized values (log injection prevention via `_sanitize_log_value()`).
 

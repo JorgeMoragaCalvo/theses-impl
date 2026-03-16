@@ -7,9 +7,11 @@ from sqlalchemy.orm import Session
 
 from ..auth import get_current_admin_user
 from ..config import settings
-from ..database import Assessment, Conversation, Student, UserRole, get_db
+from ..database import Assessment, Conversation, Student, get_db
+from ..enums import UserRole
 from ..models import AnalyticsSummaryResponse, StudentResponse
 from ..services.analytics_service import get_analytics_service
+from ..utils import sanitize_log_value as _sanitize_log_value
 
 """
 Admin-only endpoints for user and system management.
@@ -17,10 +19,6 @@ All endpoints require admin role.
 """
 
 logger = logging.getLogger(__name__)
-
-
-def _sanitize_log_value(value: Any) -> str:
-    return str(value).replace("\r", "").replace("\n", "")
 
 
 router = APIRouter(prefix="/admin", tags=["admin"])

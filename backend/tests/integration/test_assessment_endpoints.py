@@ -4,14 +4,15 @@ Integration tests for assessment endpoints.
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
-from app.database import Assessment, Topic
+from app.database import Assessment
+from app.enums import Topic
 
 
 class TestGenerateAssessment:
 
     def test_generate_assessment(self, client, auth_headers, test_db, test_user):
         """POST /assessments/generate → 201."""
-        with patch("app.main.get_assessment_service") as mock_svc:
+        with patch("app.routers.assessments.get_assessment_service") as mock_svc:
             mock_instance = MagicMock()
             mock_instance.generate_personalized_assessment.return_value = {
                 "question": "What is LP?",
@@ -52,7 +53,7 @@ class TestSubmitAssessment:
         """POST /assessments/{id}/submit → graded response."""
         assessment = self._create_assessment(test_db, test_user.id)
 
-        with patch("app.main.get_grading_service") as mock_gs:
+        with patch("app.routers.assessments.get_grading_service") as mock_gs:
             mock_grading = MagicMock()
             mock_grading.grade_assessment.return_value = (5.0, "Good work")
             mock_gs.return_value = mock_grading
