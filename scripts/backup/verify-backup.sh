@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-COMPOSE_FILE="$PROJECT_ROOT/docker-compose.yml"
+umask 077
+
+DB_HOST="${DB_HOST:-db}"
+DB_PORT="${DB_PORT:-5432}"
+DB_NAME="${POSTGRES_DB:-}"
+DB_USER="${POSTGRES_USER:-}"
+DB_PASSWORD="${POSTGRES_PASSWORD:-}"
 
 log() {
   printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
@@ -22,18 +26,12 @@ file_size_bytes() {
   stat -c%s "$1" 2>/dev/null || stat -f%z "$1" 2>/dev/null
 }
 
-ensure_db_running() {
-  if ! docker compose -f "$COMPOSE_FILE" ps db --format '{{.State}}' 2>/dev/null | grep -qi '^running$'; then
-    die "db container is not running (needed for pg_restore validation)"
-  fi
-}
-
 verify_checksum_if_present() {
   local file="$1"
   local checksum_file="${file}.sha256"
 
   if [ -f "$checksum_file" ]; then
-    sha256sum -c "$checksum_file" >/dev/null
+    sha256sum -c "$checksum_file" >/dev/null || die "Checksum verification failed: $checksum_file"
     log "Checksum OK: $checksum_file"
   else
     log "Checksum file not found, skipping checksum verification: $checksum_file"
@@ -42,33 +40,31 @@ verify_checksum_if_present() {
 
 verify_dump_contents() {
   local dump_file="$1"
-
-  docker compose -f "$COMPOSE_FILE" exec -T db \
-    sh -lc 'cat > /tmp/verify.dump && pg_restore -l /tmp/verify.dump && rm -f /tmp/verify.dump' \
-    < "$dump_file"
+  pg_restore -l "$dump_file"
 }
 
-require_command docker
-require_command sha256sum
-require_command stat
+main() {
+  require_command pg_restore
+  require_command sha256sum
+  require_command stat
 
-DUMP_FILE="${1:-}"
+  local dump_file="${1:-}"
+  [ -n "$dump_file" ] || die "Usage: $0 <backup-file.dump>"
+  [ -f "$dump_file" ] || die "File not found: $dump_file"
 
-[ -n "$DUMP_FILE" ] || die "Usage: $0 <backup-file.dump>"
-[ -f "$DUMP_FILE" ] || die "File not found: $DUMP_FILE"
+  local file_size
+  file_size="$(file_size_bytes "$dump_file")"
+  [ "$file_size" -gt 0 ] || die "File is empty: $dump_file"
 
-FILE_SIZE="$(file_size_bytes "$DUMP_FILE")"
-[ "$FILE_SIZE" -gt 0 ] || die "File is empty: $DUMP_FILE"
+  log "File size: $file_size bytes"
+  verify_checksum_if_present "$dump_file"
 
-log "File size: $FILE_SIZE bytes"
-verify_checksum_if_present "$DUMP_FILE"
-ensure_db_running
+  echo
+  echo 'Backup contents:'
+  echo '================'
+  verify_dump_contents "$dump_file" || die 'pg_restore verification failed'
+  echo
+  log 'Verification passed.'
+}
 
-echo
-echo "Backup contents:"
-echo "================"
-
-verify_dump_contents "$DUMP_FILE" || die "pg_restore verification failed"
-
-echo
-log "Verification passed."
+main "$@"

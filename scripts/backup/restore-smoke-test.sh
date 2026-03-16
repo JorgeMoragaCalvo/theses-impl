@@ -10,9 +10,10 @@ DB_NAME="${POSTGRES_DB:-}"
 DB_USER="${POSTGRES_USER:-}"
 DB_PASSWORD="${POSTGRES_PASSWORD:-}"
 ADMIN_DB="${POSTGRES_ADMIN_DB:-postgres}"
-CHROMA_TARGET_DIR="${CHROMA_TARGET_DIR:-/data/chroma_db}"
-CHROMA_PREFIX="${CHROMA_PREFIX:-chroma}"
 BACKUP_PREFIX="${BACKUP_PREFIX:-backup}"
+SMOKE_DB_PREFIX="${RESTORE_SMOKE_DB_PREFIX:-restore_smoke}"
+SMOKE_KEEP_DB="${RESTORE_SMOKE_KEEP_DB:-false}"
+SMOKE_TIMEOUT_SECONDS="${RESTORE_SMOKE_TIMEOUT_SECONDS:-600}"
 
 log() {
   printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
@@ -31,6 +32,7 @@ verify_config() {
   [ -n "$DB_NAME" ] || die 'POSTGRES_DB is required'
   [ -n "$DB_USER" ] || die 'POSTGRES_USER is required'
   [ -n "$DB_PASSWORD" ] || die 'POSTGRES_PASSWORD is required'
+  [[ "$SMOKE_TIMEOUT_SECONDS" =~ ^[0-9]+$ ]] || die 'RESTORE_SMOKE_TIMEOUT_SECONDS must be an integer'
 }
 
 wait_for_db() {
@@ -64,7 +66,7 @@ verify_checksum_if_present() {
 verify_dump_file() {
   local dump_file="$1"
   [ -s "$dump_file" ] || die "Backup file is empty: $dump_file"
-  pg_restore -l "$dump_file" >/dev/null || die 'Backup validation failed before restore'
+  pg_restore -l "$dump_file" >/dev/null || die 'Backup validation failed before smoke test'
 }
 
 select_latest_backup() {
@@ -73,69 +75,50 @@ select_latest_backup() {
     | awk 'NR==1 {print $2}'
 }
 
-confirm() {
-  local prompt="$1"
-  local reply
-  printf '%s ' "$prompt"
-  read -r reply
-  [ "$reply" = 'yes' ]
-}
-
-terminate_db_connections() {
+drop_database_if_exists() {
+  local db_name="$1"
   export PGPASSWORD="$DB_PASSWORD"
   psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$ADMIN_DB" <<SQL
 SELECT pg_terminate_backend(pid)
 FROM pg_stat_activity
-WHERE datname = '${DB_NAME}'
+WHERE datname = '${db_name}'
   AND pid <> pg_backend_pid();
+DROP DATABASE IF EXISTS "${db_name}";
 SQL
 }
 
-restore_postgres() {
+create_database() {
+  local db_name="$1"
+  export PGPASSWORD="$DB_PASSWORD"
+  psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$ADMIN_DB" \
+    -c "CREATE DATABASE \"${db_name}\";"
+}
+
+restore_into_database() {
   local dump_file="$1"
+  local db_name="$2"
   export PGPASSWORD="$DB_PASSWORD"
 
-  terminate_db_connections
-
-  pg_restore \
+  timeout "$SMOKE_TIMEOUT_SECONDS" pg_restore \
     -h "$DB_HOST" \
     -p "$DB_PORT" \
     -U "$DB_USER" \
-    -d "$DB_NAME" \
-    --clean \
-    --if-exists \
+    -d "$db_name" \
     --no-owner \
     --no-acl \
     --exit-on-error \
     --single-transaction \
-    "$dump_file" || die 'PostgreSQL restore failed'
+    "$dump_file" || die 'Smoke restore failed'
 }
 
-restore_chroma_if_available() {
-  local dump_file="$1"
-  local timestamp
-  local chroma_file
+run_smoke_queries() {
+  local db_name="$1"
+  export PGPASSWORD="$DB_PASSWORD"
 
-  timestamp="$(basename "$dump_file" | sed -E "s/^${BACKUP_PREFIX}_(.*)\\.dump$/\\1/")"
-  chroma_file="$BACKUP_DIR/${CHROMA_PREFIX}_${timestamp}.tar.gz"
-
-  if [ ! -f "$chroma_file" ]; then
-    log "No matching Chroma backup found for timestamp: $timestamp"
-    return 0
-  fi
-
-  verify_checksum_if_present "$chroma_file"
-
-  echo
-  log "Matching Chroma backup found: $chroma_file"
-  if confirm "Restore Chroma too? Type 'yes' to continue:"; then
-    mkdir -p "$(dirname "$CHROMA_TARGET_DIR")"
-    rm -rf "$CHROMA_TARGET_DIR"
-    tar -xzf "$chroma_file" -C "$(dirname "$CHROMA_TARGET_DIR")"
-    log 'Chroma restored.'
-  else
-    log 'Skipped Chroma restore.'
-  fi
+  psql -v ON_ERROR_STOP=1 -At -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$db_name" <<'SQL'
+SELECT current_database();
+SELECT COUNT(*) FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog', 'information_schema');
+SQL
 }
 
 main() {
@@ -146,40 +129,42 @@ main() {
   require_command find
   require_command awk
   require_command sort
-  require_command tar
+  require_command timeout
   verify_config
   wait_for_db
 
   local dump_file="${1:-}"
   if [ -z "$dump_file" ]; then
-    echo 'Available backups:'
-    find "$BACKUP_DIR" -maxdepth 1 -type f -name "${BACKUP_PREFIX}_*.dump" -print | sort -r || true
-    echo
-
     dump_file="$(select_latest_backup)"
     [ -n "$dump_file" ] || die "No backup files found in $BACKUP_DIR"
     log "Selected most recent backup: $dump_file"
   fi
 
   [ -f "$dump_file" ] || die "Backup file not found: $dump_file"
-
   verify_checksum_if_present "$dump_file"
   verify_dump_file "$dump_file"
 
-  echo
-  log "WARNING: This will overwrite the current database '$DB_NAME'."
-  if ! confirm "Type 'yes' to continue:"; then
-    log 'Restore cancelled.'
-    exit 0
+  local smoke_db="${SMOKE_DB_PREFIX}_$(date -u +%Y%m%d_%H%M%S)"
+  trap 'if [ "${SMOKE_KEEP_DB}" != "true" ]; then drop_database_if_exists "$smoke_db" >/dev/null 2>&1 || true; fi' EXIT
+
+  log "Creating temporary database: $smoke_db"
+  create_database "$smoke_db"
+
+  log "Restoring backup into temporary database"
+  restore_into_database "$dump_file" "$smoke_db"
+
+  log 'Running smoke queries'
+  run_smoke_queries "$smoke_db"
+
+  if [ "$SMOKE_KEEP_DB" = 'true' ]; then
+    log "Smoke-test database preserved: $smoke_db"
+  else
+    drop_database_if_exists "$smoke_db"
+    trap - EXIT
+    log 'Smoke-test database dropped successfully'
   fi
 
-  log "Restoring PostgreSQL from: $dump_file"
-  restore_postgres "$dump_file"
-  log 'PostgreSQL restored successfully.'
-
-  restore_chroma_if_available "$dump_file"
-
-  log 'Restore complete.'
+  log 'Restore smoke test passed.'
 }
 
 main "$@"
