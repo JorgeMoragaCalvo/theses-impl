@@ -24,11 +24,11 @@ build/
 # Environment
 .env
 
-# Documentation (not needed in image)
+# Documentation
 *.md
 docs/
 
-# Tests (not needed in production image)
+# Tests
 backend/tests/
 backend/pytest.ini
 backend/reset_db.py

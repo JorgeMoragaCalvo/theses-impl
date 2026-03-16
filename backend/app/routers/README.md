@@ -44,12 +44,12 @@ The `routers/` directory contains FastAPI APIRouter instances that group related
 
 **Prefix:** `/students` | **Tags:** `students`
 
-| Method | Endpoint                        | Description                      | Auth       |
-|--------|---------------------------------|----------------------------------|------------|
-| POST   | `/students`                     | Create new student profile       | Public     |
-| GET    | `/students`                     | List all students                | Public     |
-| GET    | `/students/{student_id}`        | Get student profile by ID        | Self/Admin |
-| PUT    | `/students/{student_id}`        | Update student profile           | Self       |
+| Method | Endpoint                          | Description                        | Auth       |
+|--------|-----------------------------------|------------------------------------|------------|
+| POST   | `/students`                       | Create new student profile         | Public     |
+| GET    | `/students`                       | List all students                  | Public     |
+| GET    | `/students/{student_id}`          | Get student profile by ID          | Self/Admin |
+| PUT    | `/students/{student_id}`          | Update student profile             | Self       |
 | GET    | `/students/{student_id}/progress` | Get comprehensive progress metrics | Self/Admin |
 
 ### Business Logic
