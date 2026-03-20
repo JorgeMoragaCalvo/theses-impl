@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
-from ..database import Feedback, Message, Student, get_db
+from ..database import Conversation, Feedback, Message, Student, get_db
 from ..models import FeedbackCreate, FeedbackResponse
 from ..utils import sanitize_log_value
 
@@ -26,6 +26,16 @@ async def create_feedback(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Message not found"
+        )
+
+    # Verify the message belongs to a conversation owned by the current user
+    conversation = db.query(Conversation).filter(
+        Conversation.id == message.conversation_id
+    ).first()
+    if not conversation or conversation.student_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to leave feedback on this message"
         )
 
     # Create feedback (use authenticated user's ID)

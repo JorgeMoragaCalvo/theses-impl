@@ -66,7 +66,7 @@ async def register(request: Request, user_data: StudentRegister, db: Session = D
     db.commit()
     db.refresh(new_student)
 
-    logger.info(f"New user registered: {new_student.id} - {new_student.email} (active: {is_allowed_domain})")
+    logger.info("New user registered: %d (active: %s)", new_student.id, is_allowed_domain)
 
     # Return pending response for non-allowed domains
     if not is_allowed_domain:
@@ -106,7 +106,7 @@ async def login(request: Request, credentials: StudentLogin, db: Session = Depen
     # Create the access token
     access_token = create_access_token(data={"sub": str(student.id)})
 
-    logger.info(f"User logged in: {student.id} - {student.email}")
+    logger.info("User logged in: %d", student.id)
 
     return TokenResponse(
         access_token=access_token,

@@ -61,7 +61,7 @@ class FeedbackCreate(BaseModel):
     message_id: int
     rating: int | None = Field(None, ge=1, le=5)
     is_helpful: bool | None = None
-    comment: str | None= None
+    comment: str | None = Field(None, max_length=2000)
 
 
 class AssessmentGenerate(BaseModel):
@@ -83,7 +83,7 @@ class ExerciseAssessmentGenerate(BaseModel):
 
 class AssessmentAnswerSubmit(BaseModel):
     """Request model for submitting a student's answer to an assessment."""
-    student_answer: str = Field(..., min_length=1)
+    student_answer: str = Field(..., min_length=1, max_length=20000)
 
 
 class AssessmentGradeRequest(BaseModel):
@@ -206,7 +206,7 @@ class FeedbackResponse(BaseModel):
 # Chat Models
 class ChatRequest(BaseModel):
     """Request model for chat endpoint."""
-    message: str = Field(..., min_length=1)
+    message: str = Field(..., min_length=1, max_length=10000)
     conversation_id: int | None = None
     topic: Topic  # The required field - auto-detect feature will be implemented later
 

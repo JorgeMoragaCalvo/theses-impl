@@ -61,15 +61,15 @@ class Student(Base):
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
     # Knowledge levels for each topic (stored as JSON)
-    knowledge_levels = Column(JSON, default={
+    knowledge_levels = Column(JSON, default=lambda: {
         "operations_research": "beginner",
         "mathematical_modeling": "beginner",
         "linear_programming": "beginner",
         "integer_programming": "beginner",
-        "nonlinear_programming": "beginner"
+        "nonlinear_programming": "beginner",
     })
     # Learning preferences and metadata
-    preferences = Column(JSON, default={})
+    preferences = Column(JSON, default=dict)
 
 
 class Conversation(Base):
@@ -89,7 +89,7 @@ class Conversation(Base):
     # - last_strategy: str - Most recently used strategy
     # - student_preferences: dict - Inferred student preferences from interaction patterns
     # Metadata
-    extra_data = Column(JSON, default={}) # Session metadata
+    extra_data = Column(JSON, default=dict)
 
 
 class Message(Base):
@@ -110,7 +110,7 @@ class Message(Base):
     # - feedback_requested: bool - Whether agent requested understanding feedback
     # - contains_alternative: bool - Whether this is an alternative explanation
     # Metadata
-    extra_data = Column(JSON, default={})
+    extra_data = Column(JSON, default=dict)
 
 
 class Assessment(Base):
@@ -140,7 +140,7 @@ class Assessment(Base):
     graded_at = Column(DateTime, nullable=True)
 
     # Metadata
-    extra_data = Column(JSON, default={})
+    extra_data = Column(JSON, default=dict)
 
 
 class Feedback(Base):
@@ -159,7 +159,7 @@ class Feedback(Base):
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     # Metadata
-    extra_data = Column(JSON, default={})
+    extra_data = Column(JSON, default=dict)
 
 
 class StudentCompetency(Base):
@@ -179,7 +179,7 @@ class StudentCompetency(Base):
     last_correct_at = Column(DateTime, nullable=True)
     decay_factor = Column(Float, default=2.5)  # SM-2 ease factor, reserved for Phase 3
     next_review_at = Column(DateTime, nullable=True)
-    extra_data = Column(JSON, default={})
+    extra_data = Column(JSON, default=dict)
 
     __table_args__ = (
         UniqueConstraint("student_id", "concept_id", name="uq_student_concept"),
@@ -196,8 +196,8 @@ class ConceptHierarchy(Base):
     topic = Column(Enum(Topic), nullable=False)
     parent_concept_id = Column(String(255), nullable=True)
     bloom_level = Column(String(50), nullable=False)
-    prerequisites = Column(JSON, default=[])
-    extra_data = Column(JSON, default={})
+    prerequisites = Column(JSON, default=list)
+    extra_data = Column(JSON, default=dict)
 
 
 class ReviewSession(Base):
@@ -213,7 +213,7 @@ class ReviewSession(Base):
     scheduled_at = Column(DateTime, nullable=False)
     completed_at = Column(DateTime, nullable=True)
     next_review_scheduled = Column(DateTime, nullable=True)
-    extra_data = Column(JSON, default={})
+    extra_data = Column(JSON, default=dict)
 
 
 class ActivityEvent(Base):
@@ -229,7 +229,7 @@ class ActivityEvent(Base):
     topic = Column(String(255), nullable=True)
     timestamp = Column(DateTime, default=datetime.now(timezone.utc), index=True)
     duration_seconds = Column(Float, nullable=True)
-    extra_data = Column(JSON, default={})
+    extra_data = Column(JSON, default=dict)
 
 
 # Database dependency for FastAPI

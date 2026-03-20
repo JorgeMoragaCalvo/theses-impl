@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..auth import get_current_user
+from ..auth import get_current_admin_user, get_current_user
 from ..database import Student, get_db
 from ..enums import UserRole
 from ..models import (
@@ -21,8 +21,12 @@ router = APIRouter(prefix="/students", tags=["students"])
 
 
 @router.post("", response_model=StudentResponse, status_code=status.HTTP_201_CREATED)
-async def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
-    """Create a new student profile."""
+async def create_student(
+    student_data: StudentCreate,
+    db: Session = Depends(get_db),
+    current_admin: Student = Depends(get_current_admin_user),
+):
+    """Create a new student profile. Admin only."""
     # Check if the email already exists
     existing_student = db.query(Student).filter(Student.email == student_data.email).first()
     if existing_student:
@@ -48,7 +52,7 @@ async def create_student(student_data: StudentCreate, db: Session = Depends(get_
     db.commit()
     db.refresh(new_student)
 
-    logger.info(f"Created new student: {new_student.id} - {new_student.email}")
+    logger.info("Created new student: %d", new_student.id)
     return new_student
 
 
@@ -119,8 +123,10 @@ async def list_students(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
+    current_admin: Student = Depends(get_current_admin_user),
 ):
     """List all students. Admin only."""
+    limit = min(limit, 100)
     students = db.query(Student).offset(skip).limit(limit).all()
     return students
 
