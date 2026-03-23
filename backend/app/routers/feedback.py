@@ -1,11 +1,12 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
 from ..database import Conversation, Feedback, Message, Student, get_db
 from ..models import FeedbackCreate, FeedbackResponse
+from ..rate_limit import limiter
 from ..utils import sanitize_log_value
 
 logger = logging.getLogger(__name__)
@@ -14,7 +15,9 @@ router = APIRouter(tags=["feedback"])
 
 
 @router.post("/feedback", response_model=FeedbackResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 async def create_feedback(
+    request: Request,
     feedback_data: FeedbackCreate,
     db: Session = Depends(get_db),
     current_user: Student = Depends(get_current_user)

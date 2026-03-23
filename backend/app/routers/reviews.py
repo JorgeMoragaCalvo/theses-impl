@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
@@ -14,6 +14,7 @@ from ..models import (
     StartReviewRequest,
     StartReviewResponse,
 )
+from ..rate_limit import limiter
 from ..services.spaced_repetition_service import get_spaced_repetition_service
 from ..utils import sanitize_log_value
 
@@ -55,9 +56,11 @@ async def get_due_reviews(
 
 
 @router.post("/students/{student_id}/reviews/start", response_model=StartReviewResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
 async def start_review(
+    request: Request,
     student_id: int,
-    request: StartReviewRequest,
+    review_request: StartReviewRequest,
     db: Session = Depends(get_db),
     current_user: Student = Depends(get_current_user),
 ):
@@ -71,17 +74,17 @@ async def start_review(
     # Verify the competency exists
     competency = db.query(StudentCompetency).filter(
         StudentCompetency.student_id == student_id,
-        StudentCompetency.concept_id == request.concept_id,
+        StudentCompetency.concept_id == review_request.concept_id,
     ).first()
 
     if not competency:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No competency record found for concept '{request.concept_id}'",
+            detail=f"No competency record found for concept '{review_request.concept_id}'",
         )
 
     srs = get_spaced_repetition_service(db)
-    session = srs.create_review_session(student_id, request.concept_id)
+    session = srs.create_review_session(student_id, review_request.concept_id)
 
     return StartReviewResponse(
         review_session_id=session.id,

@@ -346,7 +346,9 @@ async def submit_assessment_answer(
 
 
 @router.post("/assessments/{assessment_id}/grade", response_model=AssessmentResponse)
+@limiter.limit("5/minute")
 async def grade_assessment(
+    request: Request,
     assessment_id: int,
     grade_data: AssessmentGradeRequest,
     db: Session = Depends(get_db),
