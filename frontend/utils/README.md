@@ -431,9 +431,9 @@ Constants ensure frontend-backend consistency:
 
 | Version | Date       | Changes                                                                            |
 |---------|------------|------------------------------------------------------------------------------------|
-| 1.0.0   | 2026-01-05 | Initial documentation created                                                      |
-| 1.1.0   | 2026-02-03 | Added some tools, exercise features, basic user restrictiveness to `@usach` domain |
-| 1.1.1   | 2026-02-07 | New exercises were added                                                           |
+| v1.0.0  | 2026-01-05 | Initial documentation created                                                      |
+| v1.1.0  | 2026-02-03 | Added some tools, exercise features, basic user restrictiveness to `@usach` domain |
+| v1.1.1  | 2026-02-07 | New exercises were added                                                           |
 | v1.2.1  | 2026-02-13 | New functionality for locked and unlocked exercises                                |
 | v1.3.1  | 2026-02-16 | Added concept-level mastery tracking — when assessments are graded                 |
 | v1.3.2  | 2026-02-17 | Added and fixed logout functionality                                               |
@@ -442,3 +442,4 @@ Constants ensure frontend-backend consistency:
 | v1.5.3  | 2026-02-19 | Spaced Repetition System                                                           |
 | v1.5.4  | 2026-02-25 | Fixed some bugs                                                                    |
 | v1.6.4  | 2026-02-27 | Added testing implementation                                                       |
+| v1.6.5  | 2026-04-03 | Security, routing and main.py improvements                                         |

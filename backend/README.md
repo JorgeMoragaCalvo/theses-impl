@@ -55,15 +55,15 @@ This is the backend API for an AI-powered tutoring system that helps students le
 
 ## Technology Stack
 
-| Component | Technology |
-|-----------|------------|
-| Framework | FastAPI |
-| ORM | SQLAlchemy |
-| Database | PostgreSQL |
-| LLM Integration | LangChain |
-| LLM Providers | OpenAI, Anthropic, Google Gemini |
-| Authentication | JWT (HS256) |
-| Password Hashing | Bcrypt |
+| Component        | Technology                       |
+|------------------|----------------------------------|
+| Framework        | FastAPI                          |
+| ORM              | SQLAlchemy                       |
+| Database         | PostgreSQL                       |
+| LLM Integration  | LangChain                        |
+| LLM Providers    | OpenAI, Anthropic, Google Gemini |
+| Authentication   | JWT (HS256)                      |
+| Password Hashing | Bcrypt                           |
 
 ## Directory Structure
 
@@ -261,3 +261,4 @@ Once running, access:
 - **v1.5.3** (2026-02-19): Spaced Repetition System.
 - **v1.5.4** (2026-02-25): Fixed some bugs.
 - **v1.6.4** (2026-02-27): Added testing implementation.
+- **v1.6.5** (2026-04-03): Security, routing and main.py improvements.

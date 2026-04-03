@@ -92,8 +92,8 @@ The `services/` directory contains the business logic layer of the application. 
 2. LLM decides to call tool(s)
 3. Service executes tool(s) via `_execute_tool()`
 4. Tool results added to conversation
-5. LLM generates final response
-6. Max 3 iterations (configurable)
+5. LLM generates a final response
+6. Max three iterations (configurable)
 
 ### ConversationService (`conversation_service.py`)
 
@@ -183,7 +183,7 @@ The `services/` directory contains the business logic layer of the application. 
 
 **Modes**:
 - `practice`: Use exercise directly as assessment
-- `similar`: Generate similar problem via LLM
+- `similar`: Generate a similar problem via LLM
 
 **Key Methods**:
 
@@ -213,11 +213,11 @@ The `services/` directory contains the business logic layer of the application. 
 
 **Key Functions**:
 
-| Function                                          | Description                                       |
-|---------------------------------------------------|---------------------------------------------------|
-| `get_completed_exercise_ids(db, student_id, topic)` | Get exercise IDs the student has completed (>=50% score) |
-| `compute_max_unlocked_rank(completed_ids, exercises)` | Compute the highest unlocked rank for a topic     |
-| `get_exercises_with_progress(db, student_id, topic)` | Return exercises enriched with `locked` and `completed` fields |
+| Function                                              | Description                                                    |
+|-------------------------------------------------------|----------------------------------------------------------------|
+| `get_completed_exercise_ids(db, student_id, topic)`   | Get exercise IDs the student has completed (>=50% score)       |
+| `compute_max_unlocked_rank(completed_ids, exercises)` | Compute the highest unlocked rank for a topic                  |
+| `get_exercises_with_progress(db, student_id, topic)`  | Return exercises enriched with `locked` and `completed` fields |
 
 **Progression Rules**:
 - Rank 1 exercises are always unlocked
@@ -231,13 +231,13 @@ The `services/` directory contains the business logic layer of the application. 
 
 **Key Methods**:
 
-| Method                                              | Description                                     |
-|-----------------------------------------------------|-------------------------------------------------|
-| `seed_concept_hierarchy()`                          | Populate ConceptHierarchy from taxonomy JSON files |
-| `update_competency(student_id, concept_id, is_correct, score)` | Update mastery record using EWA              |
-| `get_student_competencies(student_id, topic)`       | Get all competency records for a student/topic  |
-| `get_mastery_summary(student_id, topic)`            | Summarize mastery levels across all concepts    |
-| `get_next_concepts_to_learn(student_id, topic)`     | Recommend concepts based on prerequisite mastery |
+| Method                                                         | Description                                        |
+|----------------------------------------------------------------|----------------------------------------------------|
+| `seed_concept_hierarchy()`                                     | Populate ConceptHierarchy from taxonomy JSON files |
+| `update_competency(student_id, concept_id, is_correct, score)` | Update mastery record using EWA                    |
+| `get_student_competencies(student_id, topic)`                  | Get all competency records for a student/topic     |
+| `get_mastery_summary(student_id, topic)`                       | Summarize mastery levels across all concepts       |
+| `get_next_concepts_to_learn(student_id, topic)`                | Recommend concepts based on prerequisite mastery   |
 
 **Mastery Levels** (thresholds):
 - `MASTERED`: score >= 0.85, min 5 attempts
@@ -283,7 +283,7 @@ The `services/` directory contains the business logic layer of the application. 
 | `complete_review(session_id, quality, response_time)`      | Record result and schedule next review         |
 | `schedule_initial_review(student_id, concept_id)`          | Schedule first review after initial study      |
 
-**SM-2 Quality Scale** (0-5):
+**SM-2 Quality Scale** (0–5):
 - 0: Complete blackout
 - 1: Incorrect; correct answer remembered on seeing it
 - 2: Incorrect; correct answer seemed easy to recall
@@ -386,3 +386,4 @@ def get_my_service(db: Session):
 - **v1.5.3** (2026-02-19): Spaced Repetition System.
 - **v1.5.4** (2026-02-25): Fixed some bugs.
 - **v1.6.4** (2026-02-27): Added testing implementation.
+- **v1.6.5** (2026-04-03): Security, routing and main.py improvements.
