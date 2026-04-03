@@ -38,33 +38,76 @@ class BaseAgent(ABC):
         self.agent_type = agent_type
         self.llm_service = get_llm_service()
         self.course_materials: str | None = None
+        self.tools: list = []
 
         logger.info(f"Initialized {self.agent_name} ({self.agent_type})")
 
-    @abstractmethod
+    # ── System prompt: template method + abstract section providers ──
+
     def get_system_prompt(self, context: dict[str, Any]) -> str:
         """
-        Generate system prompt for this agent.
-        Must be implemented by subclasses.
-
-        Args:
-            context: Context dictionary with student info, knowledge level, etc.
-
-        Returns:
-            System prompt string
+        Build the full system prompt by assembling agent-specific sections.
+        Subclasses provide content via the _get_*_prompt() hooks.
         """
-        pass
+        student = context.get("student", {})
+        knowledge_level = student.get("knowledge_level", "beginner")
+        student_name = student.get("student_name", "Student")
+
+        level_prompts = self._get_level_prompts()
+        level_section = level_prompts.get(knowledge_level, level_prompts["beginner"])
+
+        sections = [
+            self._get_identity_prompt(student_name),
+            level_section,
+            self._get_strategy_prompt(),
+            self._get_pedagogy_prompt(),
+            self._get_fewshot_examples(knowledge_level),
+            self._get_guidelines_prompt(),
+        ]
+        sections.extend(self._get_extra_prompt_sections(context))
+        return "\n\n".join(s for s in sections if s)
+
+    @abstractmethod
+    def _get_identity_prompt(self, student_name: str) -> str:
+        """Return the identity & scope section for this agent."""
+
+    @abstractmethod
+    def _get_level_prompts(self) -> dict[str, str]:
+        """Return a dict mapping knowledge level to its prompt section."""
+
+    @abstractmethod
+    def _get_strategy_prompt(self) -> str:
+        """Return the strategy selection / trigger table."""
+
+    @abstractmethod
+    def _get_pedagogy_prompt(self) -> str:
+        """Return the pedagogical protocols section."""
+
+    @abstractmethod
+    def _get_fewshot_examples(self, knowledge_level: str) -> str:
+        """Return few-shot examples appropriate for the knowledge level."""
+
+    @abstractmethod
+    def _get_guidelines_prompt(self) -> str:
+        """Return the response guidelines section."""
+
+    def _get_extra_prompt_sections(self, context: dict[str, Any]) -> list[str]:
+        """Override to append extra sections (course materials, tool instructions)."""
+        return []
+
+    # ── Topic relevance (abstract) ──
+
+    @abstractmethod
+    def is_topic_related(self, message: str) -> bool:
+        """Return True if the message is within this agent's topic scope."""
+
+    @abstractmethod
+    def _get_off_topic_response(self) -> str:
+        """Return a canned response when the message is outside scope."""
 
     @abstractmethod
     def get_available_strategies(self) -> list[str]:
-        """
-        Return the list of explanation strategies available for this agent.
-        Must be implemented by subclasses.
-
-        Returns:
-            List of strategy name strings
-        """
-        pass
+        """Return the list of explanation strategies available for this agent."""
 
     def load_course_materials(self, file_path: str) -> bool:
         """
@@ -126,80 +169,47 @@ class BaseAgent(ABC):
                           conversation_history: list[dict[str, str]],
                           context: dict[str, Any]) -> str:
         """
-        Generate agent response to the user message.
-
-        Args:
-            user_message: Current user message
-            conversation_history: Previous messages in conversation
-            context: Context dictionary with student info, etc.
-
-        Returns:
-            Generated response string
-
-        Raises:
-            Exception: If response generation fails
+        Generate agent response with adaptive learning, topic checking,
+        and optional tool support.
         """
-        try:
-            # Get system prompt
-            system_prompt = self.get_system_prompt(context)
+        preprocessed_message, error_message = self._validate_and_preprocess(user_message)
+        if error_message:
+            return error_message
 
-            # Build messages list
-            messages = conversation_history.copy()
-            messages.append({"role": "user", "content": user_message})
+        if not self.is_topic_related(preprocessed_message):
+            return self._get_off_topic_response()
 
-            # Generate response
-            response = self.llm_service.generate_response(
-                messages=messages,
-                system_prompt=system_prompt
-            )
+        components = self._prepare_generation_components(
+            preprocessed_message=preprocessed_message,
+            conversation_history=conversation_history,
+            context=context,
+        )
 
-            logger.info(
-                f"{self.agent_name} generated response: "
-                f"{len(response)} chars for message '{user_message[:50]}...'"
-            )
-            return response
-        except Exception as e:
-            logger.error(f"Error in {self.agent_name} response generation: {str(e)}")
-            return format_error_message(e)
+        if self.tools:
+            return self._generate_with_tools(components, conversation_history, context)
+        return self._generate_and_postprocess(components, conversation_history, context)
 
     async def a_generate_response(self,
                                   user_message: str,
                                   conversation_history: list[dict[str, str]],
                                   context: dict[str, Any]) -> str:
-        """
-        Async version of generate_response.
+        """Async version of generate_response."""
+        preprocessed_message, error_message = self._validate_and_preprocess(user_message)
+        if error_message:
+            return error_message
 
-        Args:
-            user_message: Current user message
-            conversation_history: Previous messages
-            context: Context dictionary
+        if not self.is_topic_related(preprocessed_message):
+            return self._get_off_topic_response()
 
-        Returns:
-            Generated response string
-        """
-        try:
-            # Get system prompt
-            system_prompt = self.get_system_prompt(context)
+        components = self._prepare_generation_components(
+            preprocessed_message=preprocessed_message,
+            conversation_history=conversation_history,
+            context=context,
+        )
 
-            # Build messages list
-            messages = conversation_history.copy()
-            messages.append({"role": "user", "content": user_message})
-
-            # Generate response asynchronously
-            response = await self.llm_service.a_generate_response(
-                messages=messages,
-                system_prompt=system_prompt
-            )
-
-            logger.info(
-                f"{self.agent_name} (async) generated response: "
-                f"{len(response)} chars"
-            )
-
-            return response
-        except Exception as e:
-            logger.error(f"Error in {self.agent_name} (async) response generation: {str(e)}")
-            return format_error_message(e)
+        if self.tools:
+            return await self._a_generate_with_tools(components, conversation_history, context)
+        return await self._a_generate_and_postprocess(components, conversation_history, context)
 
     def get_agent_info(self) -> dict[str, Any]:
         """
@@ -780,3 +790,72 @@ class BaseAgent(ABC):
             f"confusion={safe_confusion_level}"
         )
         return final_response
+
+    # ── Tool-aware generation (used when self.tools is non-empty) ──
+
+    def _generate_with_tools(
+            self,
+            components: dict[str, Any],
+            conversation_history: list[dict[str, str]],
+            context: dict[str, Any],
+    ) -> str:
+        """Generate response using agent tools with fallback to plain generation."""
+        try:
+            all_tools = self.tools + context.get("tools", [])
+            response = self.llm_service.generate_response_with_tools(
+                messages=components["messages"],
+                tools=all_tools,
+                system_prompt=components["system_prompt"]
+            )
+        except Exception as e:
+            logger.warning(f"Tool-enabled generation failed, falling back: {e}")
+            try:
+                response = self.llm_service.generate_response(
+                    messages=components["messages"],
+                    system_prompt=components["system_prompt"]
+                )
+            except Exception as fallback_e:
+                logger.error(f"Error in {self.agent_name} response generation: {str(fallback_e)}")
+                return format_error_message(fallback_e)
+
+        return self._postprocess_with_feedback(
+            raw_response=response,
+            conversation_history=conversation_history,
+            context=context,
+            confusion_analysis=components["confusion_analysis"],
+            selected_strategy=components["selected_strategy"],
+        )
+
+    async def _a_generate_with_tools(
+            self,
+            components: dict[str, Any],
+            conversation_history: list[dict[str, str]],
+            context: dict[str, Any],
+    ) -> str:
+        """Async version of _generate_with_tools."""
+        try:
+            all_tools = self.tools + context.get("tools", [])
+            response = await self.llm_service.a_generate_response_with_tools(
+                messages=components["messages"],
+                tools=all_tools,
+                system_prompt=components["system_prompt"]
+            )
+        except Exception as e:
+            logger.warning(f"Tool-enabled async generation failed, falling back: {e}")
+            try:
+                response = await self.llm_service.a_generate_response(
+                    messages=components["messages"],
+                    system_prompt=components["system_prompt"]
+                )
+            except Exception as fallback_e:
+                logger.error(f"Error in {self.agent_name} async response generation: {str(fallback_e)}")
+                return format_error_message(fallback_e)
+
+        return self._postprocess_with_feedback(
+            raw_response=response,
+            conversation_history=conversation_history,
+            context=context,
+            confusion_analysis=components["confusion_analysis"],
+            selected_strategy=components["selected_strategy"],
+            async_mode=True,
+        )
