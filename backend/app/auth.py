@@ -1,4 +1,3 @@
-# UPDATED: 2025-11-11 23:00 - Added byte truncation for bcrypt 72-byte limit
 import logging
 from datetime import datetime, timedelta, timezone
 
@@ -45,15 +44,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         True if the password matches, False otherwise
     """
-    # DEBUG: Log password lengths
-    print("[DEBUG] verify_password called - UPDATED CODE 2025-11-11 23:00")
-    print(f"[DEBUG] Original password length: {len(plain_password)} chars, {len(plain_password.encode())} bytes")
-
     # Truncate to 72 BYTES (not characters) to match hashing behavior
     password_bytes = plain_password.encode()[:72]
     plain_password_truncated = password_bytes.decode(errors='ignore')
-
-    print(f"[DEBUG] Truncated password length: {len(plain_password_truncated)} chars, {len(plain_password_truncated.encode())} bytes")
 
     return pwd_context.verify(plain_password_truncated, hashed_password)
 
@@ -71,15 +64,9 @@ def get_password_hash(password: str) -> str:
     Returns:
         The hashed password
     """
-    # DEBUG: Log password lengths
-    print("[DEBUG] get_password_hash called - UPDATED CODE 2025-11-11 23:00")
-    print(f"[DEBUG] Original password length: {len(password)} chars, {len(password.encode())} bytes")
-
     # Truncate to 72 BYTES (not characters) to comply with bcrypt's limit
     password_bytes = password.encode()[:72]
     password_truncated = password_bytes.decode(errors='ignore')
-
-    print(f"[DEBUG] Truncated password length: {len(password_truncated)} chars, {len(password_truncated.encode())} bytes")
 
     return pwd_context.hash(password_truncated)
 
@@ -127,9 +114,7 @@ def decode_access_token(token: str) -> dict:
         logger.debug(f"Successfully decoded JWT token for user_id: {payload.get('sub')}")
         return payload
     except JWTError as e:
-        # Log the specific JWT error for debugging
-        logger.error(f"JWT validation failed: {type(e).__name__}: {str(e)}")
-        logger.error(f"Token (first 20 chars): {token[:20]}...")
+        logger.error(f"JWT validation failed: {type(e).__name__}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",

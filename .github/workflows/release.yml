@@ -41,7 +41,7 @@ jobs:
         with:
           name: ${{ github.ref_name }}
           body: |
-            ## 🎓 Sistema de Tutoría Multi-Agente para Metodos de Optimización
+            ## 🎓 Sistema de Tutoría Multi-Agente para Métodos de Optimización
             
             ### Cambios en esta versión
             ${{ steps.changelog.outputs.commits }}

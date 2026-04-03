@@ -127,8 +127,8 @@ class GradingService:
 
         except Exception as e:
             logger.error(f"Error auto-grading assessment {assessment.id}: {str(e)}")
-            # Return a neutral score with the error message
-            return 1.0, f"No se pudo calificar automáticamente esta evaluación. Error: {str(e)}"
+            # Return a neutral score without leaking internal error details
+            return 1.0, "No se pudo calificar automáticamente esta evaluación. Intente de nuevo más tarde."
 
     @staticmethod
     def build_grading_prompt(

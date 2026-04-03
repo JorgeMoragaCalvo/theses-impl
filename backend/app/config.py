@@ -50,7 +50,7 @@ class Settings(BaseSettings):
 
     # Application Configuration
     version: str = "1.6.4"
-    debug: bool = True
+    debug: bool = False
     log_level: str = "INFO"
 
     # Monitoring & Observability
@@ -94,29 +94,25 @@ class Settings(BaseSettings):
             return self.openai_model
         return self.anthropic_model
 
+    _INSECURE_KEYS: set[str] = {
+        "secret",
+        "your_secret_key_here",
+        "your-secret-key-change-this-in-production-min-32-chars",
+    }
+
     def model_post_init(self, __context):
         """Validate settings after initialization."""
-        # Log the loaded SECRET_KEY (first/last 4 chars only for security)
-        # if len(self.secret_key) >= 8:
-        #     masked_key = f"{self.secret_key[:4]}...{self.secret_key[-4:]}"
-        # else:
-        #     masked_key = "***"
-        # logger.info(f"Loaded SECRET_KEY: {masked_key}")
+        is_insecure = not self.secret_key or self.secret_key in self._INSECURE_KEYS
 
-        # Log non-sensitive information about the SECRET_KEY (do not log the key itself)
-        if self.secret_key:
-            logger.info("Loaded SECRET_KEY (length: %d characters)", len(self.secret_key))
-        else:
-            logger.warning("SECRET_KEY is not set or is empty.")
+        if is_insecure and not self.debug:
+            raise ValueError(
+                "FATAL: SECRET_KEY is not set or uses an insecure default. "
+                "Generate a secure key: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+            )
 
-        # Warn if using a default/insecure key
-        if self.secret_key in [
-            "secret",
-            "your_secret_key_here",
-            "your-secret-key-change-this-in-production-min-32-chars"
-        ]:
+        if is_insecure:
             logger.warning(
-                "⚠️  WARNING: Using default SECRET_KEY! "
+                "Using default SECRET_KEY! "
                 "This is INSECURE for production. "
                 "Generate a secure key: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
             )

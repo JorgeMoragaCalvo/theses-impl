@@ -35,6 +35,7 @@ async def list_all_users(
     List all users with their progress metrics.
     Admin only.
     """
+    limit = min(limit, 100)
     # Get all students
     students = db.query(Student).offset(skip).limit(limit).all()
 

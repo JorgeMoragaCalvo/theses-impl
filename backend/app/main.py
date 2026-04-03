@@ -117,12 +117,18 @@ app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 cors_origins = (
     [origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()]
     if settings.cors_origins
-    else ["*"]
+    else []
 )
+if not cors_origins and settings.debug:
+    logger.warning("CORS: No origins configured and debug=True, allowing all origins")
+    cors_origins = ["*"]
+elif not cors_origins:
+    logger.warning("CORS: No origins configured. Set CORS_ORIGINS in .env")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
-    allow_credentials=True,
+    allow_credentials=bool(cors_origins and cors_origins != ["*"]),
     allow_methods=["*"],
     allow_headers=["*"],
     max_age=600,
@@ -141,6 +147,8 @@ app.include_router(feedback.router)
 app.include_router(analytics.router)
 
 # --- Prometheus metrics (opt-in via ENABLE_PROMETHEUS) ---
+# NOTE: /metrics is unauthenticated by design for Prometheus scraping.
+# Restrict access at the infrastructure level (firewall, reverse proxy, network policy).
 if settings.enable_prometheus:
     from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -153,7 +161,7 @@ if settings.enable_prometheus:
     ).instrument(app).expose(
         app, endpoint="/metrics", include_in_schema=False, should_gzip=True
     )
-    logger.info("Prometheus metrics enabled at /metrics")
+    logger.info("Prometheus metrics enabled at /metrics (restrict access at infra level)")
 
 
 # Health check endpoint

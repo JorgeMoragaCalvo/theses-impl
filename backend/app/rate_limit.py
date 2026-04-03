@@ -4,9 +4,9 @@ from slowapi.util import get_remote_address
 limiter = Limiter(key_func=get_remote_address)
 
 
-def rate_limit_exceeded_handler(_request, exc):
+def rate_limit_exceeded_handler(_request, _exc):
     from fastapi.responses import JSONResponse
     return JSONResponse(
         status_code=429,
-        content={"detail": f"Rate limit exceeded: {exc.detail}"},
+        content={"detail": "Rate limit exceeded. Please try again later."},
     )
