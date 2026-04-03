@@ -69,7 +69,7 @@ class BaseAgent(ABC):
 
     @abstractmethod
     def _get_identity_prompt(self, student_name: str) -> str:
-        """Return the identity & scope section for this agent."""
+        """Return the identity and scope section for this agent."""
 
     @abstractmethod
     def _get_level_prompts(self) -> dict[str, str]:
@@ -799,7 +799,7 @@ class BaseAgent(ABC):
             conversation_history: list[dict[str, str]],
             context: dict[str, Any],
     ) -> str:
-        """Generate response using agent tools with fallback to plain generation."""
+        """Generate a response using agent tools with fallback to plain generation."""
         try:
             all_tools = self.tools + context.get("tools", [])
             response = self.llm_service.generate_response_with_tools(
