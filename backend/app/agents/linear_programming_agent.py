@@ -544,7 +544,7 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
             return error_message
 
         # Check if the question is LP-related
-        if not self.is_lp_related(preprocessed_message):
+        if not self._is_meta_question(preprocessed_message) and not self.is_lp_related(preprocessed_message):
             return self._get_off_topic_response()
 
         components = self._prepare_generation_components(
@@ -569,7 +569,7 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
         if error_message:
             return error_message
 
-        if not self.is_lp_related(preprocessed_message):
+        if not self._is_meta_question(preprocessed_message) and not self.is_lp_related(preprocessed_message):
             return self._get_off_topic_response()
 
         components = self._prepare_generation_components(

@@ -599,7 +599,7 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
             return error_message
 
         # Check if the question is OR-related
-        if not self.is_or_related(preprocessed_message):
+        if not self._is_meta_question(preprocessed_message) and not self.is_or_related(preprocessed_message):
             return self._get_off_topic_response()
 
         # Prepare generation components
@@ -667,7 +667,7 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
             return error_message
 
         # Check if OR-related
-        if not self.is_or_related(preprocessed_message):
+        if not self._is_meta_question(preprocessed_message) and not self.is_or_related(preprocessed_message):
             return self._get_off_topic_response()
 
         # Prepare generation components

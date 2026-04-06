@@ -633,7 +633,7 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             return error_message
 
         # Check if the question is IP-related
-        if not self.is_ip_related(preprocessed_message):
+        if not self._is_meta_question(preprocessed_message) and not self.is_ip_related(preprocessed_message):
             return self._get_off_topic_response()
 
         components = self._prepare_generation_components(
@@ -669,7 +669,7 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             return error_message
 
         # Check if IP-related
-        if not self.is_ip_related(preprocessed_message):
+        if not self._is_meta_question(preprocessed_message) and not self.is_ip_related(preprocessed_message):
             return self._get_off_topic_response()
 
         components = self._prepare_generation_components(

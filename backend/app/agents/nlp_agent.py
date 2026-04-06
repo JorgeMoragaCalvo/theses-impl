@@ -344,7 +344,7 @@ La calificaci√≥n de restricciones (LICQ) garantiza que los multiplicadores son √
         if error_message:
             return error_message
 
-        if not self.is_nlp_related(preprocessed_message):
+        if not self._is_meta_question(preprocessed_message) and not self.is_nlp_related(preprocessed_message):
             return self._get_off_topic_response()
 
         components = self._prepare_generation_components(
@@ -369,7 +369,7 @@ La calificaci√≥n de restricciones (LICQ) garantiza que los multiplicadores son √
         if error_message:
             return error_message
 
-        if not self.is_nlp_related(preprocessed_message):
+        if not self._is_meta_question(preprocessed_message) and not self.is_nlp_related(preprocessed_message):
             return self._get_off_topic_response()
 
         components = self._prepare_generation_components(
