@@ -85,17 +85,51 @@ Use this when students describe a real-world problem and need guidance on what t
         """Check for integer variable indicators."""
         indicators = [
             # Spanish
-            "entero", "enteros", "número entero", "números enteros",
-            "unidades", "cantidad de", "cuántos", "cuantos",
-            "camiones", "máquinas", "maquinas", "empleados", "trabajadores",
-            "paquetes", "cajas", "lotes", "personas", "vehículos", "vehiculos",
-            "almacenes", "plantas", "fábricas", "fabricas", "tiendas",
+            "entero",
+            "enteros",
+            "número entero",
+            "números enteros",
+            "unidades",
+            "cantidad de",
+            "cuántos",
+            "cuantos",
+            "camiones",
+            "máquinas",
+            "maquinas",
+            "empleados",
+            "trabajadores",
+            "paquetes",
+            "cajas",
+            "lotes",
+            "personas",
+            "vehículos",
+            "vehiculos",
+            "almacenes",
+            "plantas",
+            "fábricas",
+            "fabricas",
+            "tiendas",
             # English
-            "integer", "integers", "whole number", "whole numbers",
-            "units", "how many", "number of",
-            "trucks", "machines", "employees", "workers",
-            "packages", "boxes", "lots", "people", "vehicles",
-            "warehouses", "plants", "factories", "stores",
+            "integer",
+            "integers",
+            "whole number",
+            "whole numbers",
+            "units",
+            "how many",
+            "number of",
+            "trucks",
+            "machines",
+            "employees",
+            "workers",
+            "packages",
+            "boxes",
+            "lots",
+            "people",
+            "vehicles",
+            "warehouses",
+            "plants",
+            "factories",
+            "stores",
         ]
         return any(ind in desc for ind in indicators)
 
@@ -104,15 +138,34 @@ Use this when students describe a real-world problem and need guidance on what t
         """Check for binary/yes-no decision indicators."""
         indicators = [
             # Spanish
-            "sí o no", "si o no", "abrir o cerrar", "seleccionar o no",
-            "decisión binaria", "decision binaria", "0 o 1", "0-1",
-            "activar", "desactivar", "elegir entre", "asignar o no",
-            "construir o no", "contratar o no", "comprar o no",
+            "sí o no",
+            "si o no",
+            "abrir o cerrar",
+            "seleccionar o no",
+            "decisión binaria",
+            "decision binaria",
+            "0 o 1",
+            "0-1",
+            "activar",
+            "desactivar",
+            "elegir entre",
+            "asignar o no",
+            "construir o no",
+            "contratar o no",
+            "comprar o no",
             # English
-            "yes or no", "open or close", "select or not",
-            "binary decision", "0 or 1", "activate", "deactivate",
-            "choose whether", "assign or not", "build or not",
-            "hire or not", "buy or not",
+            "yes or no",
+            "open or close",
+            "select or not",
+            "binary decision",
+            "0 or 1",
+            "activate",
+            "deactivate",
+            "choose whether",
+            "assign or not",
+            "build or not",
+            "hire or not",
+            "buy or not",
         ]
         return any(ind in desc for ind in indicators)
 
@@ -121,17 +174,39 @@ Use this when students describe a real-world problem and need guidance on what t
         """Check for nonlinear relationship indicators."""
         indicators = [
             # Spanish
-            "cuadrático", "cuadratico", "al cuadrado", "exponencial",
-            "logarítmico", "logaritmico", "no lineal", "no-lineal",
-            "producto de variables", "multiplicar variables",
-            "raíz", "raiz", "potencia", "curva", "curvo",
-            "economía de escala", "economia de escala",
-            "rendimientos decrecientes", "costo marginal creciente",
+            "cuadrático",
+            "cuadratico",
+            "al cuadrado",
+            "exponencial",
+            "logarítmico",
+            "logaritmico",
+            "no lineal",
+            "no-lineal",
+            "producto de variables",
+            "multiplicar variables",
+            "raíz",
+            "raiz",
+            "potencia",
+            "curva",
+            "curvo",
+            "economía de escala",
+            "economia de escala",
+            "rendimientos decrecientes",
+            "costo marginal creciente",
             # English
-            "quadratic", "squared", "exponential", "logarithmic",
-            "nonlinear", "non-linear", "product of variables",
-            "multiply variables", "square root", "power", "curve",
-            "economies of scale", "diminishing returns",
+            "quadratic",
+            "squared",
+            "exponential",
+            "logarithmic",
+            "nonlinear",
+            "non-linear",
+            "product of variables",
+            "multiply variables",
+            "square root",
+            "power",
+            "curve",
+            "economies of scale",
+            "diminishing returns",
             "increasing marginal cost",
         ]
         return any(ind in desc for ind in indicators)
@@ -141,14 +216,42 @@ Use this when students describe a real-world problem and need guidance on what t
         """Check for continuous variable indicators."""
         indicators = [
             # Spanish
-            "continuo", "continuos", "fracción", "fraccion", "fracciones",
-            "porcentaje", "proporción", "proporcion", "cantidad",
-            "kilogramos", "litros", "metros", "horas", "toneladas",
-            "galones", "pies", "yardas", "peso", "volumen",
+            "continuo",
+            "continuos",
+            "fracción",
+            "fraccion",
+            "fracciones",
+            "porcentaje",
+            "proporción",
+            "proporcion",
+            "cantidad",
+            "kilogramos",
+            "litros",
+            "metros",
+            "horas",
+            "toneladas",
+            "galones",
+            "pies",
+            "yardas",
+            "peso",
+            "volumen",
             # English
-            "continuous", "fraction", "fractions", "percentage",
-            "proportion", "amount", "kilograms", "liters", "meters",
-            "hours", "tons", "gallons", "feet", "yards", "weight", "volume",
+            "continuous",
+            "fraction",
+            "fractions",
+            "percentage",
+            "proportion",
+            "amount",
+            "kilograms",
+            "liters",
+            "meters",
+            "hours",
+            "tons",
+            "gallons",
+            "feet",
+            "yards",
+            "weight",
+            "volume",
         ]
         return any(ind in desc for ind in indicators)
 
@@ -157,13 +260,31 @@ Use this when students describe a real-world problem and need guidance on what t
         """Check for network/graph structure indicators."""
         indicators = [
             # Spanish
-            "red", "redes", "nodos", "arcos", "flujo", "ruta",
-            "camino más corto", "transporte", "distribución",
-            "origen", "destino", "conexiones",
+            "red",
+            "redes",
+            "nodos",
+            "arcos",
+            "flujo",
+            "ruta",
+            "camino más corto",
+            "transporte",
+            "distribución",
+            "origen",
+            "destino",
+            "conexiones",
             # English
-            "network", "nodes", "arcs", "flow", "route", "path",
-            "shortest path", "transportation", "distribution",
-            "origin", "destination", "connections",
+            "network",
+            "nodes",
+            "arcs",
+            "flow",
+            "route",
+            "path",
+            "shortest path",
+            "transportation",
+            "distribution",
+            "origin",
+            "destination",
+            "connections",
         ]
         return any(ind in desc for ind in indicators)
 
@@ -172,12 +293,25 @@ Use this when students describe a real-world problem and need guidance on what t
         """Check for stochastic/uncertainty indicators."""
         indicators = [
             # Spanish
-            "incertidumbre", "probabilidad", "aleatorio", "estocástico",
-            "estocastico", "escenarios", "riesgo", "demanda incierta",
-            "variabilidad", "distribución de probabilidad",
+            "incertidumbre",
+            "probabilidad",
+            "aleatorio",
+            "estocástico",
+            "estocastico",
+            "escenarios",
+            "riesgo",
+            "demanda incierta",
+            "variabilidad",
+            "distribución de probabilidad",
             # English
-            "uncertainty", "probability", "random", "stochastic",
-            "scenarios", "risk", "uncertain demand", "variability",
+            "uncertainty",
+            "probability",
+            "random",
+            "stochastic",
+            "scenarios",
+            "risk",
+            "uncertain demand",
+            "variability",
             "probability distribution",
         ]
         return any(ind in desc for ind in indicators)
@@ -282,7 +416,7 @@ Use this when students describe a real-world problem and need guidance on what t
 
     @staticmethod
     def _format_classification(
-            classification: dict[str, str], characteristics: dict[str, Any]
+        classification: dict[str, str], characteristics: dict[str, Any]
     ) -> str:
         """
         Format classification results for display.
@@ -296,11 +430,11 @@ Use this when students describe a real-world problem and need guidance on what t
         """
         result = f"""**Clasificación del Problema**
 
-**Tipo:** {classification['type']} - {classification['full_name']}
+**Tipo:** {classification["type"]} - {classification["full_name"]}
 
-**Razón:** {classification['reason']}
+**Razón:** {classification["reason"]}
 
-**Agente Recomendado:** {classification['agent']}
+**Agente Recomendado:** {classification["agent"]}
 
 **Características Detectadas:**"""
 
@@ -332,7 +466,7 @@ Use this when students describe a real-world problem and need guidance on what t
         result += f"""
 
 ---
-*Para formular y resolver este problema, te recomiendo consultar con el {classification['agent']}.*"""
+*Para formular y resolver este problema, te recomiendo consultar con el {classification["agent"]}.*"""
 
         return result
 

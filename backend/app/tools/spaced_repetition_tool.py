@@ -88,15 +88,21 @@ Retorna: Confirmación con la próxima fecha de revisión programada."""
 
     def _action_start_review(self, concept_id: str | None) -> str:
         if not concept_id:
-            return self._format_error("Se requiere 'concept_id' para iniciar una revisión")
+            return self._format_error(
+                "Se requiere 'concept_id' para iniciar una revisión"
+            )
 
         from ..database import StudentCompetency
         from ..services.spaced_repetition_service import get_spaced_repetition_service
 
-        competency = self.db.query(StudentCompetency).filter(
-            StudentCompetency.student_id == self.student_id,
-            StudentCompetency.concept_id == concept_id,
-        ).first()
+        competency = (
+            self.db.query(StudentCompetency)
+            .filter(
+                StudentCompetency.student_id == self.student_id,
+                StudentCompetency.concept_id == concept_id,
+            )
+            .first()
+        )
 
         if not competency:
             return self._format_error(
@@ -106,27 +112,33 @@ Retorna: Confirmación con la próxima fecha de revisión programada."""
         srs = get_spaced_repetition_service(self.db)
         session = srs.create_review_session(self.student_id, concept_id)
 
-        return json.dumps({
-            "status": "ok",
-            "review_session_id": session.id,
-            "concept_id": concept_id,
-            "concept_name": competency.concept_name,
-            "current_mastery": round(competency.mastery_score, 3),
-            "message": f"Sesión de revisión iniciada para '{competency.concept_name}'",
-        })
+        return json.dumps(
+            {
+                "status": "ok",
+                "review_session_id": session.id,
+                "concept_id": concept_id,
+                "concept_name": competency.concept_name,
+                "current_mastery": round(competency.mastery_score, 3),
+                "message": f"Sesión de revisión iniciada para '{competency.concept_name}'",
+            }
+        )
 
     def _action_complete_review(
         self, concept_id: str | None, performance_quality: int | None
     ) -> str:
         if not concept_id:
-            return self._format_error("Se requiere 'concept_id' para completar una revisión")
+            return self._format_error(
+                "Se requiere 'concept_id' para completar una revisión"
+            )
         if performance_quality is None:
             return self._format_error("Se requiere 'performance_quality' (0-5)")
 
         try:
             performance_quality = int(performance_quality)
         except (TypeError, ValueError):
-            return self._format_error("'performance_quality' debe ser un entero entre 0 y 5")
+            return self._format_error(
+                "'performance_quality' debe ser un entero entre 0 y 5"
+            )
 
         if not 0 <= performance_quality <= 5:
             return self._format_error("'performance_quality' debe estar entre 0 y 5")
@@ -160,26 +172,38 @@ Retorna: Confirmación con la próxima fecha de revisión programada."""
         except ValueError as e:
             return self._format_error(str(e))
 
-        competency = self.db.query(StudentCompetency).filter(
-            StudentCompetency.student_id == self.student_id,
-            StudentCompetency.concept_id == concept_id,
-        ).first()
+        competency = (
+            self.db.query(StudentCompetency)
+            .filter(
+                StudentCompetency.student_id == self.student_id,
+                StudentCompetency.concept_id == concept_id,
+            )
+            .first()
+        )
 
         next_review = completed.next_review_scheduled
-        next_review_str = next_review.strftime("%Y-%m-%d") if next_review else "no programada"
+        next_review_str = (
+            next_review.strftime("%Y-%m-%d") if next_review else "no programada"
+        )
 
-        return json.dumps({
-            "status": "ok",
-            "concept_id": concept_id,
-            "performance_quality": performance_quality,
-            "next_review_date": next_review_str,
-            "updated_mastery_score": round(competency.mastery_score, 3) if competency else None,
-            "updated_mastery_level": competency.mastery_level.value if competency else None,
-            "message": (
-                f"Revisión completada. Calidad: {performance_quality}/5. "
-                f"Próxima revisión: {next_review_str}."
-            ),
-        })
+        return json.dumps(
+            {
+                "status": "ok",
+                "concept_id": concept_id,
+                "performance_quality": performance_quality,
+                "next_review_date": next_review_str,
+                "updated_mastery_score": round(competency.mastery_score, 3)
+                if competency
+                else None,
+                "updated_mastery_level": competency.mastery_level.value
+                if competency
+                else None,
+                "message": (
+                    f"Revisión completada. Calidad: {performance_quality}/5. "
+                    f"Próxima revisión: {next_review_str}."
+                ),
+            }
+        )
 
     @staticmethod
     def _format_error(message: str) -> str:
