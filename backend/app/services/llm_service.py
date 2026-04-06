@@ -41,35 +41,41 @@ class LLMService:
         """
         if self.provider == "gemini" or self.provider == "google":
             if not settings.google_api_key:
-                raise ValueError("Google API key not configured. Please set GOOGLE_API_KEY in .env file.")
+                raise ValueError(
+                    "Google API key not configured. Please set GOOGLE_API_KEY in .env file."
+                )
 
             return ChatGoogleGenerativeAI(
                 model=settings.google_model,
                 temperature=settings.temperature,
                 max_output_tokens=settings.max_tokens,
-                google_api_key=settings.google_api_key
+                google_api_key=settings.google_api_key,
             )
 
         elif self.provider == "openai":
             if not settings.openai_api_key:
-                raise ValueError("OpenAI API key not configured. Please set OPENAI_API_KEY in .env file.")
+                raise ValueError(
+                    "OpenAI API key not configured. Please set OPENAI_API_KEY in .env file."
+                )
 
             return ChatOpenAI(
                 tiktoken_model_name=settings.openai_model,
                 temperature=settings.temperature,
                 max_tokens=settings.max_tokens,
-                openai_api_key=settings.openai_api_key
+                openai_api_key=settings.openai_api_key,
             )
 
         elif self.provider == "anthropic":
             if not settings.anthropic_api_key:
-                raise ValueError("Anthropic model not configured. Please set ANTHROPIC_API_KEY in .env file.")
+                raise ValueError(
+                    "Anthropic model not configured. Please set ANTHROPIC_API_KEY in .env file."
+                )
 
             return ChatAnthropic(
                 model=settings.anthropic_model,
                 temperature=settings.temperature,
                 max_tokens=settings.max_tokens,
-                anthropic_api_key=settings.anthropic_api_key
+                anthropic_api_key=settings.anthropic_api_key,
             )
         else:
             raise ValueError(
@@ -77,7 +83,9 @@ class LLMService:
                 f"Please set LLM_PROVIDER in .env file to 'gemini', 'openai' or 'anthropic'."
             )
 
-    def _get_llm_with_overrides(self, temperature: float | None = None, max_tokens: int | None = None):
+    def _get_llm_with_overrides(
+        self, temperature: float | None = None, max_tokens: int | None = None
+    ):
         """
         Get LLM instance with optional parameter overrides.
 
@@ -94,21 +102,21 @@ class LLMService:
                     model=settings.google_model,
                     temperature=temperature or settings.temperature,
                     max_output_tokens=max_tokens or settings.max_tokens,
-                    google_api_key=settings.google_api_key
+                    google_api_key=settings.google_api_key,
                 )
             elif self.provider == "openai":
                 return ChatOpenAI(
                     tiktoken_model_name=settings.openai_model,
                     temperature=temperature or settings.temperature,
                     max_tokens=max_tokens or settings.max_tokens,
-                    openai_api_key=settings.openai_api_key
+                    openai_api_key=settings.openai_api_key,
                 )
             else:
                 return ChatAnthropic(
                     model=settings.anthropic_model,
                     temperature=temperature or settings.temperature,
                     max_tokens=max_tokens or settings.max_tokens,
-                    anthropic_api_key=settings.anthropic_api_key
+                    anthropic_api_key=settings.anthropic_api_key,
                 )
         else:
             return self.llm
@@ -134,15 +142,18 @@ class LLMService:
                 langchain_messages.append(SystemMessage(content=content))
             elif role == "assistant":
                 langchain_messages.append(AIMessage(content=content))
-            else: # user or any other role
+            else:  # user or any other role
                 langchain_messages.append(HumanMessage(content=content))
 
         return langchain_messages
 
-    def generate_response(self, messages: list[dict[str, str]],
-                          system_prompt: str | None = None,
-                          temperature: float | None= None,
-                          max_tokens: int | None = None) -> str:
+    def generate_response(
+        self,
+        messages: list[dict[str, str]],
+        system_prompt: str | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+    ) -> str:
         """
         Generate a response from the LLM.
 
@@ -175,16 +186,21 @@ class LLMService:
             # Extract content
             response_text = response.content
 
-            logger.info(f"Generated response with {self.provider}: {len(response_text)} characters")
+            logger.info(
+                f"Generated response with {self.provider}: {len(response_text)} characters"
+            )
             return response_text
         except Exception as e:
             logger.error(f"Error generating response with {self.provider}: {str(e)}")
             raise
 
-    async def a_generate_response(self, messages: list[dict[str, str]],
-                                  system_prompt: str | None = None,
-                                  temperature: float | None= None,
-                                  max_tokens: int | None = None) -> str:
+    async def a_generate_response(
+        self,
+        messages: list[dict[str, str]],
+        system_prompt: str | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+    ) -> str:
         """
         Async version of generate_response.
 
@@ -212,14 +228,20 @@ class LLMService:
             response = await llm.ainvoke(langchain_messages)
             response_text = response.content
 
-            logger.info(f"Generated async response with {self.provider}: {len(response_text)} characters")
+            logger.info(
+                f"Generated async response with {self.provider}: {len(response_text)} characters"
+            )
             return response_text
         except Exception as e:
-            logger.error(f"Error generating async response with {self.provider}: {str(e)}")
+            logger.error(
+                f"Error generating async response with {self.provider}: {str(e)}"
+            )
             raise
 
     @staticmethod
-    def _execute_tool(tools: list[BaseTool], tool_name: str, tool_args: dict | str) -> str:
+    def _execute_tool(
+        tools: list[BaseTool], tool_name: str, tool_args: dict | str
+    ) -> str:
         """
         Execute a tool by name with given arguments.
 
@@ -246,9 +268,14 @@ class LLMService:
                     return f"Error executing tool '{tool_name}': {str(e)}"
         return f"Tool '{tool_name}' not found"
 
-    def _process_tool_calls(self, response, langchain_messages: list,
-                            tools: list[BaseTool], iteration: int,
-                            is_async: bool = False) -> str | None:
+    def _process_tool_calls(
+        self,
+        response,
+        langchain_messages: list,
+        tools: list[BaseTool],
+        iteration: int,
+        is_async: bool = False,
+    ) -> str | None:
         """
         Process tool calls from an LLM response.
 
@@ -266,9 +293,11 @@ class LLMService:
         Returns:
             Response content string if no tool calls, None if tools were executed
         """
-        if not hasattr(response, 'tool_calls') or not response.tool_calls:
+        if not hasattr(response, "tool_calls") or not response.tool_calls:
             prefix = "async " if is_async else ""
-            logger.info(f"Generated {prefix}response with tools (iteration {iteration + 1}): {len(response.content)} chars")
+            logger.info(
+                f"Generated {prefix}response with tools (iteration {iteration + 1}): {len(response.content)} chars"
+            )
             return response.content
 
         langchain_messages.append(response)
@@ -295,7 +324,7 @@ class LLMService:
         system_prompt: str | None = None,
         temperature: float | None = None,
         max_tokens: int | None = None,
-        max_tool_iterations: int = 3
+        max_tool_iterations: int = 3,
     ) -> str:
         """
         Generate a response with tool calling support.
@@ -333,7 +362,9 @@ class LLMService:
             for iteration in range(max_tool_iterations):
                 response = llm_with_tools.invoke(langchain_messages)
 
-                result = self._process_tool_calls(response, langchain_messages, tools, iteration)
+                result = self._process_tool_calls(
+                    response, langchain_messages, tools, iteration
+                )
                 if result is not None:
                     return result
 
@@ -353,7 +384,7 @@ class LLMService:
         system_prompt: str | None = None,
         temperature: float | None = None,
         max_tokens: int | None = None,
-        max_tool_iterations: int = 3
+        max_tool_iterations: int = 3,
     ) -> str:
         """
         Async version of generate_response_with_tools.
@@ -385,7 +416,9 @@ class LLMService:
             for iteration in range(max_tool_iterations):
                 response = await llm_with_tools.ainvoke(langchain_messages)
 
-                result = self._process_tool_calls(response, langchain_messages, tools, iteration, is_async=True)
+                result = self._process_tool_calls(
+                    response, langchain_messages, tools, iteration, is_async=True
+                )
                 if result is not None:
                     return result
 
@@ -409,7 +442,7 @@ class LLMService:
             "provider": self.provider,
             "model": settings.current_model,
             "temperature": settings.temperature,
-            "max_tokens": settings.max_tokens
+            "max_tokens": settings.max_tokens,
         }
 
 

@@ -50,10 +50,14 @@ class AnalyticsService:
 
         self.db.add_all(db_events)
         self.db.commit()
-        logger.info(f"Recorded {len(db_events)} activity events for student {student_id}")
+        logger.info(
+            f"Recorded {len(db_events)} activity events for student {student_id}"
+        )
         return len(db_events)
 
-    def get_daily_active_users(self, start_date: date, end_date: date) -> DailyActiveUsersResponse:
+    def get_daily_active_users(
+        self, start_date: date, end_date: date
+    ) -> DailyActiveUsersResponse:
         """Count distinct student_ids per day."""
         results = (
             self.db.query(
@@ -73,7 +77,9 @@ class AnalyticsService:
         counts = [row.count for row in results]
         return DailyActiveUsersResponse(dates=dates, counts=counts)
 
-    def get_avg_session_duration(self, start_date: date, end_date: date) -> SessionDurationResponse:
+    def get_avg_session_duration(
+        self, start_date: date, end_date: date
+    ) -> SessionDurationResponse:
         """Compute the average session duration per day.
 
         A session's duration = max(timestamp) - min(timestamp) for each session_id.
@@ -100,7 +106,9 @@ class AnalyticsService:
         results = (
             self.db.query(
                 session_durations.c.day,
-                (func.avg(session_durations.c.duration_secs) / 60.0).label("avg_minutes"),
+                (func.avg(session_durations.c.duration_secs) / 60.0).label(
+                    "avg_minutes"
+                ),
             )
             .group_by(session_durations.c.day)
             .order_by(session_durations.c.day)
@@ -111,7 +119,9 @@ class AnalyticsService:
         avg_minutes = [round(float(row.avg_minutes or 0), 2) for row in results]
         return SessionDurationResponse(dates=dates, avg_duration_minutes=avg_minutes)
 
-    def get_peak_usage_hours(self, start_date: date, end_date: date) -> PeakUsageResponse:
+    def get_peak_usage_hours(
+        self, start_date: date, end_date: date
+    ) -> PeakUsageResponse:
         """Count events per hour of the day."""
         results = (
             self.db.query(
@@ -131,7 +141,9 @@ class AnalyticsService:
         event_counts = [row.count for row in results]
         return PeakUsageResponse(hours=hours, event_counts=event_counts)
 
-    def get_page_popularity(self, start_date: date, end_date: date) -> PagePopularityResponse:
+    def get_page_popularity(
+        self, start_date: date, end_date: date
+    ) -> PagePopularityResponse:
         """Count page_visit events and average duration per page."""
         # Get visit counts
         visit_results = (
@@ -169,7 +181,9 @@ class AnalyticsService:
             .all()
         )
 
-        duration_map = {row.page_name: float(row.avg_duration or 0) for row in duration_results}
+        duration_map = {
+            row.page_name: float(row.avg_duration or 0) for row in duration_results
+        }
 
         pages = [row.page_name for row in visit_results]
         visit_counts = [row.visits for row in visit_results]
@@ -179,7 +193,9 @@ class AnalyticsService:
             pages=pages, visit_counts=visit_counts, avg_duration_seconds=avg_durations
         )
 
-    def get_topic_popularity(self, start_date: date, end_date: date) -> TopicPopularityResponse:
+    def get_topic_popularity(
+        self, start_date: date, end_date: date
+    ) -> TopicPopularityResponse:
         """Count interactions per topic."""
         results = (
             # Queries topic interactions within the date range
@@ -199,9 +215,13 @@ class AnalyticsService:
 
         topics = [row.topic for row in results]
         interaction_counts = [row.count for row in results]
-        return TopicPopularityResponse(topics=topics, interaction_counts=interaction_counts)
+        return TopicPopularityResponse(
+            topics=topics, interaction_counts=interaction_counts
+        )
 
-    def get_user_engagement(self, start_date: date, end_date: date) -> UserEngagementResponse:
+    def get_user_engagement(
+        self, start_date: date, end_date: date
+    ) -> UserEngagementResponse:
         """Aggregate engagement metrics over the date range."""
         base_filter = [
             cast(ActivityEvent.timestamp, Date) >= start_date,
@@ -209,18 +229,20 @@ class AnalyticsService:
         ]
 
         total_events = (
-            self.db.query(func.count(ActivityEvent.id))
-            .filter(*base_filter)
-            .scalar() or 0
+            self.db.query(func.count(ActivityEvent.id)).filter(*base_filter).scalar()
+            or 0
         )
 
         unique_sessions = (
             self.db.query(func.count(func.distinct(ActivityEvent.session_id)))
             .filter(*base_filter)
-            .scalar() or 0
+            .scalar()
+            or 0
         )
 
-        avg_events_per_session = round(total_events / unique_sessions, 2) if unique_sessions > 0 else 0
+        avg_events_per_session = (
+            round(total_events / unique_sessions, 2) if unique_sessions > 0 else 0
+        )
 
         # Average session duration
         session_durations = (
@@ -235,28 +257,38 @@ class AnalyticsService:
             .subquery()
         )
 
-        avg_duration = (
-            self.db.query(func.avg(session_durations.c.duration_secs) / 60.0)
-            .scalar()
-        )
+        avg_duration = self.db.query(
+            func.avg(session_durations.c.duration_secs) / 60.0
+        ).scalar()
         avg_session_duration_minutes = round(float(avg_duration or 0), 2)
 
         total_chat_messages = (
             self.db.query(func.count(ActivityEvent.id))
-            .filter(*base_filter, ActivityEvent.event_category == EventCategory.CHAT_MESSAGE)
-            .scalar() or 0
+            .filter(
+                *base_filter, ActivityEvent.event_category == EventCategory.CHAT_MESSAGE
+            )
+            .scalar()
+            or 0
         )
 
         total_assessments_generated = (
             self.db.query(func.count(ActivityEvent.id))
-            .filter(*base_filter, ActivityEvent.event_category == EventCategory.ASSESSMENT_GENERATE)
-            .scalar() or 0
+            .filter(
+                *base_filter,
+                ActivityEvent.event_category == EventCategory.ASSESSMENT_GENERATE,
+            )
+            .scalar()
+            or 0
         )
 
         total_assessments_submitted = (
             self.db.query(func.count(ActivityEvent.id))
-            .filter(*base_filter, ActivityEvent.event_category == EventCategory.ASSESSMENT_SUBMIT)
-            .scalar() or 0
+            .filter(
+                *base_filter,
+                ActivityEvent.event_category == EventCategory.ASSESSMENT_SUBMIT,
+            )
+            .scalar()
+            or 0
         )
 
         return UserEngagementResponse(

@@ -51,7 +51,9 @@ def get_completed_exercise_ids(db: Session, student_id: int, topic: Topic) -> se
     return completed
 
 
-def compute_max_unlocked_rank(completed_ids: set[str], exercises: list[dict[str, Any]]) -> int:
+def compute_max_unlocked_rank(
+    completed_ids: set[str], exercises: list[dict[str, Any]]
+) -> int:
     """
     Compute the maximum unlocked rank for a list of exercises within one topic.
 

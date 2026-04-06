@@ -55,12 +55,16 @@ class ExerciseRegistry:
                     self._managers[topic] = manager
                     # Build reverse lookup
                     for ex in manager.list_exercises():
-                        self._topic_from_exercise[ex['id']] = topic
-                    logger.info(f"Loaded {manager.get_exercise_count()} exercises for {topic.value}")
+                        self._topic_from_exercise[ex["id"]] = topic
+                    logger.info(
+                        f"Loaded {manager.get_exercise_count()} exercises for {topic.value}"
+                    )
                 else:
                     logger.debug(f"No complete exercises found for {topic.value}")
 
-        logger.info(f"ExerciseRegistry discovered {len(self._managers)} topics with exercises")
+        logger.info(
+            f"ExerciseRegistry discovered {len(self._managers)} topics with exercises"
+        )
 
     def get_manager(self, topic: Topic) -> ExerciseManager | None:
         """Get an ExerciseManager for a specific topic."""
@@ -76,7 +80,7 @@ class ExerciseRegistry:
         for topic, manager in self._managers.items():
             for ex in manager.list_exercises():
                 ex_copy = ex.copy()
-                ex_copy['topic'] = topic.value
+                ex_copy["topic"] = topic.value
                 result.append(ex_copy)
         return result
 
@@ -87,7 +91,7 @@ class ExerciseRegistry:
             exercises = []
             for ex in manager.list_exercises():
                 ex_copy = ex.copy()
-                ex_copy['topic'] = topic.value
+                ex_copy["topic"] = topic.value
                 exercises.append(ex_copy)
             return exercises
         return []
@@ -111,8 +115,7 @@ def get_exercise_registry() -> ExerciseRegistry:
     global _exercise_registry
     if _exercise_registry is None:
         base_path = os.path.join(
-            os.path.dirname(__file__),
-            "..", "..", "..", "data", "course_materials"
+            os.path.dirname(__file__), "..", "..", "..", "data", "course_materials"
         )
         _exercise_registry = ExerciseRegistry(base_path)
     return _exercise_registry
@@ -134,19 +137,25 @@ def get_exercise_manager() -> ExerciseManager:
             # Fallback to direct initialization if the registry doesn't have MM
             exercises_path = os.path.join(
                 os.path.dirname(__file__),
-                "..", "..", "..", "data",
-                "course_materials", "mathematical_modeling", "exercises"
+                "..",
+                "..",
+                "..",
+                "data",
+                "course_materials",
+                "mathematical_modeling",
+                "exercises",
             )
             _exercise_manager = ExerciseManager(exercises_path)
-            logger.info(f"Initialized ExerciseManager with {_exercise_manager.get_exercise_count()} exercises")
+            logger.info(
+                f"Initialized ExerciseManager with {_exercise_manager.get_exercise_count()} exercises"
+            )
     return _exercise_manager
 
 
 def get_exercise_assessment_service() -> "ExerciseAssessmentService":
     """Create an ExerciseAssessmentService instance."""
     return ExerciseAssessmentService(
-        exercise_manager=get_exercise_manager(),
-        llm_service=get_llm_service()
+        exercise_manager=get_exercise_manager(), llm_service=get_llm_service()
     )
 
 
@@ -182,9 +191,7 @@ class ExerciseAssessmentService:
         return text.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
 
     def create_assessment(
-        self,
-        exercise_id: str,
-        mode: str = "practice"
+        self, exercise_id: str, mode: str = "practice"
     ) -> dict[str, Any]:
         """
         Create an assessment from an exercise.
@@ -221,7 +228,9 @@ class ExerciseAssessmentService:
         rubric = self._generate_rubric(exercise.model_type)
 
         # Sanitize exercise_id before logging to prevent log injection
-        safe_exercise_id = exercise_id.replace("\r\n", "").replace("\n", "").replace("\n", "")
+        safe_exercise_id = (
+            exercise_id.replace("\r\n", "").replace("\n", "").replace("\n", "")
+        )
 
         logger.info(f"Created practice assessment from exercise {safe_exercise_id}")
 
@@ -235,8 +244,8 @@ class ExerciseAssessmentService:
                 "exercise_title": exercise.title,
                 "model_type": exercise.model_type,
                 "mode": "practice",
-                "hints_available": len(exercise.hints)
-            }
+                "hints_available": len(exercise.hints),
+            },
         }
 
     def _generate_similar_assessment(self, exercise_id: str) -> dict[str, Any]:
@@ -273,7 +282,10 @@ FORMATO DE RESPUESTA (JSON):
 Genera SOLO el JSON, sin texto adicional."""
 
         messages = [
-            {"role": "user", "content": "Genera un problema similar siguiendo las instrucciones."}
+            {
+                "role": "user",
+                "content": "Genera un problema similar siguiendo las instrucciones.",
+            }
         ]
 
         try:
@@ -281,7 +293,7 @@ Genera SOLO el JSON, sin texto adicional."""
                 messages=messages,
                 system_prompt=system_prompt,
                 temperature=0.7,  # Higher creativity for varied problems
-                max_tokens=4000
+                max_tokens=4000,
             )
 
             # Parse the response
@@ -289,25 +301,31 @@ Genera SOLO el JSON, sin texto adicional."""
 
             if not parsed or "question" not in parsed:
                 safe_exercise_id = self._sanitize_for_log(exercise_id)
-                logger.warning(f"Failed to parse LLM response for similar exercise {safe_exercise_id}")
+                logger.warning(
+                    f"Failed to parse LLM response for similar exercise {safe_exercise_id}"
+                )
                 # Fallback to practice mode
                 return self._create_practice_assessment(exercise_id)
 
             safe_exercise_id = self._sanitize_for_log(exercise_id)
-            logger.info(f"Generated similar assessment from exercise {safe_exercise_id}")
+            logger.info(
+                f"Generated similar assessment from exercise {safe_exercise_id}"
+            )
 
             return {
                 "question": parsed.get("question", ""),
                 "correct_answer": parsed.get("correct_answer", ""),
-                "rubric": parsed.get("rubric", self._generate_rubric(exercise.model_type)),
+                "rubric": parsed.get(
+                    "rubric", self._generate_rubric(exercise.model_type)
+                ),
                 "metadata": {
                     "source": "exercise_similar",
                     "exercise_id": exercise_id,
                     "exercise_title": exercise.title,
                     "model_type": exercise.model_type,
                     "mode": "similar",
-                    "original_exercise": exercise.title
-                }
+                    "original_exercise": exercise.title,
+                },
             }
 
         except Exception as e:

@@ -42,7 +42,7 @@ class AssessmentService:
         student_id: int,
         topic: Topic,
         difficulty: str,
-        conversation_id: int | None = None
+        conversation_id: int | None = None,
     ) -> dict[str, Any]:
         """
         Generate a personalized assessment question tailored to the student's weaknesses.
@@ -71,11 +71,13 @@ class AssessmentService:
             # Get conversation context if conversation_id provided
             conversation_context = None
             if conversation_id:
-                conversation_context = self.conversation_service.get_conversation_context(
-                    conversation_id=conversation_id,
-                    student_id=student_id,
-                    topic=topic.value,
-                    # include_assessment_data=True
+                conversation_context = (
+                    self.conversation_service.get_conversation_context(
+                        conversation_id=conversation_id,
+                        student_id=student_id,
+                        topic=topic.value,
+                        # include_assessment_data=True
+                    )
                 )
 
             # Build the assessment generation prompt
@@ -83,14 +85,14 @@ class AssessmentService:
                 student_context=student_context,
                 conversation_context=conversation_context,
                 topic=topic.value,
-                difficulty=difficulty
+                difficulty=difficulty,
             )
 
             # Generate assessment using LLM
             messages = [
                 {
                     "role": "user",
-                    "content": "Please generate a personalized assessment question following the guidelines provided."
+                    "content": "Please generate a personalized assessment question following the guidelines provided.",
                 }
             ]
 
@@ -98,7 +100,7 @@ class AssessmentService:
                 messages=messages,
                 system_prompt=system_prompt,
                 temperature=0.3,  # Moderate creativity for varied questions
-                max_tokens=4000  # Allow longer responses for complete assessments
+                max_tokens=4000,  # Allow longer responses for complete assessments
             )
 
             # Parse the LLM response
@@ -109,7 +111,10 @@ class AssessmentService:
                 "difficulty": difficulty,
                 "knowledge_level": student_context.get("knowledge_level"),
                 "based_on_conversation": conversation_id is not None,
-                "knowledge_gaps_addressed": len(student_context.get("knowledge_gaps", [])) > 0
+                "knowledge_gaps_addressed": len(
+                    student_context.get("knowledge_gaps", [])
+                )
+                > 0,
             }
 
             safe_student_id = _sanitize_for_log(student_id)
@@ -132,7 +137,7 @@ class AssessmentService:
         student_context: dict[str, Any],
         conversation_context: dict[str, Any] | None,
         topic: str,
-        difficulty: str
+        difficulty: str,
     ) -> str:
         """
         Build a comprehensive system prompt for assessment generation.
@@ -157,9 +162,9 @@ class AssessmentService:
 Your task is to generate a personalized assessment question for a student learning about {topic}.
 
 ## Student Profile:
-- Knowledge Level: {knowledge_level} ({student_context.get('knowledge_level_description', '')})
-- Average Score on Past Assessments: {assessment_performance.get('average_score', 'N/A')}
-- Recent Performance: {recent_scores if recent_scores else 'No prior assessments'}
+- Knowledge Level: {knowledge_level} ({student_context.get("knowledge_level_description", "")})
+- Average Score on Past Assessments: {assessment_performance.get("average_score", "N/A")}
+- Recent Performance: {recent_scores if recent_scores else "No prior assessments"}
 """
 
         # Add knowledge gaps if available
@@ -179,20 +184,34 @@ Your task is to generate a personalized assessment question for a student learni
             recent_messages = conversation_context.get("conversation_history", [])
             if recent_messages:
                 recent_topics_summary = "Recent discussion topics: " + "; ".join(
-                    [msg.get("content", "")[:100] for msg in recent_messages[-3:] if msg.get("role") == "user"]
+                    [
+                        msg.get("content", "")[:100]
+                        for msg in recent_messages[-3:]
+                        if msg.get("role") == "user"
+                    ]
                 )
-                prompt += f"\n## Recent Conversation Context:\n{recent_topics_summary}\n"
-                prompt += "Please build on concepts recently discussed in the conversation.\n"
+                prompt += (
+                    f"\n## Recent Conversation Context:\n{recent_topics_summary}\n"
+                )
+                prompt += (
+                    "Please build on concepts recently discussed in the conversation.\n"
+                )
 
             # Add learning preferences
             if strategies_used:
-                most_used = max(set(strategies_used), key=strategies_used.count) if strategies_used else None
+                most_used = (
+                    max(set(strategies_used), key=strategies_used.count)
+                    if strategies_used
+                    else None
+                )
                 prompt += "\n## Learning Preferences:\n"
                 prompt += f"- Teaching strategies used: {', '.join(set(strategies_used[:5]))}\n"
                 if most_used:
                     prompt += f"- Most frequently used approach: {most_used}\n"
                 if successful_strategies:
-                    best_strategy = max(successful_strategies.items(), key=lambda x: x[1])[0]
+                    best_strategy = max(
+                        successful_strategies.items(), key=lambda x: x[1]
+                    )[0]
                     prompt += f"- Most successful strategy: {best_strategy}\n"
                     prompt += "Please align the problem presentation with the student's preferred learning style.\n"
 
@@ -200,7 +219,7 @@ Your task is to generate a personalized assessment question for a student learni
         difficulty_guidelines = {
             "beginner": "Focus on fundamental concepts and basic problem-solving. Include step-by-step guidance hints if needed.",
             "intermediate": "Include moderate complexity with multiple steps. Student should demonstrate understanding of core concepts and their application.",
-            "advanced": "Create a challenging problem requiring deep understanding, critical thinking, and potentially multiple solution approaches."
+            "advanced": "Create a challenging problem requiring deep understanding, critical thinking, and potentially multiple solution approaches.",
         }
         prompt += f"\n## Difficulty Level: {difficulty}\n{difficulty_guidelines.get(difficulty, '')}\n"
 
@@ -211,7 +230,8 @@ Your task is to generate a personalized assessment question for a student learni
             - Problem formulation (decision variables, objective function, constraints)
             - Solution method (graphical method for 2 variables, or simplex for more)
             - Interpretation of results
-            Ensure the problem is practical and relatable.""", "mathematical_modeling": """
+            Ensure the problem is practical and relatable.""",
+            "mathematical_modeling": """
             Generate a Mathematical Modeling problem involving:
             - Translating a real-world scenario into mathematical formulation
             - Identifying decision variables and parameters
@@ -233,7 +253,7 @@ Your task is to generate a personalized assessment question for a student learni
             Generate a Nonlinear Programming problem involving:
             - Nonlinear objective functions or constraints
             - Optimization techniques
-            - Practical applications"""
+            - Practical applications""",
         }
         prompt += f"\n## Topic Guidelines:\n{topic_guidelines.get(topic, 'Generate a relevant optimization problem.')}\n"
 
@@ -281,7 +301,7 @@ Generate the assessment now.
             return {
                 "question": parsed.get("question", ""),
                 "correct_answer": parsed.get("correct_answer", ""),
-                "rubric": parsed.get("rubric", "")
+                "rubric": parsed.get("rubric", ""),
             }
 
         except (json.JSONDecodeError, ValueError) as e:
@@ -328,8 +348,10 @@ Generate the assessment now.
 
         return {
             "question": question.strip() if question else llm_response[:500],
-            "correct_answer": answer.strip() if answer else "Solution not generated properly.",
-            "rubric": rubric.strip() if rubric else "Standard grading rubric applies."
+            "correct_answer": answer.strip()
+            if answer
+            else "Solution not generated properly.",
+            "rubric": rubric.strip() if rubric else "Standard grading rubric applies.",
         }
 
     @staticmethod
@@ -348,10 +370,7 @@ Generate the assessment now.
             "question": f"Practice problem for {topic} at {difficulty} level. (Assessment generation temporarily unavailable)",
             "correct_answer": "Solution will be provided upon submission.",
             "rubric": "Standard grading criteria: Problem understanding (2 pts), Methodology (3 pts), Solution accuracy (2 pts)",
-            "metadata": {
-                "difficulty": difficulty,
-                "is_fallback": True
-            }
+            "metadata": {"difficulty": difficulty, "is_fallback": True},
         }
 
 
