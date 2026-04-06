@@ -42,11 +42,12 @@ st.set_page_config(
     page_title="Tutor de IA - Métodos de optimización",
     page_icon="🎓",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # Custom CSS
-st.markdown("""
+st.markdown(
+    """
     <style>
     .main-header {
         font-size: 2.5rem;
@@ -65,7 +66,10 @@ st.markdown("""
         width: 100%;
     }
     </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
+
 
 def check_backend_health():
     """Check if the backend is available."""
@@ -75,16 +79,21 @@ def check_backend_health():
     except Exception as e:
         return False, {"error": str(e)}
 
+
 # Authentication forms removed - now using the API client
+
 
 def main():
     """Main application entry point."""
 
     # Header
-    st.markdown('<p class="main-header">🎓 Tutor de IA para métodos de optimización</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="main-header">🎓 Tutor de IA para métodos de optimización</p>',
+        unsafe_allow_html=True,
+    )
     st.markdown(
         '<p class="sub-header">Tu asistente personalizado para aprender técnicas de optimización</p>',
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
     # Check backend health
@@ -109,19 +118,27 @@ def main():
         # Authentication section
         if not api_client.is_authenticated():
             # Show login/register tabs
-            auth_tab = st.radio("Elige una acción:", ["Login", "Register"], horizontal=True)
+            auth_tab = st.radio(
+                "Elige una acción:", ["Login", "Register"], horizontal=True
+            )
 
             if auth_tab == "Login":
                 st.subheader("Login")
                 login_email = st.text_input("Email", key="login_email")
-                login_password = st.text_input("Password", type="password", key="login_password")
+                login_password = st.text_input(
+                    "Password", type="password", key="login_password"
+                )
 
                 if st.button("Login", type="primary", key="login_btn"):
                     if login_email and login_password:
                         with st.spinner("Logging in..."):
-                            success, data = api_client.login(login_email, login_password)
+                            success, data = api_client.login(
+                                login_email, login_password
+                            )
                             if success:
-                                st.success(f"Bienvenido de nuevo, {data['user']['name']}!")
+                                st.success(
+                                    f"Bienvenido de nuevo, {data['user']['name']}!"
+                                )
                                 st.rerun()
                             else:
                                 error_msg = data.get("detail", "Login failed")
@@ -133,8 +150,17 @@ def main():
                 st.subheader("Registro")
                 register_name = st.text_input("Nombre", key="register_name")
                 register_email = st.text_input("Email", key="register_email")
-                register_password = st.text_input("Password", type="password", key="register_password", help="Minimum 8 characters")
-                register_password_confirm = st.text_input("Confirmar Password", type="password", key="register_password_confirm")
+                register_password = st.text_input(
+                    "Password",
+                    type="password",
+                    key="register_password",
+                    help="Minimum 8 characters",
+                )
+                register_password_confirm = st.text_input(
+                    "Confirmar Password",
+                    type="password",
+                    key="register_password_confirm",
+                )
 
                 if st.button("Registro", type="primary", key="register_btn"):
                     if register_name and register_email and register_password:
@@ -144,15 +170,23 @@ def main():
                             st.error("¡La contraseña debe tener al menos 8 caracteres!")
                         else:
                             with st.spinner("Creando cuenta..."):
-                                success, data = api_client.register(register_name, register_email, register_password)
+                                success, data = api_client.register(
+                                    register_name, register_email, register_password
+                                )
                                 if success:
                                     if data.get("status") == "pending_approval":
-                                        st.warning(f"Cuenta creada para {register_email}. Tu cuenta está pendiente de aprobación por un administrador.")
+                                        st.warning(
+                                            f"Cuenta creada para {register_email}. Tu cuenta está pendiente de aprobación por un administrador."
+                                        )
                                     else:
-                                        st.success(f"Bienvenido, {data['user']['name']}! Tu cuenta ha sido creada.")
+                                        st.success(
+                                            f"Bienvenido, {data['user']['name']}! Tu cuenta ha sido creada."
+                                        )
                                         st.rerun()
                                 else:
-                                    error_msg = data.get("detail", "Registration failed")
+                                    error_msg = data.get(
+                                        "detail", "Registration failed"
+                                    )
                                     st.error(f"Error: {error_msg}")
                     else:
                         st.warning("¡Por favor, rellena todos los campos!")
@@ -188,7 +222,7 @@ def main():
                 options=TOPICS_LIST,
                 index=TOPICS_LIST.index(st.session_state.selected_topic),
                 key="home_topic_selector",
-                help="Selecciona el tema de optimización sobre el que deseas aprender"
+                help="Selecciona el tema de optimización sobre el que deseas aprender",
             )
             st.session_state.selected_topic = selected_topic
 
@@ -236,15 +270,21 @@ def main():
 
         with col1:
             st.markdown("#### 💬 Chat")
-            st.write("Interactúa con tutores de IA especializados en diferentes temas de optimización.")
+            st.write(
+                "Interactúa con tutores de IA especializados en diferentes temas de optimización."
+            )
             st.info("Haz preguntas, obtén explicaciones y resuelve problemas.")
         with col2:
             st.markdown("#### 📝 Evaluaciones")
-            st.write("Pon a prueba tus conocimientos con problemas de práctica generados por IA")
+            st.write(
+                "Pon a prueba tus conocimientos con problemas de práctica generados por IA"
+            )
             st.info("Obtén comentarios instantáneos y sugerencias personalizadas")
         with col3:
             st.markdown("#### 📊 Progreso")
-            st.write("Realiza un seguimiento de tu recorrido de aprendizaje en todos los temas")
+            st.write(
+                "Realiza un seguimiento de tu recorrido de aprendizaje en todos los temas"
+            )
             st.info("Vea tu mejora e identifica áreas en las que centrarte")
 
         st.divider()
@@ -292,7 +332,9 @@ def main():
 
         # Show the main chat interface for logged-in users
         st.markdown("### 💬 Chatea con un tutor de IA")
-        st.markdown("¡Haga preguntas sobre cualquier tema relacionado con el método de optimización!")
+        st.markdown(
+            "¡Haga preguntas sobre cualquier tema relacionado con el método de optimización!"
+        )
 
         # Initialize chat history
         if "messages" not in st.session_state:
@@ -313,28 +355,36 @@ def main():
             with st.chat_message("assistant"):
                 with st.spinner("Pensando..."):
                     # Get a selected topic from the session state
-                    selected_topic = st.session_state.get("selected_topic", DEFAULT_TOPIC)
+                    selected_topic = st.session_state.get(
+                        "selected_topic", DEFAULT_TOPIC
+                    )
                     topic_value = TOPIC_OPTIONS[selected_topic]
 
                     # Use authenticated API client
-                    success, data = api_client.post("/chat", json_data={
-                        "message": prompt,
-                        "conversation_id": st.session_state.conversation_id,
-                        "topic": topic_value
-                    })
+                    success, data = api_client.post(
+                        "/chat",
+                        json_data={
+                            "message": prompt,
+                            "conversation_id": st.session_state.conversation_id,
+                            "topic": topic_value,
+                        },
+                    )
 
                     if success:
                         assistant_message = data["response"]
                         st.session_state.conversation_id = data["conversation_id"]
 
                         st.markdown(assistant_message)
-                        st.session_state.messages.append({
-                            "role": "assistant",
-                            "content": assistant_message
-                        })
-                        track_chat_message(PAGE_HOME, topic_value, st.session_state.conversation_id)
+                        st.session_state.messages.append(
+                            {"role": "assistant", "content": assistant_message}
+                        )
+                        track_chat_message(
+                            PAGE_HOME, topic_value, st.session_state.conversation_id
+                        )
                     else:
-                        error_msg = data.get("detail", data.get("error", "Failed to get response"))
+                        error_msg = data.get(
+                            "detail", data.get("error", "Failed to get response")
+                        )
                         st.error(f"Error: {error_msg}")
 
         with st.sidebar:
@@ -346,6 +396,7 @@ def main():
                     st.session_state.messages = []
                     st.session_state.conversation_id = None
                     st.rerun()
+
 
 if __name__ == "__main__":
     main()
