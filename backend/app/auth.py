@@ -46,7 +46,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     # Truncate to 72 BYTES (not characters) to match hashing behavior
     password_bytes = plain_password.encode()[:72]
-    plain_password_truncated = password_bytes.decode(errors='ignore')
+    plain_password_truncated = password_bytes.decode(errors="ignore")
 
     return pwd_context.verify(plain_password_truncated, hashed_password)
 
@@ -66,7 +66,7 @@ def get_password_hash(password: str) -> str:
     """
     # Truncate to 72 BYTES (not characters) to comply with bcrypt's limit
     password_bytes = password.encode()[:72]
-    password_truncated = password_bytes.decode(errors='ignore')
+    password_truncated = password_bytes.decode(errors="ignore")
 
     return pwd_context.hash(password_truncated)
 
@@ -111,7 +111,9 @@ def decode_access_token(token: str) -> dict:
     """
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
-        logger.debug(f"Successfully decoded JWT token for user_id: {payload.get('sub')}")
+        logger.debug(
+            f"Successfully decoded JWT token for user_id: {payload.get('sub')}"
+        )
         return payload
     except JWTError as e:
         logger.error(f"JWT validation failed: {type(e).__name__}")
@@ -146,7 +148,7 @@ def authenticate_user(db: Session, email: str, password: str) -> Student | None:
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> Student:
     """
     Dependency to get the current authenticated user from JWT token.
@@ -191,14 +193,13 @@ async def get_current_user(
 
     if not student.is_active:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is inactive"
+            status_code=status.HTTP_403_FORBIDDEN, detail="User account is inactive"
         )
     return student
 
 
 async def get_current_active_user(
-    current_user: Student = Depends(get_current_user)
+    current_user: Student = Depends(get_current_user),
 ) -> Student:
     """
     Dependency to get the current active user.
@@ -214,14 +215,13 @@ async def get_current_active_user(
     """
     if not current_user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Inactive user"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user"
         )
     return current_user
 
 
 async def get_current_admin_user(
-    current_user: Student = Depends(get_current_user)
+    current_user: Student = Depends(get_current_user),
 ) -> Student:
     """
     Dependency to get the current admin user (role-based authorization).
@@ -238,6 +238,6 @@ async def get_current_admin_user(
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions. Admin role required."
+            detail="Not enough permissions. Admin role required.",
         )
     return current_user

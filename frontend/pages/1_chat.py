@@ -6,7 +6,7 @@ import streamlit as st
 from dotenv import load_dotenv
 
 # Add the parent directory to the path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
+sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
 
 from utils.activity_tracker import (
     PAGE_CHAT,
@@ -46,10 +46,7 @@ inject_idle_detector(backend_url=BACKEND_URL)
 st.sidebar.header("🎯 Select Topic")
 # TODO: Implement auto-detect topic feature in the future
 
-selected_topic = st.sidebar.selectbox(
-    "Elige un tema específico:",
-    options=TOPICS_LIST
-)
+selected_topic = st.sidebar.selectbox("Elige un tema específico:", options=TOPICS_LIST)
 
 # Initialize chat
 if "chat_messages" not in st.session_state:
@@ -75,25 +72,34 @@ if prompt := st.chat_input(placeholder="Haz tu pregunta..."):
     with st.chat_message("assistant"):
         with st.spinner("El Tutor de IA está pensando..."):
             # Use the authenticated API client (student_id extracted from token)
-            success, data = api_client.post("/chat", json_data={
-                "message": prompt,
-                "conversation_id": st.session_state.chat_conversation_id,
-                "topic": TOPIC_OPTIONS[selected_topic]
-            })
+            success, data = api_client.post(
+                "/chat",
+                json_data={
+                    "message": prompt,
+                    "conversation_id": st.session_state.chat_conversation_id,
+                    "topic": TOPIC_OPTIONS[selected_topic],
+                },
+            )
 
             if success:
                 st.markdown(data["response"])
                 st.caption(f"Agent: {data['agent_type']}")
 
-                st.session_state.chat_messages.append({
-                    "role": "assistant",
-                    "content": data["response"],
-                    "agent_type": data["agent_type"]
-                })
+                st.session_state.chat_messages.append(
+                    {
+                        "role": "assistant",
+                        "content": data["response"],
+                        "agent_type": data["agent_type"],
+                    }
+                )
                 st.session_state.chat_conversation_id = data["conversation_id"]
-                track_chat_message(PAGE_CHAT, TOPIC_OPTIONS[selected_topic], data["conversation_id"])
+                track_chat_message(
+                    PAGE_CHAT, TOPIC_OPTIONS[selected_topic], data["conversation_id"]
+                )
             else:
-                error_msg = data.get("detail", data.get("error", "Failed to get response"))
+                error_msg = data.get(
+                    "detail", data.get("error", "Failed to get response")
+                )
                 st.error(f"Error: {error_msg}")
 
 # Sidebar controls

@@ -30,143 +30,107 @@ class IntegerProgrammingAgent(BaseAgent):
     def __init__(self):
         """Initialize the Integer Programming agent."""
         super().__init__(
-            agent_name="Tutor de Programación Entera",
-            agent_type="integer_programming"
+            agent_name="Tutor de Programación Entera", agent_type="integer_programming"
         )
         logger.info("Integer Programming agent initialized")
 
-    def get_system_prompt(self, context: dict[str, Any]) -> str:
-        """
-        Generate optimized system prompt for Integer Programming agent.
+    def _get_identity_prompt(self, student_name: str) -> str:
+        return f"""Eres un tutor experto en Programación Entera para {student_name}.
+    TEMAS QUE CUBRES:
+    - Formulación IP: variables binarias, enteras, mixtas (MIP)
+    - Variables binarias: decisiones si/no, restricciones lógicas, big-M
+    - Métodos de solución: branch and bound, planos de corte, branch-and-cut
+    - Relajación LP: cotas, gap de optimalidad, soluciones incumbentes
+    - Aplicaciones: ubicación de instalaciones, mochila, asignación, scheduling, TSP
+    - Técnicas de modelado: either-or, if-then, costos fijos, indicadores"""
 
-        Structured as:
-        1. Identity & Scope
-        2. Knowledge Level Adaptation
-        3. Strategy Selection with Triggers
-        4. Pedagogical Protocols
-        5. Few-shot Examples
-        6. Response Guidelines
-        """
-        student = context.get("student", {})
-        knowledge_level = student.get("knowledge_level", "beginner")
-        student_name = student.get("student_name", "Student")
-
-        # ========== SECTION 1: IDENTITY & SCOPE (Compact) ==========
-        identity = f"""Eres un tutor experto en Programación Entera para {student_name}.
-TEMAS QUE CUBRES:
-• Formulación IP: variables binarias, enteras, mixtas (MIP)
-• Variables binarias: decisiones sí/no, restricciones lógicas, big-M
-• Métodos de solución: branch and bound, planos de corte, branch-and-cut
-• Relajación LP: cotas, gap de optimalidad, soluciones incumbentes
-• Aplicaciones: ubicación de instalaciones, mochila, asignación, scheduling, TSP
-• Técnicas de modelado: either-or, if-then, costos fijos, indicadores"""
-
-        # ========== SECTION 2: KNOWLEDGE LEVEL (Dynamic Injection) ==========
-        level_prompts = {
+    def _get_level_prompts(self) -> dict[str, str]:
+        return {
             "beginner": """
-NIVEL: PRINCIPIANTE
-- Comienza con motivación: ¿por qué no podemos simplemente redondear soluciones LP?
-- Usa ejemplos simples con 2-3 variables
-- Enfócate primero en variables binarias (más fáciles que enteros generales)
-- Prioriza formulación sobre algoritmos complejos
-- Usa escenarios reales: contratar/no contratar, abrir/cerrar tienda
-- Explica conceptos intuitivamente antes de notación matemática
-- Verifica comprensión frecuentemente""",
-
+    NIVEL: PRINCIPIANTE
+    - Comienza con motivación: por que no podemos simplemente redondear soluciones LP?
+    - Usa ejemplos simples con 2-3 variables
+    - Enfócate primero en variables binarias (mas fáciles que enteros generales)
+    - Prioriza formulación sobre algoritmos complejos
+    - Usa escenarios reales: contratar/no contratar, abrir/cerrar tienda
+    - Explica conceptos intuitivamente antes de notación matematica
+    - Verifica comprensión frecuentemente""",
             "intermediate": """
-NIVEL: INTERMEDIO
-- Asume familiaridad con formulación y variables binarias
-- Introduce branch and bound con explicaciones paso a paso
-- Cubre técnicas de modelado: costos fijos, either-or, big-M
-- Discute relajación LP y cotas en detalle
-- Problemas con 5-10 variables
-- Explica gaps de optimalidad y calidad de solución
-- Reconocimiento de tipos de problemas (facility location, TSP, etc.)""",
-
+    NIVEL: INTERMEDIO
+    - Asume familiaridad con formulación y variables binarias
+    - Introduce branch and bound con explicaciones paso a paso
+    - Cubre técnicas de modelado: costos fijos, either-or, big-M
+    - Discute relajación LP y cotas en detalle
+    - Problemas con 5-10 variables
+    - Explica gaps de optimalidad y calidad de solución
+    - Reconocimiento de tipos de problemas (facility location, TSP, etc.)""",
             "advanced": """
-NIVEL: AVANZADO
-- Terminología matemática precisa y teoría de complejidad
-- Métodos avanzados: planos de corte, branch-and-cut
-- Formulaciones fuertes vs débiles, desigualdades válidas
-- Estrategias de branching avanzadas (strong branching, pseudocost)
-- Métodos de descomposición (Benders, Dantzig-Wolfe)
-- Heurísticas y metaheurísticas para IP grandes
-- Explotación de estructura especial (unimodularidad total)"""
+    NIVEL: AVANZADO
+    - Terminología matematica precisa y teoría de complejidad
+    - Métodos avanzados: planos de corte, branch-and-cut
+    - Formulaciones fuertes vs débiles, desigualdades validas
+    - Estrategias de branching avanzadas (strong branching, pseudocost)
+    - Métodos de descomposición (Benders, Dantzig-Wolfe)
+    - Heurísticas y metaheurísticas para IP grandes
+    - Explotación de estructura especial (unimodularidad total)""",
         }
-        level_section = level_prompts.get(knowledge_level, level_prompts["beginner"])
 
-        # ========== SECTION 3: STRATEGY TRIGGERS (Explicit Mapping) ==========
-        strategies = """
-SELECCIÓN DE ESTRATEGIA - Usa estos disparadores:
+    def _get_strategy_prompt(self) -> str:
+        return """
+    SELECCION DE ESTRATEGIA - Usa estos disparadores:
 
-| Tipo de pregunta | Estrategia | Ejemplo de trigger |
-|------------------|------------|-------------------|
-| "¿Cómo formulo este problema?" | BASADO EN FORMULACIÓN | Traducir decisiones a variables |
-| "Dame un ejemplo de IP" | BASADO EN EJEMPLOS | Problema numérico completo |
-| "¿Cómo funciona branch and bound?" | ALGORÍTMICO | Pasos del algoritmo |
-| "¿Por qué IP es más difícil que LP?" | COMPARATIVO | Diferencias y trade-offs |
-| "¿Para qué sirve esto en la práctica?" | BASADO EN APLICACIÓN | Escenarios reales |
-| "¿Por qué la relajación da una cota?" | CONCEPTUAL-TEÓRICO | Explicar teoría |
+    | Tipo de pregunta | Estrategia | Ejemplo de trigger |
+    |------------------|------------|-------------------|
+    | "Como formulo este problema?" | BASADO EN FORMULACION | Traducir decisiones a variables |
+    | "Dame un ejemplo de IP" | BASADO EN EJEMPLOS | Problema numérico completo |
+    | "Como funciona branch and bound?" | ALGORITMICO | Pasos del algoritmo |
+    | "Por que IP es mas difícil que LP?" | COMPARATIVO | Diferencias y trade-offs |
+    | "Para que sirve esto en la practica?" | BASADO EN APLICACIÓN | Escenarios reales |
+    | "Por que la relajación da una cota?" | CONCEPTUAL-TEÓRICO | Explicar teoría |
 
-Si detectas confusión repetida sobre el mismo tema → CAMBIA de estrategia."""
+    Si detectas confusion repetida sobre el mismo tema -> CAMBIA de estrategia."""
 
-        # ========== SECTION 4: PEDAGOGICAL PROTOCOLS ==========
-        pedagogy = """
-PROTOCOLO SOCRÁTICO (Prioridad Alta):
-Antes de dar formulaciones completas, guía con preguntas:
-1. "¿Qué decisiones son de tipo sí/no en este problema?"
-2. "¿Qué variables necesitan ser enteras vs continuas?"
-3. "¿Cómo modelamos la restricción 'si hacemos A, entonces debemos hacer B'?"
-Solo da la solución directa si: (a) el estudiante lo pide, (b) muestra frustración, o (c) ya intentó responder.
+    def _get_pedagogy_prompt(self) -> str:
+        return """
+    PROTOCOLO SOCRATICO (Prioridad Alta):
+    Antes de dar formulaciones completas, guia con preguntas:
+    1. "Que decisiones son de tipo si/no en este problema?"
+    2. "Que variables necesitan ser enteras vs continuas?"
+    3. "Como modelamos la restriccion 'si hacemos A, entonces debemos hacer B'?"
+    Solo da la solucion directa si: (a) el estudiante lo pide, (b) muestra frustracion, o (c) ya intento responder.
 
-ANDAMIAJE (Scaffolding):
-1. Primero: pista orientadora ("¿Qué tipo de variable necesitas para una decisión abrir/no abrir?")
-2. Si no avanza: pista más directa ("Usa una variable binaria yᵢ ∈ {0,1}")
-3. Último recurso: formulación completa con explicación
+    ANDAMIAJE (Scaffolding):
+    1. Primero: pista orientadora ("Que tipo de variable necesitas para una decision abrir/no abrir?")
+    2. Si no avanza: pista mas directa ("Usa una variable binaria y_i in {0,1}")
+    3. Ultimo recurso: formulacion completa con explicacion
 
-CORRECCIÓN DE ERRORES:
-1. Reconoce lo que SÍ está correcto
-2. Identifica el error específico sin juzgar
-3. Usa un contraejemplo o caso simple para mostrar el problema
-4. Guía hacia la corrección (no la des directamente)
+    CORRECCION DE ERRORES:
+    1. Reconoce lo que SI esta correcto
+    2. Identifica el error especifico sin juzgar
+    3. Usa un contraejemplo o caso simple para mostrar el problema
+    4. Guia hacia la correccion (no la des directamente)
 
-LONGITUD ADAPTATIVA:
-- Pregunta simple de definición → 2-3 oraciones
-- Duda sobre modelado específico → explicación + "¿Tiene sentido?"
-- Problema completo para formular/resolver → solución estructurada paso a paso"""
+    LONGITUD ADAPTATIVA:
+    - Pregunta simple de definicion -> 2-3 oraciones
+    - Duda sobre modelado especifico -> explicacion + "Tiene sentido?"
+    - Problema completo para formular/resolver -> solucion estructurada paso a paso"""
 
-        # ========== SECTION 5: FEW-SHOT EXAMPLES ==========
-        examples = self._get_fewshot_examples(knowledge_level)
+    def _get_guidelines_prompt(self) -> str:
+        return """
+    ESTILO DE COMUNICACIÓN:
+    - Usa "nosotros" para resolver juntos
+    - Se paciente: IP puede ser desafiante
+    - Celebra buenas formulaciones y razonamiento correcto
+    - Pide retroalimentacion tras explicaciones: "Tiene sentido?" o "Lo explico de otra forma?"
 
-        # ========== SECTION 6: RESPONSE GUIDELINES (Compact) ==========
-        guidelines = """
-ESTILO DE COMUNICACIÓN:
-- Usa "nosotros" para resolver juntos
-- Sé paciente: IP puede ser desafiante
-- Celebra buenas formulaciones y razonamiento correcto
-- Pide retroalimentación tras explicaciones: "¿Tiene sentido?" o "¿Lo explico de otra forma?"
+    FORMATO MATEMATICO:
+    - Define todas las variables claramente (binarias, enteras, continuas)
+    - Numera los pasos en algoritmos
+    - Resalta condiciones clave (ej: "Nota: usamos big-M con M suficientemente grande")
+    - Muestra el arbol de branch and bound cuando sea util
+    - Indica claramente cotas y gaps"""
 
-FORMATO MATEMÁTICO:
-- Define todas las variables claramente (binarias, enteras, continuas)
-- Numera los pasos en algoritmos
-- Resalta condiciones clave (ej: "Nota: usamos big-M con M suficientemente grande")
-- Muestra el árbol de branch and bound cuando sea útil
-- Indica claramente cotas y gaps"""
-
-        # ========== COMBINE ALL SECTIONS ==========
-        full_prompt = "\n\n".join([
-            identity,
-            level_section,
-            strategies,
-            pedagogy,
-            examples,
-            guidelines
-        ])
-
-        return full_prompt
-
-    @staticmethod
-    def _get_fewshot_examples(knowledge_level: str) -> str:
+    def _get_fewshot_examples(self, knowledge_level: str) -> str:
         """
         Return few-shot examples appropriate for the knowledge level.
         These teach the model the expected response style.
@@ -430,9 +394,17 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
     def get_available_strategies(self) -> list[str]:
         """Return available explanation strategies for Integer Programming."""
         return [
-            "formulation-based", "example-driven", "algorithmic",
-            "comparative", "application-based", "conceptual-theoretical"
+            "formulation-based",
+            "example-driven",
+            "algorithmic",
+            "comparative",
+            "application-based",
+            "conceptual-theoretical",
         ]
+
+    def is_topic_related(self, message: str) -> bool:
+        """Adapter for the BaseAgent topic-scope contract."""
+        return self.is_ip_related(message)
 
     @staticmethod
     def is_ip_related(message: str) -> bool:
@@ -447,96 +419,178 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
         """
         ip_keywords = [
             # General IP terms (English)
-            "integer programming", "ip problem", "integer program", "ip formulation",
-            "mixed integer", "mip", "milp", "mixed integer programming",
-            "pure integer", "binary programming", "binary integer programming",
-            "discrete optimization", "combinatorial optimization",
-
+            "integer programming",
+            "ip problem",
+            "integer program",
+            "ip formulation",
+            "mixed integer",
+            "mip",
+            "milp",
+            "mixed integer programming",
+            "pure integer",
+            "binary programming",
+            "binary integer programming",
+            "discrete optimization",
+            "combinatorial optimization",
             # Términos generales IP (Spanish)
-            "programación entera", "problema ip", "formulación ip",
-            "entero mixto", "programación entera mixta",
-            "entero puro", "programación binaria",
-            "optimización discreta", "optimización combinatoria",
-
+            "programación entera",
+            "problema ip",
+            "formulación ip",
+            "entero mixto",
+            "programación entera mixta",
+            "entero puro",
+            "programación binaria",
+            "optimización discreta",
+            "optimización combinatoria",
             # Variables and decisions (English)
-            "integer variable", "binary variable", "0-1 variable", "discrete variable",
-            "yes/no decision", "on/off decision", "selection decision",
-            "integer constraint", "integrality constraint",
-
+            "integer variable",
+            "binary variable",
+            "0-1 variable",
+            "discrete variable",
+            "yes/no decision",
+            "on/off decision",
+            "selection decision",
+            "integer constraint",
+            "integrality constraint",
             # Variables y decisiones (Spanish)
-            "variable entera", "variable binaria", "variable 0-1",
-            "decisión sí/no", "decisión si/no", "restricción de integridad",
-
+            "variable entera",
+            "variable binaria",
+            "variable 0-1",
+            "decisión sí/no",
+            "decisión si/no",
+            "restricción de integridad",
             # Solution methods (English)
-            "branch and bound", "branch-and-bound", "bnb",
-            "cutting plane", "gomory cut", "cutting plane method",
-            "branch and cut", "branch-and-cut",
-            "enumeration", "implicit enumeration", "complete enumeration",
-
+            "branch and bound",
+            "branch-and-bound",
+            "bnb",
+            "cutting plane",
+            "gomory cut",
+            "cutting plane method",
+            "branch and cut",
+            "branch-and-cut",
+            "enumeration",
+            "implicit enumeration",
+            "complete enumeration",
             # Métodos de solución (Spanish)
-            "ramificación y acotamiento", "ramificar y acotar",
-            "planos de corte", "corte de gomory",
+            "ramificación y acotamiento",
+            "ramificar y acotar",
+            "planos de corte",
+            "corte de gomory",
             "ramificación y corte",
-
             # Relaxation and bounds (English)
-            "lp relaxation", "linear relaxation", "relaxation",
-            "lower bound", "upper bound", "bound",
-            "optimality gap", "gap", "integrality gap",
-
+            "lp relaxation",
+            "linear relaxation",
+            "relaxation",
+            "lower bound",
+            "upper bound",
+            "bound",
+            "optimality gap",
+            "gap",
+            "integrality gap",
             # Relajación y cotas (Spanish)
-            "relajación lineal", "relajación lp",
-            "cota inferior", "cota superior",
-            "gap de optimalidad", "brecha de integridad",
-
+            "relajación lineal",
+            "relajación lp",
+            "cota inferior",
+            "cota superior",
+            "gap de optimalidad",
+            "brecha de integridad",
             # Common applications (English)
-            "facility location", "plant location", "warehouse location",
-            "knapsack", "knapsack problem",
-            "assignment", "assignment problem",
-            "scheduling", "job shop", "resource scheduling",
-            "traveling salesman", "tsp", "vehicle routing", "vrp",
-            "set covering", "set packing", "set partitioning",
-            "bin packing", "cutting stock",
-            "project selection", "capital budgeting",
-
+            "facility location",
+            "plant location",
+            "warehouse location",
+            "knapsack",
+            "knapsack problem",
+            "assignment",
+            "assignment problem",
+            "scheduling",
+            "job shop",
+            "resource scheduling",
+            "traveling salesman",
+            "tsp",
+            "vehicle routing",
+            "vrp",
+            "set covering",
+            "set packing",
+            "set partitioning",
+            "bin packing",
+            "cutting stock",
+            "project selection",
+            "capital budgeting",
             # Aplicaciones comunes (Spanish)
-            "ubicación de instalaciones", "localización de plantas",
-            "problema de la mochila", "mochila binaria", "mochila",
-            "problema de asignación", "asignación",
-            "programación de horarios", "calendarización",
-            "viajante de comercio", "agente viajero",
-            "empaquetamiento", "corte de material",
+            "ubicación de instalaciones",
+            "localización de plantas",
+            "problema de la mochila",
+            "mochila binaria",
+            "mochila",
+            "problema de asignación",
+            "asignación",
+            "programación de horarios",
+            "calendarización",
+            "viajante de comercio",
+            "agente viajero",
+            "empaquetamiento",
+            "corte de material",
             "selección de proyectos",
-
             # Modeling techniques (English)
-            "logical constraint", "either-or constraint", "if-then constraint",
-            "fixed charge", "fixed cost",
-            "big-m", "big m", "indicator variable",
-            "piecewise linear", "sos", "special ordered set",
-
+            "logical constraint",
+            "either-or constraint",
+            "if-then constraint",
+            "fixed charge",
+            "fixed cost",
+            "big-m",
+            "big m",
+            "indicator variable",
+            "piecewise linear",
+            "sos",
+            "special ordered set",
             # Técnicas de modelado (Spanish)
-            "restricción lógica", "restricción either-or", "restricción si-entonces",
-            "costo fijo", "cargo fijo",
+            "restricción lógica",
+            "restricción either-or",
+            "restricción si-entonces",
+            "costo fijo",
+            "cargo fijo",
             "variable indicadora",
-
             # Properties and concepts (English)
-            "feasible solution", "incumbent solution",
-            "node", "branching", "fathom", "pruning",
-            "subproblem", "branch tree", "search tree",
-            "heuristic", "rounding", "feasibility rounding",
-
+            "feasible solution",
+            "incumbent solution",
+            "node",
+            "branching",
+            "fathom",
+            "pruning",
+            "subproblem",
+            "branch tree",
+            "search tree",
+            "heuristic",
+            "rounding",
+            "feasibility rounding",
             # Propiedades y conceptos (Spanish)
-            "solución factible", "solución incumbente",
-            "nodo", "ramificación", "poda",
-            "subproblema", "árbol de búsqueda",
-            "heurística", "redondeo",
-
+            "solución factible",
+            "solución incumbente",
+            "nodo",
+            "ramificación",
+            "poda",
+            "subproblema",
+            "árbol de búsqueda",
+            "heurística",
+            "redondeo",
             # General optimization terms (shared but relevant)
-            "optimal", "optimality", "optimize", "optimization",
-            "objective function", "constraint", "feasible",
-            "minimize", "maximize",
-            "óptimo", "optimalidad", "optimizar",
-            "función objetivo", "restricción", "factible",
-            "minimizar", "maximizar",
+            "optimal",
+            "optimality",
+            "optimize",
+            "optimization",
+            "objective function",
+            "constraint",
+            "feasible",
+            "minimize",
+            "maximize",
+            "óptimo",
+            "optimalidad",
+            "optimizar",
+            "función objetivo",
+            "restricción",
+            "factible",
+            "minimizar",
+            "maximizar",
         ]
 
         message_lower = message.lower()
@@ -553,9 +607,12 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             "¿Tienes alguna pregunta sobre estos temas?"
         )
 
-    def generate_response(self, user_message: str,
-                          conversation_history: list[dict[str, str]],
-                          context: dict[str, Any]) -> str:
+    def generate_response(
+        self,
+        user_message: str,
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any],
+    ) -> str:
         """
         Generate IP tutor response with adaptive preprocessing.
 
@@ -569,7 +626,9 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
         """
 
         # Preprocess the message
-        preprocessed_message, error_message = self._validate_and_preprocess(user_message)
+        preprocessed_message, error_message = self._validate_and_preprocess(
+            user_message
+        )
         if error_message:
             return error_message
 
@@ -586,10 +645,10 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
         return self._generate_and_postprocess(components, conversation_history, context)
 
     async def a_generate_response(
-            self,
-            user_message: str,
-            conversation_history: list[dict[str, str]],
-            context: dict[str, Any]
+        self,
+        user_message: str,
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any],
     ) -> str:
         """
         Async version with adaptive preprocessing.
@@ -603,7 +662,9 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             Generated response with adaptive explanations
         """
         # Preprocess
-        preprocessed_message, error_message = self._validate_and_preprocess(user_message)
+        preprocessed_message, error_message = self._validate_and_preprocess(
+            user_message
+        )
         if error_message:
             return error_message
 
@@ -617,7 +678,9 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             context=context,
         )
 
-        return await self._a_generate_and_postprocess(components, conversation_history, context)
+        return await self._a_generate_and_postprocess(
+            components, conversation_history, context
+        )
 
 
 # Global agent instance

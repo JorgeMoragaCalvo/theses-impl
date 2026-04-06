@@ -90,13 +90,15 @@ class APIClient:
                 f"{self.base_url}/{endpoint.lstrip('/')}",
                 headers=self._get_headers(),
                 params=params,
-                timeout=30
+                timeout=30,
             )
             return self._handle_response(response)
         except requests.exceptions.RequestException as e:
             return False, {"error": f"Network error: {str(e)}"}
 
-    def post(self, endpoint: str, data: dict | None = None, json_data: dict | None = None) -> tuple[bool, Any]:
+    def post(
+        self, endpoint: str, data: dict | None = None, json_data: dict | None = None
+    ) -> tuple[bool, Any]:
         """
         Make POST request to API.
 
@@ -114,13 +116,15 @@ class APIClient:
                 headers=self._get_headers(),
                 data=data,
                 json=json_data,
-                timeout=30
+                timeout=30,
             )
             return self._handle_response(response)
         except requests.exceptions.RequestException as e:
             return False, {"error": f"Network error: {str(e)}"}
 
-    def put(self, endpoint: str, data: dict | None = None, json_data: dict | None = None) -> tuple[bool, Any]:
+    def put(
+        self, endpoint: str, data: dict | None = None, json_data: dict | None = None
+    ) -> tuple[bool, Any]:
         """
         Make the PUT request to API.
 
@@ -138,7 +142,7 @@ class APIClient:
                 headers=self._get_headers(),
                 data=data,
                 json=json_data,
-                timeout=30
+                timeout=30,
             )
             return self._handle_response(response)
         except requests.exceptions.RequestException as e:
@@ -158,7 +162,7 @@ class APIClient:
             response = requests.delete(
                 f"{self.base_url}/{endpoint.lstrip('/')}",
                 headers=self._get_headers(),
-                timeout=30
+                timeout=30,
             )
             return self._handle_response(response)
         except requests.exceptions.RequestException as e:
@@ -178,11 +182,10 @@ class APIClient:
         Returns:
             Tuple of (success, token_data/error)
         """
-        success, data = self.post("/auth/register", json_data={
-            "name": name,
-            "email": email,
-            "password": password
-        })
+        success, data = self.post(
+            "/auth/register",
+            json_data={"name": name, "email": email, "password": password},
+        )
 
         if success and data:
             self._store_auth_data(data)
@@ -200,10 +203,9 @@ class APIClient:
         Returns:
             Tuple of (success, token_data/error)
         """
-        success, data = self.post("/auth/login", json_data={
-            "email": email,
-            "password": password
-        })
+        success, data = self.post(
+            "/auth/login", json_data={"email": email, "password": password}
+        )
 
         if success and data:
             self._store_auth_data(data)
@@ -214,12 +216,21 @@ class APIClient:
         """Logout and clear session data."""
         # Clear session state
         keys_to_clear = [
-            "access_token", "user", "student_id", "student_name",
-            "student_email", "user_role", "messages", "conversation_id",
+            "access_token",
+            "user",
+            "student_id",
+            "student_name",
+            "student_email",
+            "user_role",
+            "messages",
+            "conversation_id",
             # Assessment page state
-            "current_assessment", "show_assessment_form", "_graded_result_shown",
+            "current_assessment",
+            "show_assessment_form",
+            "_graded_result_shown",
             # Chat page state
-            "chat_messages", "chat_conversation_id",
+            "chat_messages",
+            "chat_conversation_id",
             # Topic selection
             "selected_topic",
         ]
@@ -268,7 +279,7 @@ class APIClient:
                 localStorage.setItem('auth_data', '{storage_data}');
             </script>
             """,
-            height=0
+            height=0,
         )
 
     @staticmethod
@@ -280,7 +291,7 @@ class APIClient:
                 localStorage.removeItem('auth_data');
             </script>
             """,
-            height=0
+            height=0,
         )
 
     def load_token_from_browser(self):
@@ -301,7 +312,10 @@ class APIClient:
         Returns:
             True if the user has a valid token in session
         """
-        return "access_token" in st.session_state and st.session_state.access_token is not None
+        return (
+            "access_token" in st.session_state
+            and st.session_state.access_token is not None
+        )
 
     @staticmethod
     def is_admin() -> bool:

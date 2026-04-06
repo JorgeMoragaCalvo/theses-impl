@@ -30,7 +30,9 @@ class GradingService:
         self.db = db
         self.llm_service = get_llm_service()
 
-    def grade_assessment(self, assessment: Assessment, competency_service=None) -> tuple[float, str]:
+    def grade_assessment(
+        self, assessment: Assessment, competency_service=None
+    ) -> tuple[float, str]:
         """
         Automatically grade an assessment using LLM.
 
@@ -47,7 +49,9 @@ class GradingService:
                 return 1.0, "No se proporcionó respuesta."
 
             if not assessment.correct_answer or not assessment.rubric:
-                logger.warning(f"Assessment {assessment.id} missing correct_answer or rubric")
+                logger.warning(
+                    f"Assessment {assessment.id} missing correct_answer or rubric"
+                )
                 return 1.0, "No se pudo calificar: faltan materiales de calificación."
 
             # Get concept IDs for this topic to guide the LLM
@@ -55,8 +59,13 @@ class GradingService:
             if competency_service:
                 try:
                     from .competency_service import get_taxonomy_registry
+
                     registry = get_taxonomy_registry()
-                    topic_str = assessment.topic.value if hasattr(assessment.topic, 'value') else str(assessment.topic)
+                    topic_str = (
+                        assessment.topic.value
+                        if hasattr(assessment.topic, "value")
+                        else str(assessment.topic)
+                    )
                     concepts = registry.get_concepts_for_topic(topic_str)
                     if concepts:
                         available_concepts = [c["concept_id"] for c in concepts]
@@ -70,7 +79,9 @@ class GradingService:
                 correct_answer=assessment.correct_answer,
                 rubric=assessment.rubric,
                 max_score=assessment.max_score,
-                topic=assessment.topic.value if hasattr(assessment.topic, 'value') else str(assessment.topic),
+                topic=assessment.topic.value
+                if hasattr(assessment.topic, "value")
+                else str(assessment.topic),
                 available_concepts=available_concepts,
             )
 
@@ -78,18 +89,20 @@ class GradingService:
             messages = [
                 {
                     "role": "user",
-                    "content": "Califica la evaluación del estudiante siguiendo las directrices proporcionadas."
+                    "content": "Califica la evaluación del estudiante siguiendo las directrices proporcionadas.",
                 }
             ]
 
             response = self.llm_service.generate_response(
                 messages=messages,
                 system_prompt=system_prompt,
-                temperature=0.3  # Lower temperature for more consistent grading
+                temperature=0.3,  # Lower temperature for more consistent grading
             )
 
             # Parse the LLM response
-            score, feedback, concepts_tested = self.parse_grading_response(response, assessment.max_score)
+            score, feedback, concepts_tested = self.parse_grading_response(
+                response, assessment.max_score
+            )
 
             # Update competencies if service provided
             if competency_service and concepts_tested and assessment.student_id:
@@ -97,10 +110,15 @@ class GradingService:
                 try:
                     from .competency_service import get_taxonomy_registry
                     from .spaced_repetition_service import get_spaced_repetition_service
+
                     registry = get_taxonomy_registry()
                     srs = get_spaced_repetition_service(self.db)
-                    valid_concepts = [c for c in concepts_tested if registry.concept_exists(c)]
-                    performance_score = score / assessment.max_score if assessment.max_score else 0.0
+                    valid_concepts = [
+                        c for c in concepts_tested if registry.concept_exists(c)
+                    ]
+                    performance_score = (
+                        score / assessment.max_score if assessment.max_score else 0.0
+                    )
                     is_correct = performance_score >= 0.6
                     for concept_id in valid_concepts:
                         try:
@@ -116,7 +134,9 @@ class GradingService:
                                 concept_id=concept_id,
                             )
                         except Exception as e:
-                            logger.error(f"Error updating competency for {concept_id}: {e}")
+                            logger.error(
+                                f"Error updating competency for {concept_id}: {e}"
+                            )
                 except Exception as e:
                     logger.error(f"Error in competency update pipeline: {e}")
 
@@ -128,7 +148,10 @@ class GradingService:
         except Exception as e:
             logger.error(f"Error auto-grading assessment {assessment.id}: {str(e)}")
             # Return a neutral score without leaking internal error details
-            return 1.0, "No se pudo calificar automáticamente esta evaluación. Intente de nuevo más tarde."
+            return (
+                1.0,
+                "No se pudo calificar automáticamente esta evaluación. Intente de nuevo más tarde.",
+            )
 
     @staticmethod
     def build_grading_prompt(
@@ -163,9 +186,13 @@ class GradingService:
             ## IDs de conceptos disponibles para este tema:
 {concepts_list}
 """
-            concepts_output = ',\n                "concepts_tested": ["concept_id_1", "concept_id_2"]'
+            concepts_output = (
+                ',\n                "concepts_tested": ["concept_id_1", "concept_id_2"]'
+            )
 
-        prompt = f"""Eres un evaluador experto en evaluaciones de {topic} en investigación de operaciones y métodos de optimización.
+        prompt = f"""Eres un evaluador experto en evaluaciones de {
+            topic
+        } en investigación de operaciones y métodos de optimización.
 
             Tu tarea es calificar la respuesta del estudiante de manera justa y objetiva, proporcionando retroalimentación constructiva.
             IMPORTANTE: Toda la retroalimentación debe estar en español.
@@ -200,7 +227,9 @@ class GradingService:
             ```json
             {{
                 "score": <puntuación numérica entre 0 y {max_score}>,
-                "feedback": "Retroalimentación detallada en español explicando la calificación, destacando fortalezas y áreas de mejora"{concepts_output}
+                "feedback": "Retroalimentación detallada en español explicando la calificación, destacando fortalezas y áreas de mejora"{
+            concepts_output
+        }
             }}
             ```
 
@@ -209,16 +238,22 @@ class GradingService:
             - Proporcionar retroalimentación específica y constructiva (mínimo 3-5 oraciones)
             - Citar partes específicas de la respuesta del estudiante en la retroalimentación
             - Ser alentador mientras se es honesto sobre los errores
-            - TODA la retroalimentación DEBE estar en español{"" if not available_concepts else """
+            - TODA la retroalimentación DEBE estar en español{
+            ""
+            if not available_concepts
+            else '''
             - concepts_tested DEBE ser una lista de IDs de conceptos de la lista de IDs disponibles arriba que sean relevantes para esta evaluación
-            - Solo incluir conceptos que realmente se evalúan o demuestran en la respuesta del estudiante"""}
+            - Solo incluir conceptos que realmente se evalúan o demuestran en la respuesta del estudiante'''
+        }
             - IMPORTANTE: Responder SOLO con el objeto JSON, sin texto adicional antes o después
 
             Califica la evaluación ahora.
             """
         return prompt
 
-    def parse_grading_response(self, llm_response: str, max_score: float) -> tuple[float, str, list[str]]:
+    def parse_grading_response(
+        self, llm_response: str, max_score: float
+    ) -> tuple[float, str, list[str]]:
         """
         Parse the LLM grading response to extract score, feedback, and concepts tested.
 
@@ -271,7 +306,7 @@ class GradingService:
         # Try to find score patterns
         score_patterns = [
             r'score["\s:]+(\d+\.?\d*)',
-            r'(\d+\.?\d*)\s*(?:points?|pts?|/\s*' + str(max_score) + ')',
+            r"(\d+\.?\d*)\s*(?:points?|pts?|/\s*" + str(max_score) + ")",
             r'grade["\s:]+(\d+\.?\d*)',
         ]
 
@@ -292,7 +327,7 @@ class GradingService:
             # Extracts feedback from the response using known markers
             if marker in llm_response.lower():
                 idx = llm_response.lower().find(marker)
-                feedback = llm_response[idx + len(marker):].strip()
+                feedback = llm_response[idx + len(marker) :].strip()
                 break
 
         # If no clear feedback, use the whole response

@@ -1,6 +1,7 @@
 """
 Unit tests for ConversationService.compute_student_progress (needs test_db).
 """
+
 from app.auth import get_password_hash
 from app.database import Assessment, Conversation, Message, Student
 from app.enums import Topic, UserRole
@@ -8,7 +9,6 @@ from app.services.conversation_service import ConversationService
 
 
 class TestComputeStudentProgress:
-
     @staticmethod
     def _create_student(test_db, email="progress@usach.cl"):
         student = Student(

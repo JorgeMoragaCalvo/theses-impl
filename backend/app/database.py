@@ -34,9 +34,9 @@ Database configuration and session management for PostgreSQL.
 engine = create_engine(
     settings.database_url,
     echo=settings.database_echo,
-    pool_pre_ping=True, # sends a "ping" to check if the connection is still alive
-    pool_size=5, # How many simultaneous connections to keep open with the database
-    max_overflow=10 # How many additional connections to allow if the pool reaches its size
+    pool_pre_ping=True,  # sends a "ping" to check if the connection is still alive
+    pool_size=5,  # How many simultaneous connections to keep open with the database
+    max_overflow=10,  # How many additional connections to allow if the pool reaches its size
 )
 
 # Create the SessionLocal class
@@ -49,6 +49,7 @@ Base = declarative_base()
 # Database Models
 class Student(Base):
     """Student profile model."""
+
     __tablename__ = "students"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -59,21 +60,29 @@ class Student(Base):
     is_active = Column(Boolean, default=True, nullable=False)
     last_login = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
+    )
     # Knowledge levels for each topic (stored as JSON)
-    knowledge_levels = Column(JSON, default=lambda: {
-        "operations_research": "beginner",
-        "mathematical_modeling": "beginner",
-        "linear_programming": "beginner",
-        "integer_programming": "beginner",
-        "nonlinear_programming": "beginner",
-    })
+    knowledge_levels = Column(
+        JSON,
+        default=lambda: {
+            "operations_research": "beginner",
+            "mathematical_modeling": "beginner",
+            "linear_programming": "beginner",
+            "integer_programming": "beginner",
+            "nonlinear_programming": "beginner",
+        },
+    )
     # Learning preferences and metadata
     preferences = Column(JSON, default=dict)
 
 
 class Conversation(Base):
     """Conversation session model."""
+
     __tablename__ = "conversations"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -81,7 +90,7 @@ class Conversation(Base):
     topic = Column(Enum(Topic), nullable=False)
     started_at = Column(DateTime, default=datetime.now(timezone.utc))
     ended_at = Column(DateTime, nullable=True)
-    is_active = Column(Integer, default=1) # 1=True, 0=False
+    is_active = Column(Integer, default=1)  # 1=True, 0=False
     # Extra data stores session metadata and adaptive learning tracking:
     # - strategies_used: list[str] - List of explanation strategies used in this conversation
     # - confusion_count: int - Number of times confusion was detected
@@ -94,15 +103,16 @@ class Conversation(Base):
 
 class Message(Base):
     """Individual message in a conversation."""
+
     __tablename__ = "messages"
 
     id = Column(Integer, primary_key=True, index=True)
     conversation_id = Column(Integer, nullable=False, index=True)
-    role = Column(String(50), nullable=False) # user, assistant, system
+    role = Column(String(50), nullable=False)  # user, assistant, system
     content = Column(Text, nullable=False)
     timestamp = Column(DateTime, default=datetime.now(timezone.utc))
     # Agent information
-    agent_type = Column(String(100), nullable=True) # Which the agent responded
+    agent_type = Column(String(100), nullable=True)  # Which the agent responded
     # Extra data stores adaptive learning metadata:
     # - explanation_strategy: str - Strategy used for this response (e.g., "step-by-step", "example-based")
     # - confusion_detected: bool - Whether confusion was detected in the user message
@@ -115,6 +125,7 @@ class Message(Base):
 
 class Assessment(Base):
     """Student assessment and quiz results."""
+
     __tablename__ = "assessments"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -128,12 +139,16 @@ class Assessment(Base):
     correct_answer = Column(Text, nullable=True)
     rubric = Column(Text, nullable=True)
 
-    #Grading
+    # Grading
     score = Column(Float, nullable=True)
     max_score = Column(Float, default=7.0)
     feedback = Column(Text, nullable=True)
-    graded_by = Column(Enum(GradingSource), nullable=True)  # Tracks if auto-graded or manually graded
-    overridden_at = Column(DateTime, nullable=True)  # When admin overrode the auto-grade
+    graded_by = Column(
+        Enum(GradingSource), nullable=True
+    )  # Tracks if auto-graded or manually graded
+    overridden_at = Column(
+        DateTime, nullable=True
+    )  # When admin overrode the auto-grade
 
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     submitted_at = Column(DateTime, nullable=True)
@@ -145,6 +160,7 @@ class Assessment(Base):
 
 class Feedback(Base):
     """Student feedback on agent responses."""
+
     __tablename__ = "feedback"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -152,8 +168,8 @@ class Feedback(Base):
     student_id = Column(Integer, nullable=False, index=True)
 
     # Feedback data
-    rating = Column(Integer, nullable=True) # 1 - 5 scale
-    is_helpful = Column(Integer, nullable=True) # 1=True, 0=False
+    rating = Column(Integer, nullable=True)  # 1 - 5 scale
+    is_helpful = Column(Integer, nullable=True)  # 1=True, 0=False
     comment = Column(Text, nullable=True)
 
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
@@ -164,6 +180,7 @@ class Feedback(Base):
 
 class StudentCompetency(Base):
     """Tracks mastery of a specific concept for a student."""
+
     __tablename__ = "student_competencies"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -171,7 +188,9 @@ class StudentCompetency(Base):
     topic = Column(Enum(Topic), nullable=False)
     concept_id = Column(String(255), nullable=False, index=True)
     concept_name = Column(String(255), nullable=False)
-    mastery_level = Column(Enum(MasteryLevel), default=MasteryLevel.NOVICE, nullable=False)
+    mastery_level = Column(
+        Enum(MasteryLevel), default=MasteryLevel.NOVICE, nullable=False
+    )
     mastery_score = Column(Float, default=0.0, nullable=False)
     attempts_count = Column(Integer, default=0, nullable=False)
     correct_count = Column(Integer, default=0, nullable=False)
@@ -188,6 +207,7 @@ class StudentCompetency(Base):
 
 class ConceptHierarchy(Base):
     """Stores the concept taxonomy for each topic."""
+
     __tablename__ = "concept_hierarchy"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -202,6 +222,7 @@ class ConceptHierarchy(Base):
 
 class ReviewSession(Base):
     """Tracks spaced repetition review sessions for a concept."""
+
     __tablename__ = "review_sessions"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -218,6 +239,7 @@ class ReviewSession(Base):
 
 class ActivityEvent(Base):
     """Tracks user activity events for analytics (admin-only visibility)."""
+
     __tablename__ = "activity_events"
 
     id = Column(Integer, primary_key=True, index=True)

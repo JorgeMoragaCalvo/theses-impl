@@ -6,6 +6,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 def rate_limit_exceeded_handler(_request, _exc):
     from fastapi.responses import JSONResponse
+
     return JSONResponse(
         status_code=429,
         content={"detail": "Rate limit exceeded. Please try again later."},

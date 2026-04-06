@@ -19,6 +19,7 @@ Focuses on teaching students how to translate real-world problems into mathemati
 
 logger = logging.getLogger(__name__)
 
+
 class MathematicalModelingAgent(BaseAgent):
     """
     Specialized agent for teaching Mathematical Modeling and Problem Formulation.
@@ -36,29 +37,39 @@ class MathematicalModelingAgent(BaseAgent):
     def __init__(self):
         """Initialize the Mathematical Modeling agent."""
         super().__init__(
-            agent_name="Tutor de modelado matemático", #"Mathematical Modeling Tutor",
-            agent_type="mathematical_modeling"
+            agent_name="Tutor de modelado matemático",  # "Mathematical Modeling Tutor",
+            agent_type="mathematical_modeling",
         )
 
         # load course materials
         materials_path = os.path.join(
             os.path.dirname(__file__),
-            "..", "..", "..", "data",
+            "..",
+            "..",
+            "..",
+            "data",
             "course_materials",
-            "mathematical_modeling_fundamental.md"
+            "mathematical_modeling_fundamental.md",
         )
 
         if os.path.exists(materials_path):
             self.load_course_materials(materials_path)
             logger.info("Mathematical Modeling course materials loaded successfully")
         else:
-            logger.warning(f"Mathematical Modeling course materials not found at {materials_path}")
+            logger.warning(
+                f"Mathematical Modeling course materials not found at {materials_path}"
+            )
 
         # Load exercises
         exercises_path = os.path.join(
             os.path.dirname(__file__),
-            "..", "..", "..", "data",
-            "course_materials", "mathematical_modeling", "exercises"
+            "..",
+            "..",
+            "..",
+            "data",
+            "course_materials",
+            "mathematical_modeling",
+            "exercises",
         )
         self.exercise_manager = ExerciseManager(exercises_path)
         logger.info(f"Loaded {self.exercise_manager.get_exercise_count()} exercises")
@@ -70,204 +81,172 @@ class MathematicalModelingAgent(BaseAgent):
             RegionVisualizerTool(),
             ExercisePracticeTool(exercise_manager=self.exercise_manager),
             ExerciseValidatorTool(
-                exercise_manager=self.exercise_manager,
-                llm_service=self.llm_service
+                exercise_manager=self.exercise_manager, llm_service=self.llm_service
             ),
         ]
-        logger.info(f"Mathematical Modeling agent initialized with {len(self.tools)} tools")
+        logger.info(
+            f"Mathematical Modeling agent initialized with {len(self.tools)} tools"
+        )
 
-    def get_system_prompt(self, context: dict[str, Any]) -> str:
-        """
-        Generate optimized system prompt for Mathematical Modeling agent.
+    def _get_identity_prompt(self, student_name: str) -> str:
+        return f"""Eres un tutor experto en Modelado Matemático para {student_name}.
+    TEMAS QUE CUBRES:
+    - Formulación de problemas: identificación de variables, objetivos, restricciones
+    - Tipos de modelos: lineales, enteros, no lineales, deterministas, estocásticos
+    - Estructuras comunes: asignación, transporte, programación, inventario, redes, portafolios
+    - Técnicas de modelado: linealización, variables binarias, condiciones lógicas, multiobjetivo
+    - Validación: verificación de factibilidad, pruebas con casos simples, interpretación de soluciones"""
 
-        Structured as:
-        1. Identity & Scope
-        2. Knowledge Level Adaptation
-        3. Strategy Selection with Triggers
-        4. Pedagogical Protocols
-        5. Few-shot Examples
-        6. Response Guidelines
-        """
-        student = context.get("student", {})
-        knowledge_level = student.get("knowledge_level", "beginner")
-        student_name = student.get("student_name", "Student")
-
-        # ========== SECTION 1: IDENTITY & SCOPE (Compact) ==========
-        identity = f"""Eres un tutor experto en Modelado Matemático para {student_name}.
-TEMAS QUE CUBRES:
-• Formulación de problemas: identificación de variables, objetivos, restricciones
-• Tipos de modelos: lineales, enteros, no lineales, deterministas, estocásticos
-• Estructuras comunes: asignación, transporte, programación, inventario, redes, portafolios
-• Técnicas de modelado: linealización, variables binarias, condiciones lógicas, multiobjetivo
-• Validación: verificación de factibilidad, pruebas con casos simples, interpretación de soluciones"""
-
-        # ========== SECTION 2: KNOWLEDGE LEVEL (Dynamic Injection) ==========
-        level_prompts = {
+    def _get_level_prompts(self) -> dict[str, str]:
+        return {
             "beginner": """
-NIVEL: PRINCIPIANTE
-- Comienza con los fundamentos de lo que significa un "modelo"
-- Usa ejemplos muy sencillos con escenarios claros (1-3 variables)
-- Enfócate en las 3 preguntas clave: ¿Qué controlamos? ¿Qué queremos? ¿Qué nos limita?
-- Explica terminología cuidadosamente (variable, objetivo, restricción)
-- Conecta con decisiones cotidianas de optimización
-- Verifica comprensión frecuentemente""",
-
+    NIVEL: PRINCIPIANTE
+    - Comienza con los fundamentos de lo que significa un "modelo"
+    - Usa ejemplos muy sencillos con escenarios claros (1-3 variables)
+    - Enfócate en las 3 preguntas clave: Qué controlamos? Qué queremos? Qué nos limita?
+    - Explica terminología cuidadosamente (variable, objetivo, restricción)
+    - Conecta con decisiones cotidianas de optimización
+    - Verifica comprensión frecuentemente""",
             "intermediate": """
-NIVEL: INTERMEDIO
-- Asume familiaridad con variables, objetivos y restricciones básicas
-- Introduce problemas multivariables y con múltiples restricciones
-- Enseña reconocimiento de patrones (transporte, asignación, programación)
-- Analiza cuándo usar LP vs. IP vs. NLP
-- Incluye variables binarias para condiciones lógicas
-- Discute modelos multiperíodo y redes de flujo""",
-
+    NIVEL: INTERMEDIO
+    - Asume familiaridad con variables, objetivos y restricciones básicas
+    - Introduce problemas multivariables y con multiples restricciones
+    - Enseña reconocimiento de patrones (transporte, asignación, programacion)
+    - Analiza cuando usar LP vs. IP vs. NLP
+    - Incluye variables binarias para condiciones lógicas
+    - Discute modelos multiperiodo y redes de flujo""",
             "advanced": """
-NIVEL: AVANZADO
-- Escenarios reales sofisticados con múltiples dimensiones
-- Técnicas avanzadas: linealización por partes, reformulaciones
-- Manejo de incertidumbre: robustez, programación estocástica
-- Optimización multiobjetivo y fronteras de Pareto
-- Consideraciones computacionales en diseño de modelos
-- Descomposición para problemas a gran escala"""
+    NIVEL: AVANZADO
+    - Escenarios reales sofisticados con multiples dimensiones
+    - Técnicas avanzadas: linealización por partes, reformulaciones
+    - Manejo de incertidumbre: robustez, programacion estocástica
+    - Optimización multiobjetivo y fronteras de Pareto
+    - Consideraciones computacionales en diseño de modelos
+    - Descomposición para problemas a gran escala""",
         }
-        level_section = level_prompts.get(knowledge_level, level_prompts["beginner"])
 
-        # ========== SECTION 3: STRATEGY TRIGGERS (Explicit Mapping) ==========
-        strategies = """
-SELECCIÓN DE ESTRATEGIA - Usa estos disparadores:
+    def _get_strategy_prompt(self) -> str:
+        return """
+    SELECCION DE ESTRATEGIA - Usa estos disparadores:
 
-| Tipo de pregunta | Estrategia | Ejemplo de trigger |
-|------------------|------------|-------------------|
-| "¿Cómo modelo este problema?" | PROBLEMA PRIMERO | Construir desde el escenario real |
-| "¿Cuáles son las variables?" | COMPONENTE A COMPONENTE | Variables → Objetivo → Restricciones |
-| "Este problema se parece a..." | RECONOCIMIENTO DE PATRONES | Comparar con tipos estándar |
-| "No sé por dónde empezar" | INGENIERÍA INVERSA | Mostrar qué diría la solución primero |
-| "¿Podrías darme un ejemplo?" | ANALÓGICO | Relacionar con situaciones familiares |
-| "Tengo la idea pero no sé formular" | BASADO EN PLANTILLAS | Max/Min [?] s.a. [?] |
+    | Tipo de pregunta | Estrategia | Ejemplo de trigger |
+    |------------------|------------|-------------------|
+    | "Como modelo este problema?" | PROBLEMA PRIMERO | Construir desde el escenario real |
+    | "Cuales son las variables?" | COMPONENTE A COMPONENTE | Variables -> Objetivo -> Restricciones |
+    | "Este problema se parece a..." | RECONOCIMIENTO DE PATRONES | Comparar con tipos estándar |
+    | "No se por donde empezar" | INGENIERIA INVERSA | Mostrar que diría la solución primero |
+    | "Podrias darme un ejemplo?" | ANALOGICO | Relacionar con situaciones familiares |
+    | "Tengo la idea pero no se formular" | BASADO EN PLANTILLAS | Max/Min [?] s.a. [?] |
 
-Si detectas confusión repetida sobre el mismo tema → CAMBIA de estrategia."""
+    Si detectas confusión repetida sobre el mismo tema -> CAMBIA de estrategia."""
 
-        # ========== SECTION 4: PEDAGOGICAL PROTOCOLS ==========
-        pedagogy = """
-PROTOCOLO SOCRÁTICO (Prioridad Alta):
-Antes de dar formulaciones completas, guía con preguntas:
-1. "¿Qué decisiones puede tomar quien controla este problema?"
-2. "¿Qué queremos lograr: minimizar costos, maximizar beneficios, u otro?"
-3. "¿Qué limitaciones o recursos están dados en el problema?"
-Solo da la formulación directa si: (a) el estudiante lo pide, (b) muestra frustración, o (c) ya intentó responder.
+    def _get_pedagogy_prompt(self) -> str:
+        return """
+    PROTOCOLO SOCRATICO (Prioridad Alta):
+    Antes de dar formulaciones completas, guia con preguntas:
+    1. "Que decisiones puede tomar quien controla este problema?"
+    2. "Que queremos lograr: minimizar costos, maximizar beneficios, u otro?"
+    3. "Que limitaciones o recursos estan dados en el problema?"
+    Solo da la formulación directa si: (a) el estudiante lo pide, (b) muestra frustración, o (c) ya intento responder.
 
-ANDAMIAJE (Scaffolding):
-1. Primero: pista orientadora ("¿Qué tipo de problema es este?")
-2. Si no avanza: pista más directa ("Las variables podrían representar cantidades de...")
-3. Último recurso: formulación completa con explicación
+    ANDAMIAJE (Scaffolding):
+    1. Primero: pista orientadora ("Que tipo de problema es este?")
+    2. Si no avanza: pista mas direcóa ("Las variables podrian representar cantidades de...")
+    3. Ultimo recurso: formulación completa con explicacion
 
-CORRECCIÓN DE ERRORES:
-1. Reconoce lo que SÍ está correcto en su intento
-2. Identifica el error específico sin juzgar
-3. Usa un caso simple o contraejemplo para mostrar el problema
-4. Guía hacia la corrección (no la des directamente)
+    CORRECCION DE ERRORES:
+    1. Reconoce lo que SI esta correcto en su intento
+    2. Identifica el error especifico sin juzgar
+    3. Usa un caso simple o contraejemplo para mostrar el problema
+    4. Guia hacia la correccion (no la des directamente)
 
-LONGITUD ADAPTATIVA:
-- Pregunta simple sobre terminología → 2-3 oraciones
-- Duda sobre un componente específico → explicación + "¿Tiene sentido?"
-- Problema completo para formular → formulación estructurada paso a paso"""
+    LONGITUD ADAPTATIVA:
+    - Pregunta simple sobre terminologia -> 2-3 oraciones
+    - Duda sobre un componente especifico -> explicacion + "Tiene sentido?"
+    - Problema completo para formular -> formulacion estructurada paso a paso"""
 
-        # ========== SECTION 5: FEW-SHOT EXAMPLES ==========
-        examples = self._get_few_shot_examples(knowledge_level)
+    def _get_guidelines_prompt(self) -> str:
+        return """
+    ESTILO DE COMUNICACION:
+    - Usa "nosotros" para modelar juntos
+    - Se paciente: modelar es desafiante
+    - Celebra buenas intuiciones sobre el problema
+    - Pide retroalimentacion tras formulaciones: "Captura esto el problema?" o "Lo abordo de otra forma?"
 
-        # ========== SECTION 6: RESPONSE GUIDELINES (Compact) ==========
-        guidelines = """
-ESTILO DE COMUNICACIÓN:
-- Usa "nosotros" para modelar juntos
-- Sé paciente: modelar es desafiante
-- Celebra buenas intuiciones sobre el problema
-- Pide retroalimentación tras formulaciones: "¿Captura esto el problema?" o "¿Lo abordo de otra forma?"
+    FORMATO DE FORMULACION:
+    - Define todas las variables con sus unidades y significado
+    - Numera las restricciones en la formulación
+    - Resalta condiciones clave (ej: "Nota: las variables deben ser enteras")
+    - Muestra la formulación final claramente marcada
+    - Conecta la notacion matematica con el significado real"""
 
-FORMATO DE FORMULACIÓN:
-- Define todas las variables con sus unidades y significado
-- Numera las restricciones en la formulación
-- Resalta condiciones clave (ej: "Nota: las variables deben ser enteras")
-- Muestra la formulación final claramente marcada
-- Conecta la notación matemática con el significado real"""
-
-        # Add course materials reference if available
-        materials_section = ""
+    def _get_extra_prompt_sections(self, context: dict[str, Any]) -> list[str]:
+        sections: list[str] = []
         if self.course_materials:
-            materials_section = f"""
-MATERIALES DEL CURSO:
-Tienes acceso a materiales de referencia sobre modelado matemático.
-Adapta las explicaciones al nivel del estudiante y contexto presente.
-{self.format_context_for_prompt(context)}
-"""
+            sections.append(f"""
+    MATERIALES DEL CURSO:
+    Tienes acceso a materiales de referencia sobre modelado matematico.
+    Adapta las explicaciones al nivel del estudiante y contexto presente.
+    {self.format_context_for_prompt(context)}
+    """)
 
-        # ========== SECTION 7: TOOL INSTRUCTIONS ==========
-        # Build exercise list dynamically
-        exercise_list = ", ".join([
-            f"{ex['id']} ({ex['title']})"
-            for ex in self.exercise_manager.list_exercises()
-        ]) if self.exercise_manager.get_exercise_count() > 0 else "No hay ejercicios cargados"
+        exercise_list = (
+            ", ".join(
+                f"{exercise['id']} ({exercise['title']})"
+                for exercise in self.exercise_manager.list_exercises()
+            )
+            if self.exercise_manager.get_exercise_count() > 0
+            else "No hay ejercicios cargados"
+        )
 
-        tool_instructions = f"""
-HERRAMIENTAS DISPONIBLES:
-Tienes acceso a herramientas especializadas que puedes usar cuando sea apropiado:
+        sections.append(f"""
+    HERRAMIENTAS DISPONIBLES:
+    Tienes acceso a herramientas especializadas que puedes usar cuando sea apropiado:
 
-1. **model_validator**: Para validar formulaciones de modelos de optimización.
-   - CUÁNDO USAR: Cuando el estudiante propone una formulación y quieres verificar si es correcta
-   - EJEMPLOS: "¿Está bien mi formulación?", "Revisa mi modelo", formulaciones con errores potenciales
-   - INPUT: JSON con variables, objetivo y restricciones
+    1. **model_validator**: Para validar formulaciones de modelos de optimización.
+       - CUANDO USAR: Cuando el estudiante propone una formulación y quieres verificar si es correcta
+       - EJEMPLOS: "Esta bien mi formulación?", "Revisa mi modelo", formulaciones con errores potenciales
+       - INPUT: JSON con variables, objetivo y restricciones
 
-2. **problem_solver**: Para resolver problemas LP/IP pequeños (máximo 20 variables).
-   - CUÁNDO USAR: Cuando quieras demostrar qué produce una formulación, o verificar una solución
-   - EJEMPLOS: "Resuelve este modelo", "¿Cuál es la solución óptima?", demostrar efectos de cambios
-   - INPUT: JSON con el modelo completo
+    2. **problem_solver**: Para resolver problemas LP/IP pequeños (máximo 20 variables).
+       - CUANDO USAR: Cuando quieras demostrar que produce una formulación, o verificar una solución
+       - EJEMPLOS: "Resuelve este modelo", "Cual es la solución optima?", demostrar efectos de cambios
+       - INPUT: JSON con el modelo completo
 
-3. **region_visualizer**: Para visualizar regiones factibles en 2D.
-   - CUÁNDO USAR: Cuando el estudiante tiene un problema con 2 variables y la visualización ayudaría
-   - EJEMPLOS: "Muéstrame la región factible", "No entiendo el método gráfico", problemas de 2 variables
-   - INPUT: JSON con las restricciones del problema
+    3. **region_visualizer**: Para visualizar regiones factibles en 2D.
+       - CUANDO USAR: Cuando el estudiante tiene un problema con 2 variables y la visualización ayudaría
+       - EJEMPLOS: "Muéstrame la region factible", "No entiendo el método gráfico", problemas de 2 variables
+       - INPUT: JSON con las restricciones del problema
 
-4. **exercise_practice**: Para ejercicios de práctica de modelado matemático.
-   - CUÁNDO USAR: Cuando el estudiante quiera practicar, necesite un ejercicio, o pida pistas
-   - EJEMPLOS: "Dame un ejercicio", "Quiero practicar", "Necesito una pista", "Muéstrame la solución"
-   - ACCIONES: list (listar ejercicios), get_exercise (obtener enunciado), get_hint (pista), reveal_solution
-   - INPUT: JSON con action y exercise_id según la acción
-   - EJERCICIOS DISPONIBLES: {exercise_list}
+    4. **exercise_practice**: Para ejercicios de practica de modelado matemático.
+       - CUANDO USAR: Cuando el estudiante quiera practicar, necesite un ejercicio, o pida pistas
+       - EJEMPLOS: "Dame un ejercicio", "Quiero practicar", "Necesito una pista", "Muéstrame la solución"
+       - ACCIONES: list (listar ejercicios), get_exercise (obtener enunciado), get_hint (pista), reveal_solution
+       - INPUT: JSON con action y exercise_id según la acción
+       - EJERCICIOS DISPONIBLES: {exercise_list}
 
-5. **exercise_validator**: Para validar formulaciones de estudiantes contra soluciones de referencia.
-   - CUÁNDO USAR: Cuando el estudiante presenta su formulación de un ejercicio y quiere feedback
-   - EJEMPLOS: "Revisa mi formulación del ejercicio mm_01", "¿Está bien mi modelo para el problema de dieta?"
-   - INPUT: JSON con exercise_id y student_formulation
+    5. **exercise_validator**: Para validar formulaciones de estudiantes contra soluciones de referencia.
+       - CUANDO USAR: Cuando el estudiante presenta su formulación de un ejercicio y quiere feedback
+       - EJEMPLOS: "Revisa mi formulación del ejercicio mm_01", "Esta bien mi modelo para el problema de dieta?"
+       - INPUT: JSON con exercise_id y student_formulation
 
-REGLAS DE USO:
-- Si el estudiante tiene un problema de 2 variables y necesita visualización → USA region_visualizer
-- Si el estudiante propone una formulación para revisar → USA model_validator
-- Si quieres mostrar qué resultado da un modelo → USA problem_solver
-- Para explicaciones conceptuales → Responde directamente sin herramientas
-- Integra la información de las herramientas naturalmente en tu respuesta pedagógica
+    REGLAS DE USO:
+    - Si el estudiante tiene un problema de 2 variables y necesita visualización -> USA region_visualizer
+    - Si el estudiante propone una formulación para revisar -> USA model_validator
+    - Si quieres mostrar que resultado da un modelo -> USA problem_solver
+    - Para explicaciones conceptuales -> Responde directamente sin herramientas
+    - Integra la información de las herramientas naturalmente en tu respuesta pedagógica
 
-USO PEDAGÓGICO DE EJERCICIOS:
-- Ofrece ejercicios para practicar después de explicar un concepto
-- Usa los ejercicios como ejemplos concretos durante las explicaciones
-- Da pistas progresivas antes de revelar soluciones completas
-- Usa exercise_validator para feedback constructivo (no solo "correcto/incorrecto")
-- Relaciona conceptos con ejercicios específicos: "Esto es similar al problema de Mezcla de Acero (mm_01)..." """
+    USO PEDAGOGICO DE EJERCICIOS:
+    - Ofrece ejercicios para practicar después de explicar un concepto
+    - Usa los ejercicios como ejemplos concretos durante las explicaciones
+    - Da pistas progresivas antes de revelar soluciones completas
+    - Usa exercise_validator para feedback constructivo (no solo "correcto/incorrecto")
+    - Relaciona conceptos con ejercicios específicos: "Esto es similar al problema de Mezcla de Acero (mm_01)..."
+    """)
+        return sections
 
-        # ========== COMBINE ALL SECTIONS ==========
-        full_prompt = "\n\n".join([
-            identity,
-            level_section,
-            strategies,
-            pedagogy,
-            examples,
-            guidelines,
-            materials_section,
-            tool_instructions
-        ])
-
-        return full_prompt
-
-    @staticmethod
-    def _get_few_shot_examples(knowledge_level: str) -> str:
+    def _get_fewshot_examples(self, knowledge_level: str) -> str:
         """
         Return few-shot examples appropriate for the knowledge level.
         These teach the model the expected response style.
@@ -454,9 +433,17 @@ Si permites violación con probabilidad ≤ α:
     def get_available_strategies(self) -> list[str]:
         """Return available explanation strategies for Mathematical Modeling."""
         return [
-            "problema primero", "componente por componente", "reconocimiento de patrones",
-            "ingeniería inversa", "analógico", "basado en plantillas"
+            "problema primero",
+            "componente por componente",
+            "reconocimiento de patrones",
+            "ingeniería inversa",
+            "analógico",
+            "basado en plantillas",
         ]
+
+    def is_topic_related(self, message: str) -> bool:
+        """Adapter for the BaseAgent topic-scope contract."""
+        return self.is_modeling_related(message)
 
     @staticmethod
     def is_modeling_related(message: str) -> bool:
@@ -466,41 +453,111 @@ Si permites violación con probabilidad ≤ α:
         """
         modeling_keywords = [
             # Core concepts
-            "modelo matemático", "modelado", "formulación", "formular",
-            "variable de decisión", "función objetivo", "restricción",
-            "modelo de optimización", "formulación del problema", "construcción del modelo",
+            "modelo matemático",
+            "modelado",
+            "formulación",
+            "formular",
+            "variable de decisión",
+            "función objetivo",
+            "restricción",
+            "modelo de optimización",
+            "formulación del problema",
+            "construcción del modelo",
             # Process and translation
-            "traducir", "enunciado", "problema del mundo real", "escenario",
-            "cómo modelar", "cómo formular", "identificar variables",
-            "¿cuáles son las variables?", "qué debo optimizar", "¿cuáles son las restricciones?",
+            "traducir",
+            "enunciado",
+            "problema del mundo real",
+            "escenario",
+            "cómo modelar",
+            "cómo formular",
+            "identificar variables",
+            "¿cuáles son las variables?",
+            "qué debo optimizar",
+            "¿cuáles son las restricciones?",
             # Model types
-            "modelo lineal", "programación lineal", "programación entera",
-            "modelo no lineal", "programación no lineal",
-            "variable entera", "variable binaria", "variable continua",
-            "determinista", "estocástico", "multiobjetivo", "multiperiodo",
+            "modelo lineal",
+            "programación lineal",
+            "programación entera",
+            "modelo no lineal",
+            "programación no lineal",
+            "variable entera",
+            "variable binaria",
+            "variable continua",
+            "determinista",
+            "estocástico",
+            "multiobjetivo",
+            "multiperiodo",
             # Problem structures
-            "asignación de recursos", "planificación de producción", "planificación de la producción",
-            "programación", "scheduling", "problema de transporte", "problema de asignación",
-            "flujo de red", "inventario", "portafolio", "cartera",
-            "ubicación de instalaciones", "localización", "ruta", "cobertura",
-            "mezcla", "dieta", "corte", "empaque",
+            "asignación de recursos",
+            "planificación de producción",
+            "planificación de la producción",
+            "programación",
+            "scheduling",
+            "problema de transporte",
+            "problema de asignación",
+            "flujo de red",
+            "inventario",
+            "portafolio",
+            "cartera",
+            "ubicación de instalaciones",
+            "localización",
+            "ruta",
+            "cobertura",
+            "mezcla",
+            "dieta",
+            "corte",
+            "empaque",
             # Actions and states
-            "maximizar", "minimizar", "óptimo", "optimalidad", "optimizar",
-            "factible", "infactible", "factibilidad", "viabilidad",
-            "sujeto a", "s.a.", "capacidad", "demanda", "oferta", "recurso",
+            "maximizar",
+            "minimizar",
+            "óptimo",
+            "optimalidad",
+            "optimizar",
+            "factible",
+            "infactible",
+            "factibilidad",
+            "viabilidad",
+            "sujeto a",
+            "s.a.",
+            "capacidad",
+            "demanda",
+            "oferta",
+            "recurso",
             # Modeling techniques
-            "linealización", "linealizar", "big-m", "cota grande",
-            "condición lógica", "if-then", "si-entonces",
-            "relajación", "reformulación",
+            "linealización",
+            "linealizar",
+            "big-m",
+            "cota grande",
+            "condición lógica",
+            "if-then",
+            "si-entonces",
+            "relajación",
+            "reformulación",
             # Common question patterns
-            "problema de", "cómo planteo", "cómo escribo", "ayuda a modelar",
-            "no sé formular", "tengo este problema", "quiero optimizar",
-            "cómo represento", "cómo defino", "construir modelo",
+            "problema de",
+            "cómo planteo",
+            "cómo escribo",
+            "ayuda a modelar",
+            "no sé formular",
+            "tengo este problema",
+            "quiero optimizar",
+            "cómo represento",
+            "cómo defino",
+            "construir modelo",
             # English terms (students might use)
-            "mathematical model", "decision variable", "objective function",
-            "constraint", "linear programming", "integer programming",
-            "formulate", "formulation", "modeling", "optimize",
-            "feasible", "infeasible", "subject to"
+            "mathematical model",
+            "decision variable",
+            "objective function",
+            "constraint",
+            "linear programming",
+            "integer programming",
+            "formulate",
+            "formulation",
+            "modeling",
+            "optimize",
+            "feasible",
+            "infeasible",
+            "subject to",
         ]
 
         message_lower = message.lower()
@@ -508,7 +565,7 @@ Si permites violación con probabilidad ≤ α:
 
     @staticmethod
     def _get_off_topic_response() -> str:
-        """Response when query is outside modeling scope."""
+        """Response when a query is outside the modeling scope."""
         return (
             "Mi especialidad es el Modelado Matemático. Tu pregunta parece ser sobre otro tema.\n\n"
             "Puedo ayudarte con: formulación de problemas, identificación de variables de decisión, "
@@ -517,11 +574,16 @@ Si permites violación con probabilidad ≤ α:
             "¿Tienes alguna pregunta sobre estos temas?"
         )
 
-    def generate_response(self, user_message: str,
-                          conversation_history: list[dict[str, str]],
-                          context: dict[str, Any]) -> str:
+    def generate_response(
+        self,
+        user_message: str,
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any],
+    ) -> str:
         """Generate Mathematical Modeling tutor response (synchronous)."""
-        preprocessed_message, error_message = self._validate_and_preprocess(user_message)
+        preprocessed_message, error_message = self._validate_and_preprocess(
+            user_message
+        )
         if error_message:
             return error_message
 
@@ -540,7 +602,7 @@ Si permites violación con probabilidad ≤ α:
             response = self.llm_service.generate_response_with_tools(
                 messages=components["messages"],
                 tools=all_tools,
-                system_prompt=components["system_prompt"]
+                system_prompt=components["system_prompt"],
             )
         except Exception as e:
             logger.warning(f"Tool-enabled generation failed, falling back: {e}")
@@ -548,11 +610,14 @@ Si permites violación con probabilidad ≤ α:
             try:
                 response = self.llm_service.generate_response(
                     messages=components["messages"],
-                    system_prompt=components["system_prompt"]
+                    system_prompt=components["system_prompt"],
                 )
             except Exception as fallback_e:
-                logger.error(f"Error in {self.agent_name} response generation: {str(fallback_e)}")
+                logger.error(
+                    f"Error in {self.agent_name} response generation: {str(fallback_e)}"
+                )
                 from ..utils import format_error_message
+
                 return format_error_message(fallback_e)
 
         return self._postprocess_with_feedback(
@@ -564,14 +629,16 @@ Si permites violación con probabilidad ≤ α:
         )
 
     async def a_generate_response(
-            self,
-            user_message: str,
-            conversation_history: list[dict[str, str]],
-            context: dict[str, Any]
+        self,
+        user_message: str,
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any],
     ) -> str:
         """Generate Mathematical Modeling tutor response (asynchronous)."""
 
-        preprocessed_message, error_message = self._validate_and_preprocess(user_message)
+        preprocessed_message, error_message = self._validate_and_preprocess(
+            user_message
+        )
         if error_message:
             return error_message
 
@@ -590,7 +657,7 @@ Si permites violación con probabilidad ≤ α:
             response = await self.llm_service.a_generate_response_with_tools(
                 messages=components["messages"],
                 tools=all_tools,
-                system_prompt=components["system_prompt"]
+                system_prompt=components["system_prompt"],
             )
         except Exception as e:
             logger.warning(f"Tool-enabled async generation failed, falling back: {e}")
@@ -598,11 +665,14 @@ Si permites violación con probabilidad ≤ α:
             try:
                 response = await self.llm_service.a_generate_response(
                     messages=components["messages"],
-                    system_prompt=components["system_prompt"]
+                    system_prompt=components["system_prompt"],
                 )
             except Exception as fallback_e:
-                logger.error(f"Error in {self.agent_name} async response generation: {str(fallback_e)}")
+                logger.error(
+                    f"Error in {self.agent_name} async response generation: {str(fallback_e)}"
+                )
                 from ..utils import format_error_message
+
                 return format_error_message(fallback_e)
 
         return self._postprocess_with_feedback(
@@ -611,12 +681,12 @@ Si permites violación con probabilidad ≤ α:
             context=context,
             confusion_analysis=components["confusion_analysis"],
             selected_strategy=components["selected_strategy"],
-            async_mode=True
+            async_mode=True,
         )
 
 
 # Global agent instance
-_modeling_agent: MathematicalModelingAgent | None= None
+_modeling_agent: MathematicalModelingAgent | None = None
 
 
 def get_mathematical_modeling_agent() -> MathematicalModelingAgent:

@@ -27,8 +27,8 @@ class OperationsResearchAgent(BaseAgent):
     def __init__(self):
         """Initialize the Operations Research agent."""
         super().__init__(
-            agent_name="Tutor de Investigación de Operaciones", # Operations Research Tutor
-            agent_type="operations_research"
+            agent_name="Tutor de Investigación de Operaciones",  # Operations Research Tutor
+            agent_type="operations_research",
         )
 
         # Initialize tools for this agent
@@ -41,168 +41,134 @@ class OperationsResearchAgent(BaseAgent):
         # This agent relies on built-in knowledge + tools
         logger.info(f"OR agent initialized with {len(self.tools)} tools")
 
-    def get_system_prompt(self, context: dict[str, Any]) -> str:
-        """
-        Generate optimized system prompt for OR agent.
+    def _get_identity_prompt(self, student_name: str) -> str:
+        return f"""Eres un tutor experto en Investigación de Operaciones (IO) para {student_name}.
+    TEMAS QUE CUBRES:
+    - Fundamentos de IO: definicion, historia, enfoque cientifico para decisiones
+    - Clasificación de problemas: maximización/minimización, con/sin restricciones, deterministas/estocasticos
+    - Metodologías principales: LP, IP, NLP, redes, programación dinamica, simulacion, colas
+    - Selección de tecnicas: cuando usar LP vs IP vs NLP, mapeo de problemas reales
+    - Marco de resolución: identificación -> formulación -> solución -> validación -> implementación
+    - Aplicaciones: manufactura, logística, finanzas, salud, transporte, telecomunicaciones
 
-        Structured as:
-        1. Identity & Scope
-        2. Knowledge Level Adaptation
-        3. Strategy Selection with Triggers
-        4. Pedagogical Protocols
-        5. Few-shot Examples
-        6. Response Guidelines
-        """
-        student = context.get("student", {})
-        knowledge_level = student.get("knowledge_level", "beginner")
-        student_name = student.get("student_name", "Student")
+    TU ROL ESPECIAL: Eres el agente introductorio que guia a estudiantes hacia los agentes especializados (LP, IP, NLP, Modelado)."""
 
-        # ========== SECTION 1: IDENTITY & SCOPE (Compact) ==========
-        identity = f"""Eres un tutor experto en Investigación de Operaciones (IO) para {student_name}.
-TEMAS QUE CUBRES:
-• Fundamentos de IO: definición, historia, enfoque científico para decisiones
-• Clasificación de problemas: maximización/minimización, con/sin restricciones, deterministas/estocásticos
-• Metodologías principales: LP, IP, NLP, redes, programación dinámica, simulación, colas
-• Selección de técnicas: cuándo usar LP vs IP vs NLP, mapeo de problemas reales
-• Marco de resolución: identificación → formulación → solución → validación → implementación
-• Aplicaciones: manufactura, logística, finanzas, salud, transporte, telecomunicaciones
-
-TU ROL ESPECIAL: Eres el agente introductorio que guía a estudiantes hacia los agentes especializados (LP, IP, NLP, Modelado)."""
-
-        # ========== SECTION 2: KNOWLEDGE LEVEL (Dynamic Injection) ==========
-        level_prompts = {
+    def _get_level_prompts(self) -> dict[str, str]:
+        return {
             "beginner": """
-NIVEL: PRINCIPIANTE
-- Prioriza intuición y analogías cotidianas antes del formalismo
-- Usa ejemplos de la vida diaria (planificar viaje, presupuesto, programar agenda)
-- Evita matemáticas complejas; enfócate en "qué" y "por qué"
-- Explica terminología básica: optimización, factible, objetivo, restricción
-- Genera confianza con casos de éxito simples
-- Verifica comprensión frecuentemente""",
-
+    NIVEL: PRINCIPIANTE
+    - Prioriza intuición y analogías cotidianas antes del formalismo
+    - Usa ejemplos de la vida diaria (planificar viaje, presupuesto, programar agenda)
+    - Evita matemáticas complejas; enfocate en "que" y "por que"
+    - Explica terminología básica: optimización, factible, objetivo, restricción
+    - Genera confianza con casos de éxito simples
+    - Verifica comprensión frecuentemente""",
             "intermediate": """
-NIVEL: INTERMEDIO
-- Asume familiaridad con conceptos de optimización
-- Profundiza en clasificación de problemas y selección de metodologías
-- Introduce formulaciones matemáticas de alto nivel
-- Discute complejidad computacional (P vs NP-hard)
-- Conecta teoría con aplicaciones del mundo real
-- Prepara para agentes especializados""",
-
+    NIVEL: INTERMEDIO
+    - Asume familiaridad con conceptos de optimización
+    - Profundiza en clasificación de problemas y selección de metodologías
+    - Introduce formulaciones matemáticas de alto nivel
+    - Discute complejidad computacional (P vs NP-hard)
+    - Conecta teoría con aplicaciones del mundo real
+    - Prepara para agentes especializados""",
             "advanced": """
-NIVEL: AVANZADO
-- Tratamiento técnico riguroso con terminología precisa
-- Análisis de fundamentos teóricos y algoritmos
-- Métodos avanzados: descomposición (Benders, Dantzig-Wolfe), relajación lagrangiana
-- Optimización estocástica y robusta
-- Metaheurísticas y enfoques híbridos
-- Discute fronteras de investigación: ML + optimización, computación cuántica"""
+    NIVEL: AVANZADO
+    - Tratamiento técnico riguroso con terminología precisa
+    - Análisis de fundamentos teóricos y algoritmos
+    - Métodos avanzados: descomposición (Benders, Dantzig-Wolfe), relajación lagrangiana
+    - Optimización estocástica y robusta
+    - Metaheurísticas y enfoques híbridos
+    - Discute fronteras de investigación: ML + optimización, computación cuántica""",
         }
-        level_section = level_prompts.get(knowledge_level, level_prompts["beginner"])
 
-        # ========== SECTION 3: STRATEGY TRIGGERS (Explicit Mapping) ==========
-        strategies = """
-SELECCIÓN DE ESTRATEGIA - Usa estos disparadores:
+    def _get_strategy_prompt(self) -> str:
+        return """
+    SELECCION DE ESTRATEGIA - Usa estos disparadores:
 
-| Tipo de pregunta | Estrategia | Ejemplo de trigger |
-|------------------|------------|-------------------|
-| "¿Qué es la IO?" | CONCEPTUAL | Definición, filosofía, contexto |
-| "¿Cómo se aplica?" / "Dame un ejemplo" | BASADO EN EJEMPLOS | Casos reales, aplicaciones |
-| "¿Cuál es la historia?" | PERSPECTIVA HISTÓRICA | Desarrollo, evolución, WWII |
-| "¿Cuál es la diferencia entre X e Y?" | COMPARATIVO | Tabla de pros/contras |
-| "¿Qué método uso para...?" | BASADO EN FRAMEWORK | Proceso de selección paso a paso |
-| "Tengo este problema real..." | CENTRADO EN APLICACIÓN | Mapear a técnica específica |
-| Confusión tras explicación teórica | CAMBIAR A EJEMPLOS | Analogía concreta, caso práctico |
+    | Tipo de pregunta | Estrategia | Ejemplo de trigger |
+    |------------------|------------|-------------------|
+    | "Que es la IO?" | CONCEPTUAL | Definicion, filosofia, contexto |
+    | "Como se aplica?" / "Dame un ejemplo" | BASADO EN EJEMPLOS | Casos reales, aplicaciones |
+    | "Cual es la historia?" | PERSPECTIVA HISTORICA | Desarrollo, evolucion, WWII |
+    | "Cual es la diferencia entre X e Y?" | COMPARATIVO | Tabla de pros/contras |
+    | "Que metodo uso para...?" | BASADO EN FRAMEWORK | Proceso de seleccion paso a paso |
+    | "Tengo este problema real..." | CENTRADO EN APLICACION | Mapear a tecnica especifica |
+    | Confusion tras explicacion teorica | CAMBIAR A EJEMPLOS | Analogia concreta, caso practico |
 
-Si detectas confusión repetida sobre el mismo tema → CAMBIA de estrategia.
+    Si detectas confusion repetida sobre el mismo tema -> CAMBIA de estrategia.
 
-GUÍA HACIA AGENTES ESPECIALIZADOS:
-- Problema con variables continuas y relaciones lineales → "El agente de Programación Lineal puede ayudarte"
-- Decisiones enteras o sí/no → "El agente de Programación Entera se especializa en eso"
-- Funciones no lineales → "El agente de Programación No Lineal es el indicado"
-- Necesita formular desde cero → "Prueba el agente de Modelado Matemático" """
+    GUIA HACIA AGENTES ESPECIALIZADOS:
+    - Problema con variables continuas y relaciones lineales -> "El agente de Programacion Lineal puede ayudarte"
+    - Decisiones enteras o si/no -> "El agente de Programacion Entera se especializa en eso"
+    - Funciones no lineales -> "El agente de Programacion No Lineal es el indicado"
+    - Necesita formular desde cero -> "Prueba el agente de Modelado Matematico"""
 
-        # ========== SECTION 4: PEDAGOGICAL PROTOCOLS ==========
-        pedagogy = """
-PROTOCOLO SOCRÁTICO (Prioridad Alta):
-Antes de dar respuestas completas, guía con preguntas:
-1. "¿Qué tipo de decisiones necesitas tomar?"
-2. "¿Las variables son continuas o discretas?"
-3. "¿Las relaciones entre variables son lineales?"
-4. "¿Hay incertidumbre en los datos?"
-Solo da la respuesta directa si: (a) el estudiante lo pide, (b) muestra frustración, o (c) ya intentó responder.
+    def _get_pedagogy_prompt(self) -> str:
+        return """
+    PROTOCOLO SOCRATICO (Prioridad Alta):
+    Antes de dar respuestas completas, guia con preguntas:
+    1. "Que tipo de decisiones necesitas tomar?"
+    2. "Las variables son continuas o discretas?"
+    3. "Las relaciones entre variables son lineales?"
+    4. "Hay incertidumbre en los datos?"
+    Solo da la respuesta directa si: (a) el estudiante lo pide, (b) muestra frustracion, o (c) ya intento responder.
 
-ANDAMIAJE (Scaffolding):
-1. Primero: pista orientadora ("¿Has considerado qué tipo de variables tienes?")
-2. Si no avanza: pista más directa ("Si las variables son enteras, eso nos dice...")
-3. Último recurso: respuesta completa con explicación
+    ANDAMIAJE (Scaffolding):
+    1. Primero: pista orientadora ("Has considerado que tipo de variables tienes?")
+    2. Si no avanza: pista mas directa ("Si las variables son enteras, eso nos dice...")
+    3. Ultimo recurso: respuesta completa con explicacion
 
-CORRECCIÓN DE ERRORES:
-1. Reconoce lo que SÍ está correcto ("Bien identificado que es un problema de maximización")
-2. Identifica el error específico sin juzgar ("Sin embargo, las variables aquí son discretas...")
-3. Usa contraejemplo o analogía para explicar
-4. Guía hacia la corrección (no la des directamente)
+    CORRECCION DE ERRORES:
+    1. Reconoce lo que SI esta correcto ("Bien identificado que es un problema de maximizacion")
+    2. Identifica el error especifico sin juzgar ("Sin embargo, las variables aqui son discretas...")
+    3. Usa contraejemplo o analogia para explicar
+    4. Guia hacia la correccion (no la des directamente)
 
-LONGITUD ADAPTATIVA:
-- Pregunta simple → 2-3 oraciones
-- Duda sobre clasificación → explicación + "¿Tiene sentido?"
-- Análisis de problema completo → análisis estructurado paso a paso"""
+    LONGITUD ADAPTATIVA:
+    - Pregunta simple -> 2-3 oraciones
+    - Duda sobre clasificacion -> explicacion + "Tiene sentido?"
+    - Analisis de problema completo -> analisis estructurado paso a paso"""
 
-        # ========== SECTION 5: FEW-SHOT EXAMPLES ==========
-        examples = self._get_fewshot_examples(knowledge_level)
+    def _get_guidelines_prompt(self) -> str:
+        return """
+    ESTILO DE COMUNICACION:
+    - Usa "nosotros" para resolver juntos
+    - Se alentador: IO puede parecer intimidante al principio
+    - Usa analogias y metaforas liberalmente
+    - Pide retroalimentacion: "Tiene sentido?" o "Lo explico de otra forma?"
 
-        # ========== SECTION 6: RESPONSE GUIDELINES (Compact) ==========
-        guidelines = """
-ESTILO DE COMUNICACIÓN:
-- Usa "nosotros" para resolver juntos
-- Sé alentador: IO puede parecer intimidante al principio
-- Usa analogías y metáforas liberalmente
-- Pide retroalimentación: "¿Tiene sentido?" o "¿Lo explico de otra forma?"
+    ESTRUCTURA DE RESPUESTA:
+    1. Reconocer la pregunta
+    2. Aplicar estrategia seleccionada
+    3. Dar ejemplos o analogias relevantes
+    4. Conectar con conceptos mas amplios de IO
+    5. Sugerir agente especializado si corresponde
+    6. Verificar comprension"""
 
-ESTRUCTURA DE RESPUESTA:
-1. Reconocer la pregunta
-2. Aplicar estrategia seleccionada
-3. Dar ejemplos o analogías relevantes
-4. Conectar con conceptos más amplios de IO
-5. Sugerir agente especializado si corresponde
-6. Verificar comprensión"""
+    def _get_extra_prompt_sections(self, context: dict[str, Any]) -> list[str]:
+        return [
+            """
+    HERRAMIENTAS DISPONIBLES:
+    Tienes acceso a herramientas especializadas que puedes usar cuando sea apropiado:
 
-        # ========== SECTION 7: TOOL INSTRUCTIONS ==========
-        tool_instructions = """
-HERRAMIENTAS DISPONIBLES:
-Tienes acceso a herramientas especializadas que puedes usar cuando sea apropiado:
+    1. **timeline_explorer**: Para consultar la historia de IO, fechas importantes, y figuras clave.
+       - CUANDO USAR: Cuando el estudiante pregunte sobre historia, orígenes, personajes importantes, o evolución del campo
+       - EJEMPLOS: "Quien invento el método simplex?", "Como empezó la IO?", "Quien fue Dantzig?", "Historia de la programacion lineal"
+       - INPUT: El tema, figura, o periodo a buscar (ej: "Dantzig", "simplex", "1940s", "Segunda Guerra Mundial")
 
-1. **timeline_explorer**: Para consultar la historia de IO, fechas importantes, y figuras clave.
-   - CUÁNDO USAR: Cuando el estudiante pregunte sobre historia, orígenes, personajes importantes, o evolución del campo
-   - EJEMPLOS: "¿Quién inventó el método simplex?", "¿Cómo empezó la IO?", "¿Quién fue Dantzig?", "Historia de la programación lineal"
-   - INPUT: El tema, figura, o período a buscar (ej: "Dantzig", "simplex", "1940s", "Segunda Guerra Mundial")
+    2. **problem_classifier**: Para ayudar a clasificar problemas de optimización.
+       - CUANDO USAR: Cuando el estudiante describe un problema real y necesita saber que tipo es (LP, IP, NLP) y que agente usar
+       - EJEMPLOS: "Tengo un problema donde debo decidir cuantos camiones usar...", "Que tipo de problema es este?"
+       - INPUT: La descripcion del problema del estudiante
 
-2. **problem_classifier**: Para ayudar a clasificar problemas de optimización.
-   - CUÁNDO USAR: Cuando el estudiante describe un problema real y necesita saber qué tipo es (LP, IP, NLP) y qué agente usar
-   - EJEMPLOS: "Tengo un problema donde debo decidir cuántos camiones usar...", "¿Qué tipo de problema es este?"
-   - INPUT: La descripción del problema del estudiante
+    REGLAS DE USO:
+    - Si el estudiante pregunta sobre historia/timeline/figuras -> USA timeline_explorer
+    - Si el estudiante describe un problema para clasificar -> USA problem_classifier
+    - Para preguntas conceptuales generales -> Responde directamente sin herramientas
+    - Integra la informacion de las herramientas naturalmente en tu respuesta pedagogica"""
+        ]
 
-REGLAS DE USO:
-- Si el estudiante pregunta sobre historia/timeline/figuras → USA timeline_explorer
-- Si el estudiante describe un problema para clasificar → USA problem_classifier
-- Para preguntas conceptuales generales → Responde directamente sin herramientas
-- Integra la información de las herramientas naturalmente en tu respuesta pedagógica"""
-
-        # ========== COMBINE ALL SECTIONS ==========
-        full_prompt = "\n\n".join([
-            identity,
-            level_section,
-            strategies,
-            pedagogy,
-            examples,
-            guidelines,
-            tool_instructions
-        ])
-
-        return full_prompt
-
-    @staticmethod
-    def _get_fewshot_examples(knowledge_level: str) -> str:
+    def _get_fewshot_examples(self, knowledge_level: str) -> str:
         """
         Return few-shot examples appropriate for the knowledge level.
         These teach the model the expected response style for OR topics.
@@ -326,16 +292,24 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
     def get_available_strategies(self) -> list[str]:
         """Return available explanation strategies for Operations Research."""
         return [
-            "conceptual", "basado en ejemplos", "perspectiva histórica",
-            "comparativo", "centrado en la aplicación", "basado en el framework"
+            "conceptual",
+            "basado en ejemplos",
+            "perspectiva histórica",
+            "comparativo",
+            "centrado en la aplicación",
+            "basado en el framework",
         ]
+
+    def is_topic_related(self, message: str) -> bool:
+        """Adapter for the BaseAgent topic-scope contract."""
+        return self.is_or_related(message)
 
     @staticmethod
     def is_or_related(message: str) -> bool:
         """
         Check if a message is related to Operations Research.
 
-        Since OR is foundational and broad, this should accept:
+        Since OR is foundational and broad, this should be accepted:
         - General OR questions
         - Methodology questions
         - Problem classification questions
@@ -350,82 +324,183 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
         """
         or_keywords = [
             # Core OR terms (Spanish)
-            "investigación de operaciones", "metodología io", "métodos io",
+            "investigación de operaciones",
+            "metodología io",
+            "métodos io",
             # Core OR terms (English - students might mix languages)
-            "operations research", "or methodology", "operational research",
-
+            "operations research",
+            "or methodology",
+            "operational research",
             # General optimization (Spanish)
-            "optimización", "optimizar", "toma de decisiones", "análisis de decisiones",
+            "optimización",
+            "optimizar",
+            "toma de decisiones",
+            "análisis de decisiones",
             "ciencia de la decisión",
             # General optimization (English)
-            "optimization", "optimize", "decision-making", "decision analysis",
-
+            "optimization",
+            "optimize",
+            "decision-making",
+            "decision analysis",
             # Problem types (Spanish)
-            "problema de optimización", "problema de decisión", "qué tipo de problema",
-            "qué método", "qué técnica", "debo usar", "qué enfoque", "cómo resolverlo",
-            "cómo resolver", "clasificar problema", "tipo de problema",
+            "problema de optimización",
+            "problema de decisión",
+            "qué tipo de problema",
+            "qué método",
+            "qué técnica",
+            "debo usar",
+            "qué enfoque",
+            "cómo resolverlo",
+            "cómo resolver",
+            "clasificar problema",
+            "tipo de problema",
             # Problem types (English)
-            "optimization problem", "decision problem", "what type of problem",
-            "which method", "which technique", "how to solve",
-
+            "optimization problem",
+            "decision problem",
+            "what type of problem",
+            "which method",
+            "which technique",
+            "how to solve",
             # OR history and context (Spanish)
-            "historia de io", "qué es io", "aplicaciones io", "io en la práctica",
-            "qué es la investigación", "segunda guerra mundial",
+            "historia de io",
+            "qué es io",
+            "aplicaciones io",
+            "io en la práctica",
+            "qué es la investigación",
+            "segunda guerra mundial",
             # OR history and context (English)
-            "history of or", "what is or", "or applications",
-
+            "history of or",
+            "what is or",
+            "or applications",
             # Technique selection (Spanish)
-            "lineal o entero", "qué programación", "qué optimización", "elegir método",
-            "seleccionar técnica", "enfoque correcto", "mejor método para", "qué agente",
-            "cuándo usar", "cuál usar", "diferencia entre",
+            "lineal o entero",
+            "qué programación",
+            "qué optimización",
+            "elegir método",
+            "seleccionar técnica",
+            "enfoque correcto",
+            "mejor método para",
+            "qué agente",
+            "cuándo usar",
+            "cuál usar",
+            "diferencia entre",
             # Technique selection (English)
-            "linear or integer", "which programming", "choose method",
-            "best method for", "which agent", "when to use",
-
+            "linear or integer",
+            "which programming",
+            "choose method",
+            "best method for",
+            "which agent",
+            "when to use",
             # General methodology (Spanish)
-            "formulación", "modelado", "construcción de modelos", "resolución de problemas",
-            "enfoque sistemático", "método científico", "formular problema",
+            "formulación",
+            "modelado",
+            "construcción de modelos",
+            "resolución de problemas",
+            "enfoque sistemático",
+            "método científico",
+            "formular problema",
             # General methodology (English)
-            "formulation", "modeling", "model building", "problem-solving",
-
+            "formulation",
+            "modeling",
+            "model building",
+            "problem-solving",
             # Applications (Spanish)
-            "asignación de recursos", "programación", "planificación", "logística",
-            "cadena de suministro", "producción", "inventario", "red",
-            "asignación", "transporte", "enrutamiento", "ruta más corta",
-            "flujo máximo", "problema del viajante", "mochila",
+            "asignación de recursos",
+            "programación",
+            "planificación",
+            "logística",
+            "cadena de suministro",
+            "producción",
+            "inventario",
+            "red",
+            "asignación",
+            "transporte",
+            "enrutamiento",
+            "ruta más corta",
+            "flujo máximo",
+            "problema del viajante",
+            "mochila",
             # Applications (English)
-            "resource allocation", "scheduling", "planning", "logistics",
-            "supply chain", "production", "inventory", "network",
-            "shortest path", "maximum flow", "knapsack", "traveling salesman",
-
+            "resource allocation",
+            "scheduling",
+            "planning",
+            "logistics",
+            "supply chain",
+            "production",
+            "inventory",
+            "network",
+            "shortest path",
+            "maximum flow",
+            "knapsack",
+            "traveling salesman",
             # Core concepts (Spanish)
-            "objetivo", "restricción", "factible", "óptimo", "solución",
-            "maximizar", "minimizar", "función objetivo", "variable de decisión",
+            "objetivo",
+            "restricción",
+            "factible",
+            "óptimo",
+            "solución",
+            "maximizar",
+            "minimizar",
+            "función objetivo",
+            "variable de decisión",
             # Core concepts (English)
-            "objective", "constraint", "feasible", "optimal", "solution",
-            "maximize", "minimize", "objective function", "decision variable",
-
+            "objective",
+            "constraint",
+            "feasible",
+            "optimal",
+            "solution",
+            "maximize",
+            "minimize",
+            "objective function",
+            "decision variable",
             # Asking about agents/methods (Spanish)
-            "qué agente debería", "qué agente", "por dónde empiezo", "introducción a",
-            "resumen de", "fundamentos de", "primeros pasos", "empezar con",
+            "qué agente debería",
+            "qué agente",
+            "por dónde empiezo",
+            "introducción a",
+            "resumen de",
+            "fundamentos de",
+            "primeros pasos",
+            "empezar con",
             # Asking about agents/methods (English)
-            "which agent should", "what agent", "where do i start",
-            "introduction to", "basics of", "fundamentals", "getting started",
-
+            "which agent should",
+            "what agent",
+            "where do i start",
+            "introduction to",
+            "basics of",
+            "fundamentals",
+            "getting started",
             # Specific OR techniques (Spanish)
-            "programación lineal", "programación entera", "programación no lineal",
-            "simplex", "branch and bound", "ramificación y acotación",
-            "programación dinámica", "teoría de colas", "simulación",
-            "heurística", "metaheurística",
+            "programación lineal",
+            "programación entera",
+            "programación no lineal",
+            "simplex",
+            "branch and bound",
+            "ramificación y acotación",
+            "programación dinámica",
+            "teoría de colas",
+            "simulación",
+            "heurística",
+            "metaheurística",
             # Specific OR techniques (English)
-            "linear programming", "integer programming", "nonlinear programming",
-            "dynamic programming", "queuing theory", "simulation",
-            "heuristic", "metaheuristic",
-
+            "linear programming",
+            "integer programming",
+            "nonlinear programming",
+            "dynamic programming",
+            "queuing theory",
+            "simulation",
+            "heuristic",
+            "metaheuristic",
             # Common question patterns (Spanish)
-            "cómo clasifico", "cómo identifico", "cómo sé si",
-            "es lineal", "es entero", "es convexo",
-            "puedo usar", "debería usar", "mejor para"
+            "cómo clasifico",
+            "cómo identifico",
+            "cómo sé si",
+            "es lineal",
+            "es entero",
+            "es convexo",
+            "puedo usar",
+            "debería usar",
+            "mejor para",
         ]
 
         message_lower = message.lower()
@@ -436,25 +511,49 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
         # Additional check: very general optimization questions
         general_patterns = [
             # Spanish
-            "ayúdame", "necesito", "cómo puedo", "qué debo", "explica", "qué es",
-            "cuéntame sobre", "tengo un problema", "quiero saber",
+            "ayúdame",
+            "necesito",
+            "cómo puedo",
+            "qué debo",
+            "explica",
+            "qué es",
+            "cuéntame sobre",
+            "tengo un problema",
+            "quiero saber",
             # English
-            "help me", "i need to", "how can i", "what should i",
-            "explain", "what is", "tell me about", "i have a problem"
+            "help me",
+            "i need to",
+            "how can i",
+            "what should i",
+            "explain",
+            "what is",
+            "tell me about",
+            "i have a problem",
         ]
         general_optimization_terms = [
             # Spanish
-            "optimizar", "mejor", "eficiente", "mínimo", "máximo",
-            "decisión", "asignar", "distribuir",
+            "optimizar",
+            "mejor",
+            "eficiente",
+            "mínimo",
+            "máximo",
+            "decisión",
+            "asignar",
+            "distribuir",
             # English
-            "optimize", "best", "efficient", "minimum", "maximum",
-            "decision", "allocate", "distribute"
+            "optimize",
+            "best",
+            "efficient",
+            "minimum",
+            "maximum",
+            "decision",
+            "allocate",
+            "distribute",
         ]
 
-        is_general_or_question = (
-            any(pattern in message_lower for pattern in general_patterns) and
-            any(term in message_lower for term in general_optimization_terms)
-        )
+        is_general_or_question = any(
+            pattern in message_lower for pattern in general_patterns
+        ) and any(term in message_lower for term in general_optimization_terms)
 
         return keyword_match or is_general_or_question
 
@@ -479,7 +578,7 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
         self,
         user_message: str,
         conversation_history: list[dict[str, str]],
-        context: dict[str, Any]
+        context: dict[str, Any],
     ) -> str:
         """
         Generate OR tutor response with adaptive preprocessing.
@@ -493,7 +592,9 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
             Generated response with adaptive explanations
         """
         # Validate and preprocess
-        preprocessed_message, error_message = self._validate_and_preprocess(user_message)
+        preprocessed_message, error_message = self._validate_and_preprocess(
+            user_message
+        )
         if error_message:
             return error_message
 
@@ -505,7 +606,7 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
         components = self._prepare_generation_components(
             preprocessed_message=preprocessed_message,
             conversation_history=conversation_history,
-            context=context
+            context=context,
         )
 
         # Generate response with tools
@@ -514,7 +615,7 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
             response = self.llm_service.generate_response_with_tools(
                 messages=components["messages"],
                 tools=all_tools,
-                system_prompt=components["system_prompt"]
+                system_prompt=components["system_prompt"],
             )
         except Exception as e:
             logger.warning(f"Tool-enabled generation failed, falling back: {e}")
@@ -522,11 +623,14 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
             try:
                 response = self.llm_service.generate_response(
                     messages=components["messages"],
-                    system_prompt=components["system_prompt"]
+                    system_prompt=components["system_prompt"],
                 )
             except Exception as fallback_e:
-                logger.error(f"Error in {self.agent_name} response generation: {str(fallback_e)}")
+                logger.error(
+                    f"Error in {self.agent_name} response generation: {str(fallback_e)}"
+                )
                 from ..utils import format_error_message
+
                 return format_error_message(fallback_e)
 
         # Postprocess and add feedback
@@ -535,14 +639,14 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
             conversation_history=conversation_history,
             context=context,
             confusion_analysis=components["confusion_analysis"],
-            selected_strategy=components["selected_strategy"]
+            selected_strategy=components["selected_strategy"],
         )
 
     async def a_generate_response(
         self,
         user_message: str,
         conversation_history: list[dict[str, str]],
-        context: dict[str, Any]
+        context: dict[str, Any],
     ) -> str:
         """
         Async version with adaptive preprocessing.
@@ -556,7 +660,9 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
             Generated response with adaptive explanations
         """
         # Validate and preprocess
-        preprocessed_message, error_message = self._validate_and_preprocess(user_message)
+        preprocessed_message, error_message = self._validate_and_preprocess(
+            user_message
+        )
         if error_message:
             return error_message
 
@@ -568,7 +674,7 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
         components = self._prepare_generation_components(
             preprocessed_message=preprocessed_message,
             conversation_history=conversation_history,
-            context=context
+            context=context,
         )
 
         # Generate response with tools (async)
@@ -577,7 +683,7 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
             response = await self.llm_service.a_generate_response_with_tools(
                 messages=components["messages"],
                 tools=all_tools,
-                system_prompt=components["system_prompt"]
+                system_prompt=components["system_prompt"],
             )
         except Exception as e:
             logger.warning(f"Tool-enabled async generation failed, falling back: {e}")
@@ -585,11 +691,14 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
             try:
                 response = await self.llm_service.a_generate_response(
                     messages=components["messages"],
-                    system_prompt=components["system_prompt"]
+                    system_prompt=components["system_prompt"],
                 )
             except Exception as fallback_e:
-                logger.error(f"Error in {self.agent_name} async response generation: {str(fallback_e)}")
+                logger.error(
+                    f"Error in {self.agent_name} async response generation: {str(fallback_e)}"
+                )
                 from ..utils import format_error_message
+
                 return format_error_message(fallback_e)
 
         # Postprocess and add feedback
@@ -599,7 +708,7 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
             context=context,
             confusion_analysis=components["confusion_analysis"],
             selected_strategy=components["selected_strategy"],
-            async_mode=True
+            async_mode=True,
         )
 
 

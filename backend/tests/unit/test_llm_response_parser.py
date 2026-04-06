@@ -1,6 +1,7 @@
 """
 Unit tests for app.services.llm_response_parser — pure function.
 """
+
 import json
 
 import pytest
@@ -8,7 +9,6 @@ from app.services.llm_response_parser import parse_llm_json_response
 
 
 class TestParseLlmJsonResponse:
-
     def test_parse_raw_json(self):
         raw = '{"score": 5}'
         result = parse_llm_json_response(raw)

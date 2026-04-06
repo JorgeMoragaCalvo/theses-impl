@@ -16,7 +16,7 @@ async def record_activity_events(
     request: Request,
     batch: ActivityEventBatchCreate,
     db: Session = Depends(get_db),
-    current_user: Student = Depends(get_current_user)
+    current_user: Student = Depends(get_current_user),
 ):
     """Record a batch of activity events for the current user. Requires authentication."""
     analytics_service = get_analytics_service(db)

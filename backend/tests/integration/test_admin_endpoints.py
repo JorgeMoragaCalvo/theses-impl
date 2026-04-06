@@ -4,7 +4,6 @@ Integration tests for /admin/* endpoints.
 
 
 class TestListUsers:
-
     def test_list_users_admin(self, client, admin_auth_headers, test_admin):
         """Admin can list users → 200."""
         resp = client.get("/admin/users", headers=admin_auth_headers)
@@ -20,7 +19,6 @@ class TestListUsers:
 
 
 class TestUpdateUserStatus:
-
     def test_activate_deactivate(self, client, admin_auth_headers, test_db, test_user):
         """Admin can deactivate and activate a user."""
         # Deactivate
@@ -41,7 +39,6 @@ class TestUpdateUserStatus:
 
 
 class TestSystemStats:
-
     def test_system_stats(self, client, admin_auth_headers, test_admin):
         """GET /admin/stats → 200 with expected keys."""
         resp = client.get("/admin/stats", headers=admin_auth_headers)

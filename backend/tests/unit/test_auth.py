@@ -1,6 +1,7 @@
 """
 Unit tests for app.auth — password hashing, JWT tokens, authenticate_user.
 """
+
 import pytest
 from app.auth import (
     authenticate_user,
@@ -13,8 +14,8 @@ from fastapi import HTTPException
 
 # ---- Password hashing ----
 
-class TestPasswordHashing:
 
+class TestPasswordHashing:
     def test_hash_and_verify(self):
         raw = "mysecurepassword"
         hashed = get_password_hash(raw)
@@ -33,8 +34,8 @@ class TestPasswordHashing:
 
 # ---- JWT tokens ----
 
-class TestJWT:
 
+class TestJWT:
     def test_create_and_decode_token(self):
         token = create_access_token(data={"sub": "42"})
         payload = decode_access_token(token)
@@ -43,7 +44,10 @@ class TestJWT:
 
     def test_decode_expired_token(self):
         from datetime import timedelta
-        token = create_access_token(data={"sub": "1"}, expires_delta=timedelta(seconds=-1))
+
+        token = create_access_token(
+            data={"sub": "1"}, expires_delta=timedelta(seconds=-1)
+        )
         with pytest.raises(HTTPException) as exc_info:
             decode_access_token(token)
         assert exc_info.value.status_code == 401
@@ -56,8 +60,8 @@ class TestJWT:
 
 # ---- authenticate_user ----
 
-class TestAuthenticateUser:
 
+class TestAuthenticateUser:
     def test_success(self, test_db, test_user):
         result = authenticate_user(test_db, "student@usach.cl", "testpassword123")
         assert result is not None
@@ -71,6 +75,7 @@ class TestAuthenticateUser:
         """Inactive user cannot authenticate even with the correct password."""
         from app.database import Student
         from app.enums import UserRole
+
         inactive = Student(
             name="Inactive",
             email="inactive@usach.cl",

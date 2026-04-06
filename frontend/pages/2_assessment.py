@@ -8,7 +8,7 @@ import streamlit as st
 from dotenv import load_dotenv
 
 # Add the parent directory to the path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
+sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
 
 from utils.activity_tracker import (
     PAGE_ASSESSMENT,
@@ -50,6 +50,7 @@ student_id = st.session_state.get("student_id")
 # API HELPER FUNCTIONS
 # ============================================================================
 
+
 def fetch_student_progress(student_id: int) -> dict[str, Any] | None:
     """Fetch comprehensive student progress metrics."""
     success, data = api_client.get(f"students/{student_id}/progress")
@@ -59,7 +60,9 @@ def fetch_student_progress(student_id: int) -> dict[str, Any] | None:
     return data
 
 
-def fetch_assessments(student_id: int, topic: str | None = None) -> list[dict[str, Any]]:
+def fetch_assessments(
+    student_id: int, topic: str | None = None
+) -> list[dict[str, Any]]:
     """Fetch student assessments, optionally filtered by topic."""
     params = {}
     if topic:
@@ -81,13 +84,11 @@ def fetch_single_assessment(assessment_id: int) -> dict[str, Any] | None:
     return data
 
 
-def generate_assessment(topic: str, difficulty: str,
-                       conversation_id: int | None = None) -> dict[str, Any] | None:
+def generate_assessment(
+    topic: str, difficulty: str, conversation_id: int | None = None
+) -> dict[str, Any] | None:
     """Generate a new assessment (student_id extracted from token)."""
-    payload = {
-        "topic": topic,
-        "difficulty": difficulty.lower()
-    }
+    payload = {"topic": topic, "difficulty": difficulty.lower()}
     if conversation_id:
         payload["conversation_id"] = str(conversation_id)
 
@@ -102,7 +103,7 @@ def submit_assessment(assessment_id: int, student_answer: str) -> dict[str, Any]
     """Submit an answer to an assessment."""
     success, data = api_client.post(
         f"assessments/{assessment_id}/submit",
-        json_data={"student_answer": student_answer}
+        json_data={"student_answer": student_answer},
     )
     if not success:
         st.error(f"Error submitting assessment: {data.get('error', 'Unknown error')}")
@@ -131,7 +132,9 @@ def fetch_exercises_with_progress(topic: str | None = None) -> list[dict[str, An
 
     success, data = api_client.get("exercises/progress", params=params)
     if not success:
-        st.error(f"Error fetching exercise progress: {data.get('error', 'Unknown error')}")
+        st.error(
+            f"Error fetching exercise progress: {data.get('error', 'Unknown error')}"
+        )
         return []
     return data
 
@@ -140,12 +143,14 @@ def generate_exercise_assessment(exercise_id: str, mode: str) -> dict[str, Any] 
     """Generate assessment from a pre-built exercise."""
     success, data = api_client.post(
         "assessments/generate/from-exercise",
-        json_data={"exercise_id": exercise_id, "mode": mode}
+        json_data={"exercise_id": exercise_id, "mode": mode},
     )
     if not success:
         detail = data.get("detail", data.get("error", "Unknown error"))
         if "locked" in str(detail).lower():
-            st.error("Este ejercicio está bloqueado. Completa los ejercicios del rango anterior primero.")
+            st.error(
+                "Este ejercicio está bloqueado. Completa los ejercicios del rango anterior primero."
+            )
         else:
             st.error(f"Error generating exercise assessment: {detail}")
         return None
@@ -167,9 +172,11 @@ if "_graded_result_shown" not in st.session_state:
 
 # Auto-clear graded assessments after the result has been displayed once.
 # This handles navigation away and back, tab switching, and page refresh.
-if (st.session_state.current_assessment is not None
-        and st.session_state.current_assessment.get("graded_at") is not None
-        and st.session_state._graded_result_shown):
+if (
+    st.session_state.current_assessment is not None
+    and st.session_state.current_assessment.get("graded_at") is not None
+    and st.session_state._graded_result_shown
+):
     st.session_state.current_assessment = None
     st.session_state.show_assessment_form = False
     st.session_state._graded_result_shown = False
@@ -182,7 +189,9 @@ if (st.session_state.current_assessment is not None
 st.title("📝 Práctica y Evaluación")
 
 # Create tabs for different sections
-tab1, tab2, tab3 = st.tabs(["📊 Progreso", "📚 Historial de evaluación", "➕ Nueva evaluación"])
+tab1, tab2, tab3 = st.tabs(
+    ["📊 Progreso", "📚 Historial de evaluación", "➕ Nueva evaluación"]
+)
 
 
 # ============================================================================
@@ -200,30 +209,19 @@ with tab1:
 
         with col1:
             st.metric(
-                "Conversaciones totales",
-                progress_data.get("total_conversations", 0)
+                "Conversaciones totales", progress_data.get("total_conversations", 0)
             )
 
         with col2:
-            st.metric(
-                "Total de mensajes",
-                progress_data.get("total_messages", 0)
-            )
+            st.metric("Total de mensajes", progress_data.get("total_messages", 0))
 
         with col3:
-            st.metric(
-                "Evaluaciones totales",
-                progress_data.get("total_assessments", 0)
-            )
+            st.metric("Evaluaciones totales", progress_data.get("total_assessments", 0))
 
         with col4:
             avg_score = progress_data.get("average_score")
             if avg_score is not None:
-                st.metric(
-                    "Puntuación media",
-                    f"{avg_score:.1f}",
-                    delta=None
-                )
+                st.metric("Puntuación media", f"{avg_score:.1f}", delta=None)
             else:
                 st.metric("Puntuación media", "N/A")
 
@@ -244,7 +242,9 @@ with tab1:
                     else:
                         color = "🟡"
 
-                    st.markdown(f"{color} **{topic.replace('_', ' ').title()}**: {level.capitalize()}")
+                    st.markdown(
+                        f"{color} **{topic.replace('_', ' ').title()}**: {level.capitalize()}"
+                    )
 
         st.divider()
 
@@ -253,11 +253,13 @@ with tab1:
         if topics_covered:
             st.subheader("📚 Temas tratados")
             # Display as badges
-            topic_html = " ".join([
-                f'<span style="background-color: #0d0d0d; padding: 0.3rem 0.7rem; ' # #e0e7ff
-                f'border-radius: 1rem; margin: 0.2rem; display: inline-block;">{topic}</span>'
-                for topic in topics_covered
-            ])
+            topic_html = " ".join(
+                [
+                    f'<span style="background-color: #0d0d0d; padding: 0.3rem 0.7rem; '  # #e0e7ff
+                    f'border-radius: 1rem; margin: 0.2rem; display: inline-block;">{topic}</span>'
+                    for topic in topics_covered
+                ]
+            )
             st.markdown(topic_html, unsafe_allow_html=True)
             st.divider()
 
@@ -273,7 +275,7 @@ with tab1:
 
                 # Format timestamp
                 try:
-                    dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                    dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
                     time_str = dt.strftime("%Y-%m-%d %H:%M")
                 except (ValueError, TypeError):
                     time_str = timestamp
@@ -290,15 +292,21 @@ with tab1:
                     status_emoji = {
                         "calificado/a": "✅",
                         "enviado": "📝",
-                        "pendiente": "⏳"
+                        "pendiente": "⏳",
                     }.get(status, "❓")
 
-                    score_str = f"Puntaje: {score}" if score is not None else status.capitalize()
+                    score_str = (
+                        f"Puntaje: {score}"
+                        if score is not None
+                        else status.capitalize()
+                    )
                     st.markdown(
                         f"{status_emoji} **Evaluación** - {topic} - {score_str} - *{time_str}*"
                     )
         else:
-            st.info("Aún no hay actividad. ¡Inicia una conversación o realiza una evaluación!")
+            st.info(
+                "Aún no hay actividad. ¡Inicia una conversación o realiza una evaluación!"
+            )
     else:
         st.error("Unable to load progress data.")
 
@@ -315,9 +323,15 @@ with tab2:
     with col1:
         topic_filter = st.selectbox(
             "Filtrar por tema:",
-            ["Todos los temas", "Investigación de Operaciones", "Modelado Matemático",
-             "Programación Lineal", "Programación Entera", "Programación No Lineal"],
-            key="history_topic_filter"
+            [
+                "Todos los temas",
+                "Investigación de Operaciones",
+                "Modelado Matemático",
+                "Programación Lineal",
+                "Programación Entera",
+                "Programación No Lineal",
+            ],
+            key="history_topic_filter",
         )
 
     with col2:
@@ -327,22 +341,19 @@ with tab2:
     # Convert display name to API enum value
     topic_value = None
     if topic_filter != "Todos los temas":
-        topic_value = TOPIC_OPTIONS.get(topic_filter, topic_filter.lower().replace(" ", "_"))
+        topic_value = TOPIC_OPTIONS.get(
+            topic_filter, topic_filter.lower().replace(" ", "_")
+        )
 
     # Fetch assessments
-    assessments = fetch_assessments(
-        st.session_state.student_id,
-        topic=topic_value
-    )
+    assessments = fetch_assessments(st.session_state.student_id, topic=topic_value)
 
     if assessments:
         st.info(f"Encontradas {len(assessments)} evaluacion(es)")
 
         # Sort by created_at descending
         assessments_sorted = sorted(
-            assessments,
-            key=lambda x: x.get("created_at", ""),
-            reverse=True
+            assessments, key=lambda x: x.get("created_at", ""), reverse=True
         )
 
         for assessment in assessments_sorted:
@@ -383,15 +394,15 @@ with tab2:
 
             # Format date
             try:
-                dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
                 date_str = dt.strftime("%Y-%m-%d %H:%M")
             except (ValueError, AttributeError, TypeError):
                 date_str = created_at
 
             # Create expander for each assessment
             with st.expander(
-                f"{status} - {topic} - {date_str}" +
-                (f" - Score: {score}/{max_score}" if score is not None else "")
+                f"{status} - {topic} - {date_str}"
+                + (f" - Score: {score}/{max_score}" if score is not None else "")
             ):
                 st.markdown("**Pregunta:**")
                 st.markdown(question)
@@ -403,11 +414,17 @@ with tab2:
                 if graded_at:
                     # Show grading source indicator
                     if overridden_at:
-                        st.info("🔍 **Revisado por el administrador**: la calificación automática original se revisó y actualizó manualmente.")
+                        st.info(
+                            "🔍 **Revisado por el administrador**: la calificación automática original se revisó y actualizó manualmente."
+                        )
                     elif graded_by == "auto":
-                        st.info("🤖 **Calificación automática** - Calificado/a instantáneamente por la IA")
+                        st.info(
+                            "🤖 **Calificación automática** - Calificado/a instantáneamente por la IA"
+                        )
                     elif graded_by == "admin":
-                        st.info("👨‍🏫 ** Calificado/a manualmente ** - Calificado/a por un administrador")
+                        st.info(
+                            "👨‍🏫 ** Calificado/a manualmente ** - Calificado/a por un administrador"
+                        )
 
                     if score is not None:
                         percentage = (score / max_score) * 100 if max_score > 0 else 0
@@ -427,7 +444,9 @@ with tab2:
                         st.markdown("**Respuesta correcta:**")
                         st.markdown(correct_answer)
                 elif submitted_at:
-                    st.warning("⏳ Evaluación enviada, pero aún no calificada. Esto es inusual; la calificación debería ser instantánea..")
+                    st.warning(
+                        "⏳ Evaluación enviada, pero aún no calificada. Esto es inusual; la calificación debería ser instantánea.."
+                    )
                 else:
                     # Allow submission
                     st.warning("Evaluación aún no enviada.")
@@ -437,20 +456,26 @@ with tab2:
                         "Tu respuesta:",
                         key=answer_key,
                         height=150,
-                        value=student_answer or ""
+                        value=student_answer or "",
                     )
 
                     if st.button("Enviar respuesta", key=f"submit_{assessment_id}"):
                         if answer.strip():
                             result = submit_assessment(assessment_id, answer.strip())
                             if result is not None:
-                                track_assessment_submit(assessment_id, assessment.get("topic", ""))
+                                track_assessment_submit(
+                                    assessment_id, assessment.get("topic", "")
+                                )
                                 st.success("¡Respuesta enviada exitosamente!")
                                 st.rerun()
                         else:
-                            st.error("Por favor proporcione una respuesta antes de enviar.")
+                            st.error(
+                                "Por favor proporcione una respuesta antes de enviar."
+                            )
     else:
-        st.info("Aún no hay evaluaciones. ¡Genera tu primera evaluación en la pestaña 'Nueva evaluación'!")
+        st.info(
+            "Aún no hay evaluaciones. ¡Genera tu primera evaluación en la pestaña 'Nueva evaluación'!"
+        )
 
 
 # ============================================================================
@@ -465,7 +490,7 @@ with tab3:
         "Modo de evaluación:",
         ["Generar nuevo problema", "Practicar con ejercicio existente"],
         key="assessment_mode",
-        horizontal=True
+        horizontal=True,
     )
 
     st.divider()
@@ -475,7 +500,7 @@ with tab3:
         exercise_topic_filter = st.selectbox(
             "Filtrar por tema:",
             ["Todos los temas"] + TOPICS_LIST,
-            key="exercise_topic_filter"
+            key="exercise_topic_filter",
         )
 
         # Convert display name to API enum value
@@ -489,37 +514,44 @@ with tab3:
             # Sort exercises by difficulty rank (ascending: easiest first)
             # Exercises without metadata (rank=0) go at the end
             exercises_sorted = sorted(
-                exercises,
-                key=lambda ex: (ex.get('rank', 0) == 0, ex.get('rank', 0))
+                exercises, key=lambda ex: (ex.get("rank", 0) == 0, ex.get("rank", 0))
             )
 
             # Split into unlocked (pending), completed, and locked
             unlocked_exercises = [
-                ex for ex in exercises_sorted
-                if not ex.get('locked', False) and not ex.get('completed', False)
+                ex
+                for ex in exercises_sorted
+                if not ex.get("locked", False) and not ex.get("completed", False)
             ]
             completed_exercises = [
-                ex for ex in exercises_sorted
-                if not ex.get('locked', False) and ex.get('completed', False)
+                ex
+                for ex in exercises_sorted
+                if not ex.get("locked", False) and ex.get("completed", False)
             ]
-            locked_exercises = [ex for ex in exercises_sorted if ex.get('locked', False)]
+            locked_exercises = [
+                ex for ex in exercises_sorted if ex.get("locked", False)
+            ]
 
             if completed_exercises:
-                st.success(f"Has completado {len(completed_exercises)} ejercicio(s) en este tema.")
+                st.success(
+                    f"Has completado {len(completed_exercises)} ejercicio(s) en este tema."
+                )
 
             if unlocked_exercises:
                 # Create exercise options with a topic, difficulty
                 exercise_options = {}
                 for ex in unlocked_exercises:
-                    topic_display = TOPIC_DISPLAY_NAMES.get(ex.get('topic', ''), ex.get('topic', 'Desconocido'))
-                    model_type = ex.get('model_type', '')
-                    difficulty = ex.get('difficulty', '')
+                    topic_display = TOPIC_DISPLAY_NAMES.get(
+                        ex.get("topic", ""), ex.get("topic", "Desconocido")
+                    )
+                    model_type = ex.get("model_type", "")
+                    difficulty = ex.get("difficulty", "")
                     label = f"[{topic_display}] {ex['id']} - {ex['title']}"
                     if model_type:
                         label += f" ({model_type})"
                     if difficulty:
                         label += f" [{difficulty}]"
-                    exercise_options[label] = ex['id']
+                    exercise_options[label] = ex["id"]
 
                 # Clear cached selectbox value if the options have changed
                 current_options = list(exercise_options.keys())
@@ -529,22 +561,26 @@ with tab3:
                         del st.session_state["selected_exercise"]
 
                 selected_exercise = st.selectbox(
-                    "Selecciona un ejercicio:",
-                    current_options,
-                    key="selected_exercise"
+                    "Selecciona un ejercicio:", current_options, key="selected_exercise"
                 )
 
                 practice_mode = st.radio(
                     "Tipo de práctica:",
                     ["Ejercicio original", "Problema similar (generado por IA)"],
                     key="practice_mode",
-                    help="'Ejercicio original' usa el problema tal cual. 'Problema similar' genera un nuevo problema con el mismo tipo de modelo pero diferente contexto."
+                    help="'Ejercicio original' usa el problema tal cual. 'Problema similar' genera un nuevo problema con el mismo tipo de modelo pero diferente contexto.",
                 )
 
-                if st.button("Comenzar evaluación", type="primary", key="generate_exercise_btn"):
+                if st.button(
+                    "Comenzar evaluación", type="primary", key="generate_exercise_btn"
+                ):
                     with st.spinner("Preparando evaluación..."):
                         exercise_id = exercise_options[selected_exercise]
-                        mode = "practice" if practice_mode == "Ejercicio original" else "similar"
+                        mode = (
+                            "practice"
+                            if practice_mode == "Ejercicio original"
+                            else "similar"
+                        )
 
                         result = generate_exercise_assessment(exercise_id, mode)
 
@@ -557,21 +593,29 @@ with tab3:
                             st.success("¡Evaluación generada exitosamente!")
                             st.rerun()
             else:
-                st.info("No hay ejercicios desbloqueados disponibles. Completa ejercicios de rangos anteriores para desbloquear más.")
+                st.info(
+                    "No hay ejercicios desbloqueados disponibles. Completa ejercicios de rangos anteriores para desbloquear más."
+                )
 
             # Show locked exercises in a collapsed expander
             if locked_exercises:
-                with st.expander(f"\U0001F512 Ejercicios bloqueados ({len(locked_exercises)})"):
+                with st.expander(
+                    f"\U0001f512 Ejercicios bloqueados ({len(locked_exercises)})"
+                ):
                     for ex in locked_exercises:
-                        topic_display = TOPIC_DISPLAY_NAMES.get(ex.get('topic', ''), ex.get('topic', 'Desconocido'))
-                        rank = ex.get('rank', 0)
+                        topic_display = TOPIC_DISPLAY_NAMES.get(
+                            ex.get("topic", ""), ex.get("topic", "Desconocido")
+                        )
+                        rank = ex.get("rank", 0)
                         st.markdown(
-                            f"\U0001F512 **[{topic_display}] {ex['id']} - {ex['title']}** "
+                            f"\U0001f512 **[{topic_display}] {ex['id']} - {ex['title']}** "
                             f"— Requiere completar rango {rank - 1}"
                         )
         else:
             if topic_value:
-                st.warning(f"No hay ejercicios disponibles para {exercise_topic_filter}.")
+                st.warning(
+                    f"No hay ejercicios disponibles para {exercise_topic_filter}."
+                )
             else:
                 st.warning("No hay ejercicios disponibles en este momento.")
 
@@ -587,27 +631,26 @@ with tab3:
                     "Modelado Matemático",
                     "Programación Lineal",
                     "Programación Entera",
-                    "Programación No Lineal"
+                    "Programación No Lineal",
                 ],
-                key="new_topic"
+                key="new_topic",
             )
 
         with col2:
             new_difficulty = st.selectbox(
                 "Selecciona dificultad:",
                 ["Principiante", "Intermedio", "Avanzado"],
-                key="new_difficulty"
+                key="new_difficulty",
             )
 
         if st.button("Generar evaluación", type="primary", key="generate_btn"):
             with st.spinner("Generando evaluación..."):
                 # Convert display name to API enum value
-                topic_value = TOPIC_OPTIONS.get(new_topic, new_topic.lower().replace(" ", "_"))
-                # student_id extracted from the auth token automatically
-                result = generate_assessment(
-                    topic_value,
-                    new_difficulty
+                topic_value = TOPIC_OPTIONS.get(
+                    new_topic, new_topic.lower().replace(" ", "_")
                 )
+                # student_id extracted from the auth token automatically
+                result = generate_assessment(topic_value, new_difficulty)
 
                 if result is not None:
                     st.session_state.current_assessment = result
@@ -617,7 +660,10 @@ with tab3:
                     st.rerun()
 
     # Display current assessment if available
-    if st.session_state.show_assessment_form and st.session_state.current_assessment is not None:
+    if (
+        st.session_state.show_assessment_form
+        and st.session_state.current_assessment is not None
+    ):
         st.divider()
 
         current = st.session_state.current_assessment
@@ -648,7 +694,9 @@ with tab3:
                 overridden_at = current.get("overridden_at")
 
                 if overridden_at:
-                    st.info("🔍 **Reviewed by Admin** - Original auto-grade was manually reviewed and updated")
+                    st.info(
+                        "🔍 **Reviewed by Admin** - Original auto-grade was manually reviewed and updated"
+                    )
                 elif graded_by == "auto":
                     st.info("🤖 **Automatically Graded** - Graded instantly by AI")
                 elif graded_by == "admin":
@@ -670,20 +718,26 @@ with tab3:
                 st.session_state._graded_result_shown = True
 
                 st.divider()
-                if st.button("Comenzar nueva evaluación", type="primary", key="new_assessment_after_grade"):
+                if st.button(
+                    "Comenzar nueva evaluación",
+                    type="primary",
+                    key="new_assessment_after_grade",
+                ):
                     st.session_state.current_assessment = None
                     st.session_state.show_assessment_form = False
                     st.session_state._graded_result_shown = False
                     st.rerun()
             else:
-                st.warning("⏳ Evaluación enviada, pero aún no calificada. Esto es inusual; la calificación debería ser instantánea..")
+                st.warning(
+                    "⏳ Evaluación enviada, pero aún no calificada. Esto es inusual; la calificación debería ser instantánea.."
+                )
         else:
             # Answer input
             answer = st.text_area(
                 "Tu respuesta:",
                 height=200,
                 key="current_assessment_answer",
-                placeholder="Escribe tu respuesta aquí..."
+                placeholder="Escribe tu respuesta aquí...",
             )
 
             col1, col2 = st.columns([1, 4])
@@ -693,7 +747,9 @@ with tab3:
                     if answer.strip():
                         result = submit_assessment(assessment_id, answer.strip())
                         if result is not None:
-                            track_assessment_submit(assessment_id, current.get("topic", ""))
+                            track_assessment_submit(
+                                assessment_id, current.get("topic", "")
+                            )
                             st.success("¡Respuesta enviada exitosamente!")
                             st.session_state.current_assessment = result
                             st.rerun()
@@ -718,4 +774,6 @@ with st.sidebar:
         st.switch_page("app.py")
 
 st.divider()
-st.caption("💡 Tip: ¡Realiza evaluaciones para seguir tu progreso e identificar áreas de mejora!")
+st.caption(
+    "💡 Tip: ¡Realiza evaluaciones para seguir tu progreso e identificar áreas de mejora!"
+)

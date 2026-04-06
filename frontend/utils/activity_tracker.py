@@ -45,15 +45,17 @@ def _add_event(
         return
 
     buffer = _get_event_buffer()
-    buffer.append({
-        "session_id": _get_session_id(),
-        "event_category": event_category,
-        "event_action": event_action,
-        "page_name": page_name,
-        "topic": topic,
-        "duration_seconds": duration_seconds,
-        "extra_data": extra_data or {},
-    })
+    buffer.append(
+        {
+            "session_id": _get_session_id(),
+            "event_category": event_category,
+            "event_action": event_action,
+            "page_name": page_name,
+            "topic": topic,
+            "duration_seconds": duration_seconds,
+            "extra_data": extra_data or {},
+        }
+    )
 
     if len(buffer) >= 10:
         flush_events()
@@ -77,7 +79,8 @@ def track_page_visit(page_name: str, topic: str | None = None):
         duration = (now - prev_timestamp).total_seconds()
         if 0 < duration < 3600:  # Cap at 1 hour to filter stale sessions
             _add_event(
-                "page_exit", "page_leave",
+                "page_exit",
+                "page_leave",
                 page_name=prev_page,
                 duration_seconds=round(duration, 1),
             )
@@ -96,8 +99,11 @@ def track_interaction(
 ):
     """Track a widget interaction (Layer 2)."""
     _add_event(
-        "widget_interaction", action,
-        page_name=page_name, topic=topic, extra_data=extra_data,
+        "widget_interaction",
+        action,
+        page_name=page_name,
+        topic=topic,
+        extra_data=extra_data,
     )
 
 
@@ -108,8 +114,10 @@ def track_chat_message(
 ):
     """Track a chat message sent (Layer 2)."""
     _add_event(
-        "chat_message", "chat_send",
-        page_name=page_name, topic=topic,
+        "chat_message",
+        "chat_send",
+        page_name=page_name,
+        topic=topic,
         extra_data={"conversation_id": conversation_id},
     )
 
@@ -121,8 +129,10 @@ def track_assessment_generate(
 ):
     """Track assessment generation (Layer 2)."""
     _add_event(
-        "assessment_generate", "assessment_generate",
-        page_name=PAGE_ASSESSMENT, topic=topic,
+        "assessment_generate",
+        "assessment_generate",
+        page_name=PAGE_ASSESSMENT,
+        topic=topic,
         extra_data={"difficulty": difficulty, "exercise_id": exercise_id},
     )
 
@@ -130,8 +140,10 @@ def track_assessment_generate(
 def track_assessment_submit(assessment_id: int, topic: str):
     """Track assessment submission (Layer 2)."""
     _add_event(
-        "assessment_submit", "assessment_submit",
-        page_name=PAGE_ASSESSMENT, topic=topic,
+        "assessment_submit",
+        "assessment_submit",
+        page_name=PAGE_ASSESSMENT,
+        topic=topic,
         extra_data={"assessment_id": assessment_id},
     )
 
@@ -139,8 +151,10 @@ def track_assessment_submit(assessment_id: int, topic: str):
 def track_topic_change(new_topic: str, page_name: str):
     """Track topic selection change (Layer 2)."""
     _add_event(
-        "topic_change", "topic_select",
-        page_name=page_name, topic=new_topic,
+        "topic_change",
+        "topic_select",
+        page_name=page_name,
+        topic=new_topic,
     )
 
 
@@ -155,7 +169,10 @@ def flush_events():
 
     try:
         from utils.api_client import get_api_client
-        api_client = get_api_client(st.session_state.get("_backend_url", "http://localhost:8000"))
+
+        api_client = get_api_client(
+            st.session_state.get("_backend_url", "http://localhost:8000")
+        )
         api_client.post("/analytics/events", json_data={"events": buffer})
     except Exception:
         pass  # Analytics should never break the user experience

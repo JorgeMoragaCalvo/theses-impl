@@ -10,6 +10,7 @@ def sanitize_log_value(value: Any) -> str:
     """Sanitize a value for safe logging (prevent log injection)."""
     return str(value).replace("\r", "").replace("\n", "")
 
+
 def format_message_for_llm(role: str, content: str) -> dict[str, str]:
     """
     Format a message for LLM consumption.
@@ -23,6 +24,7 @@ def format_message_for_llm(role: str, content: str) -> dict[str, str]:
     """
     return {"role": role, "content": content}
 
+
 def format_conversation_history(messages: list[Any]) -> list[dict[str, str]]:
     """
     Format database messages for LLM context.
@@ -33,10 +35,8 @@ def format_conversation_history(messages: list[Any]) -> list[dict[str, str]]:
     Returns:
         List of formatted message dictionaries
     """
-    return [
-        format_message_for_llm(msg.role, msg.content)
-        for msg in messages
-    ]
+    return [format_message_for_llm(msg.role, msg.content) for msg in messages]
+
 
 def truncate_text(text: str, max_length: int = 2000, suffix: str = "...") -> str:
     """
@@ -52,7 +52,8 @@ def truncate_text(text: str, max_length: int = 2000, suffix: str = "...") -> str
     """
     if len(text) <= max_length:
         return text
-    return text[:max_length - len(suffix)] + suffix
+    return text[: max_length - len(suffix)] + suffix
+
 
 def extract_code_blocks(text: str) -> list[str]:
     """
@@ -68,6 +69,7 @@ def extract_code_blocks(text: str) -> list[str]:
     matches = re.findall(patter, text, re.DOTALL)
     return matches
 
+
 def clean_whitespace(text: str) -> str:
     """
     Clean excessive whitespace from text.
@@ -79,10 +81,11 @@ def clean_whitespace(text: str) -> str:
         Cleaned text
     """
     # Replace multiple spaces with a single space
-    text = re.sub(r' +', ' ', text)
+    text = re.sub(r" +", " ", text)
     # Replace multiple newlines with double newline
-    text = re.sub(r'\n\n+', '\n\n', text)
+    text = re.sub(r"\n\n+", "\n\n", text)
     return text.strip()
+
 
 def count_tokens_estimate(text: str) -> int:
     """
@@ -97,6 +100,7 @@ def count_tokens_estimate(text: str) -> int:
     # Estimate: ~4 characters per token
     return len(text) // 4
 
+
 def format_knowledge_level_context(knowledge_level: str) -> str:
     """
     Format knowledge level for LLM context.
@@ -110,9 +114,12 @@ def format_knowledge_level_context(knowledge_level: str) -> str:
     level_descriptions = {
         "beginner": "Este estudiante es nuevo en el tema y necesita explicaciones claras, paso a paso, con ejemplos básicos.",
         "intermediate": "Este estudiante tiene comprensión básica y puede manejar complejidad moderada con algunos detalles matemáticos.",
-        "advanced": "Este estudiante es competente y puede abordar conceptos teóricos, demostraciones y resolución de problemas complejos."
+        "advanced": "Este estudiante es competente y puede abordar conceptos teóricos, demostraciones y resolución de problemas complejos.",
     }
-    return level_descriptions.get(knowledge_level.lower(), level_descriptions["beginner"])
+    return level_descriptions.get(
+        knowledge_level.lower(), level_descriptions["beginner"]
+    )
+
 
 def parse_topic_from_message(message: str) -> str:
     """
@@ -127,19 +134,42 @@ def parse_topic_from_message(message: str) -> str:
     message_lower = message.lower()
 
     topic_keywords = {
-        "linear_programming": ["programación lineal", "problema pl", "simplex", "dualidad",
-                               "restricción", "función objetivo"],
-        "integer_programming": ["programación entera", "problema pe", "variable binaria",
-                                "ramificación y acotamiento", "branch and bound"],
-        "nonlinear_programming": ["programación no lineal", "pnl", "gradiente", "lagrange", "kkt"],
+        "linear_programming": [
+            "programación lineal",
+            "problema pl",
+            "simplex",
+            "dualidad",
+            "restricción",
+            "función objetivo",
+        ],
+        "integer_programming": [
+            "programación entera",
+            "problema pe",
+            "variable binaria",
+            "ramificación y acotamiento",
+            "branch and bound",
+        ],
+        "nonlinear_programming": [
+            "programación no lineal",
+            "pnl",
+            "gradiente",
+            "lagrange",
+            "kkt",
+        ],
         "operations_research": ["investigación de operaciones", "io", "optimización"],
-        "mathematical_modeling": ["modelo matemático", "formulación", "modelado", "modelamiento"]
+        "mathematical_modeling": [
+            "modelo matemático",
+            "formulación",
+            "modelado",
+            "modelamiento",
+        ],
     }
 
     for topic, keywords in topic_keywords.items():
         if any(keyword in message_lower for keyword in keywords):
             return topic
     return "general"
+
 
 def format_error_message(error: Exception, user_friendly: bool = True) -> str:
     """
@@ -158,6 +188,7 @@ def format_error_message(error: Exception, user_friendly: bool = True) -> str:
             "Por favor, reformula tu pregunta o inténtalo de nuevo en un momento."
         )
     return f"Error: {str(error)}"
+
 
 def validate_student_knowledge_level(level: str) -> str:
     """
@@ -178,7 +209,9 @@ def validate_student_knowledge_level(level: str) -> str:
     # Default to beginner if invalid
     return "beginner"
 
+
 # Alternative Explanations & Adaptive Learning Utilities
+
 
 def detect_confusion_signals(message: str) -> dict[str, Any]:
     """
@@ -194,22 +227,44 @@ def detect_confusion_signals(message: str) -> dict[str, Any]:
 
     # Confusion indicators with severity weights (Spanish)
     high_confusion_keywords = [
-        "no entiendo", "no lo entiendo", "no tiene sentido", "estoy perdido",
-        "completamente confundido", "no tengo idea", "qué significa esto",
-        "estoy totalmente perdido", "no me queda claro para nada"
+        "no entiendo",
+        "no lo entiendo",
+        "no tiene sentido",
+        "estoy perdido",
+        "completamente confundido",
+        "no tengo idea",
+        "qué significa esto",
+        "estoy totalmente perdido",
+        "no me queda claro para nada",
     ]
 
     medium_confusion_keywords = [
-        "confundido", "confundida", "no estoy seguro", "no estoy segura",
-        "no veo", "no puedo entender", "me cuesta entender",
-        "dificultad para entender", "difícil de entender", "no me queda claro",
-        "cómo es que", "por qué es así"
+        "confundido",
+        "confundida",
+        "no estoy seguro",
+        "no estoy segura",
+        "no veo",
+        "no puedo entender",
+        "me cuesta entender",
+        "dificultad para entender",
+        "difícil de entender",
+        "no me queda claro",
+        "cómo es que",
+        "por qué es así",
     ]
 
     low_confusion_keywords = [
-        "qué?", "eh?", "espera", "un momento", "puedes explicar",
-        "podrías aclarar", "qué quieres decir", "no sigo",
-        "no te sigo", "un poco confundido", "un poco confundida"
+        "qué?",
+        "eh?",
+        "espera",
+        "un momento",
+        "puedes explicar",
+        "podrías aclarar",
+        "qué quieres decir",
+        "no sigo",
+        "no te sigo",
+        "un poco confundido",
+        "un poco confundida",
     ]
 
     # Very short responses after explanation (potential confusion)
@@ -239,7 +294,9 @@ def detect_confusion_signals(message: str) -> dict[str, Any]:
                 confusion_level = "low"
 
     # Check very short responses
-    if len(message_lower) < 15 and any(pattern in message_lower for pattern in short_response_patterns):
+    if len(message_lower) < 15 and any(
+        pattern in message_lower for pattern in short_response_patterns
+    ):
         detected_signals.append("short_confused_response")
         if confusion_level == "none":
             confusion_level = "low"
@@ -253,10 +310,13 @@ def detect_confusion_signals(message: str) -> dict[str, Any]:
     return {
         "detected": len(detected_signals) > 0,
         "level": confusion_level,
-        "signals": detected_signals
+        "signals": detected_signals,
     }
 
-def detect_repeated_topic(conversation_history: list[dict[str, str]], lookback: int = 5) -> dict[str, Any]:
+
+def detect_repeated_topic(
+    conversation_history: list[dict[str, str]], lookback: int = 5
+) -> dict[str, Any]:
     """
     Detect if the student is asking about the same topic repeatedly (indicates struggle).
 
@@ -282,12 +342,23 @@ def detect_repeated_topic(conversation_history: list[dict[str, str]], lookback: 
 
     # Extract key terms (simple approach - look for repeated significant words)
     # In a more sophisticated version, could use NLP techniques
-    word_freq = {}
+    word_freq: dict[str, int] = {}
     for message in recent_user_messages:
-        words = re.findall(r'\b[a-z]{4,}\b', message)  # Words with 4+ letters
+        words = re.findall(r"\b[a-z]{4,}\b", message)  # Words with 4+ letters
         for word in words:
             # Skip common words
-            if word not in ['what', 'how', 'can', 'could', 'would', 'should', 'this', 'that', 'with', 'from']:
+            if word not in [
+                "what",
+                "how",
+                "can",
+                "could",
+                "would",
+                "should",
+                "this",
+                "that",
+                "with",
+                "from",
+            ]:
                 word_freq[word] = word_freq.get(word, 0) + 1
 
     # Find most repeated terms
@@ -299,10 +370,11 @@ def detect_repeated_topic(conversation_history: list[dict[str, str]], lookback: 
             "repeated": True,
             "topic": most_repeated[0],
             "count": most_repeated[1],
-            "all_repeated_terms": repeated_terms
+            "all_repeated_terms": repeated_terms,
         }
 
     return {"repeated": False, "topic": None, "count": 0}
+
 
 def get_explanation_strategies_from_context(context: dict[str, Any]) -> list[str]:
     """
@@ -330,8 +402,12 @@ def get_explanation_strategies_from_context(context: dict[str, Any]) -> list[str
 
     return strategies[-5:] if len(strategies) > 5 else strategies  # Recent 5
 
-def should_request_feedback(response_text: str, conversation_history: list[dict[str, str]],
-                           context: dict[str, Any]) -> bool:
+
+def should_request_feedback(
+    response_text: str,
+    conversation_history: list[dict[str, str]],
+    context: dict[str, Any],
+) -> bool:
     """
     Determine if the agent should request understanding feedback from the student.
 
@@ -347,10 +423,26 @@ def should_request_feedback(response_text: str, conversation_history: list[dict[
     is_complex = len(response_text) > 500
 
     # Count technical terms (simplified - look for mathematical symbols and key terms)
-    technical_indicators = ['∑', '∫', 'equation', 'formula', 'theorem', 'proof',
-                           'constraint', 'optimization', 'minimize', 'maximize',
-                           'variable', 'coefficient', 'matrix']
-    technical_count = sum(1 for indicator in technical_indicators if indicator.lower() in response_text.lower())
+    technical_indicators = [
+        "∑",
+        "∫",
+        "equation",
+        "formula",
+        "theorem",
+        "proof",
+        "constraint",
+        "optimization",
+        "minimize",
+        "maximize",
+        "variable",
+        "coefficient",
+        "matrix",
+    ]
+    technical_count = sum(
+        1
+        for indicator in technical_indicators
+        if indicator.lower() in response_text.lower()
+    )
 
     has_technical_content = technical_count >= 3
 

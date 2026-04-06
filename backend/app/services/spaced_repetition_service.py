@@ -83,7 +83,9 @@ class SpacedRepetitionService:
             ease_factor = max(MIN_EASE_FACTOR, ease_factor - 0.2)
         else:
             # Successful recall — compute a new ease factor
-            ease_bonus = 0.1 - (5 - performance_quality) * (0.08 + (5 - performance_quality) * 0.02)
+            ease_bonus = 0.1 - (5 - performance_quality) * (
+                0.08 + (5 - performance_quality) * 0.02
+            )
             ease_factor = max(MIN_EASE_FACTOR, ease_factor + ease_bonus)
 
             # Determine the interval
@@ -137,12 +139,7 @@ class SpacedRepetitionService:
                 logger.warning(f"Unknown topic for due reviews: {safe_topic}")
                 return []
 
-        return (
-            query
-            .order_by(StudentCompetency.next_review_at.asc())
-            .limit(limit)
-            .all()
-        )
+        return query.order_by(StudentCompetency.next_review_at.asc()).limit(limit).all()
 
     # ------------------------------------------------------------------
     # Start a review session
@@ -207,9 +204,13 @@ class SpacedRepetitionService:
         Raises:
             ValueError: If a review session is not found or already completed
         """
-        session = self.db.query(ReviewSession).filter(
-            ReviewSession.id == review_session_id,
-        ).first()
+        session = (
+            self.db.query(ReviewSession)
+            .filter(
+                ReviewSession.id == review_session_id,
+            )
+            .first()
+        )
 
         if session is None:
             raise ValueError(f"Review session {review_session_id} not found")
@@ -219,10 +220,14 @@ class SpacedRepetitionService:
         now = datetime.now(timezone.utc)
 
         # Look up the competency
-        competency = self.db.query(StudentCompetency).filter(
-            StudentCompetency.student_id == session.student_id,
-            StudentCompetency.concept_id == session.concept_id,
-        ).first()
+        competency = (
+            self.db.query(StudentCompetency)
+            .filter(
+                StudentCompetency.student_id == session.student_id,
+                StudentCompetency.concept_id == session.concept_id,
+            )
+            .first()
+        )
 
         if competency is None:
             raise ValueError(
@@ -250,10 +255,14 @@ class SpacedRepetitionService:
             performance_score=normalized_score,
         )
         # Re-read competency after update_competency committed
-        competency = self.db.query(StudentCompetency).filter(
-            StudentCompetency.student_id == session.student_id,
-            StudentCompetency.concept_id == session.concept_id,
-        ).first()
+        competency = (
+            self.db.query(StudentCompetency)
+            .filter(
+                StudentCompetency.student_id == session.student_id,
+                StudentCompetency.concept_id == session.concept_id,
+            )
+            .first()
+        )
         # Reapply scheduling fields (update_competency doesn't touch them)
         competency.decay_factor = new_ease_factor
         competency.next_review_at = next_review_at
@@ -290,10 +299,14 @@ class SpacedRepetitionService:
         Called after grading when a concept is first encountered.
         Only schedules if next_review_at is not already set.
         """
-        competency = self.db.query(StudentCompetency).filter(
-            StudentCompetency.student_id == student_id,
-            StudentCompetency.concept_id == concept_id,
-        ).first()
+        competency = (
+            self.db.query(StudentCompetency)
+            .filter(
+                StudentCompetency.student_id == student_id,
+                StudentCompetency.concept_id == concept_id,
+            )
+            .first()
+        )
 
         if competency is None or competency.next_review_at is not None:
             return
@@ -311,6 +324,7 @@ class SpacedRepetitionService:
 # ---------------------------------------------------------------------------
 # Helper functions
 # ---------------------------------------------------------------------------
+
 
 def _count_successful_reviews(competency: StudentCompetency) -> int:
     """
@@ -336,6 +350,7 @@ def _get_previous_interval_days(competency: StudentCompetency) -> int:
 # ---------------------------------------------------------------------------
 # Factory
 # ---------------------------------------------------------------------------
+
 
 def get_spaced_repetition_service(db: Session) -> SpacedRepetitionService:
     return SpacedRepetitionService(db)

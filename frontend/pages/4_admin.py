@@ -8,7 +8,7 @@ import streamlit as st
 from dotenv import load_dotenv
 
 # Add the parent directory to the path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent)) # noqa: E402
+sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
 
 from utils.activity_tracker import PAGE_ADMIN, flush_events, track_page_visit
 from utils.api_client import get_api_client
@@ -47,10 +47,14 @@ track_page_visit(PAGE_ADMIN)
 inject_idle_detector(backend_url=BACKEND_URL)
 
 # Admin confirmed - show dashboard
-st.success(f"👋 Welcome, Administrator **{st.session_state.get('student_name', 'Admin')}**")
+st.success(
+    f"👋 Welcome, Administrator **{st.session_state.get('student_name', 'Admin')}**"
+)
 
 # Create tabs for different admin functions
-tab1, tab2, tab3, tab4 = st.tabs(["👥 User Management", "📊 System Statistics", "📈 Analytics", "⚙️ Settings"])
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["👥 User Management", "📊 System Statistics", "📈 Analytics", "⚙️ Settings"]
+)
 
 # ============================================================================
 # TAB 1: USER MANAGEMENT
@@ -90,24 +94,32 @@ with tab1:
         for user in users:
             last_login = user.get("last_login")
             if last_login:
-                last_login = datetime.fromisoformat(last_login.replace("Z", "+00:00")).strftime("%Y-%m-%d %H:%M")
+                last_login = datetime.fromisoformat(
+                    last_login.replace("Z", "+00:00")
+                ).strftime("%Y-%m-%d %H:%M")
 
             created_at = user.get("created_at")
             if created_at:
-                created_at = datetime.fromisoformat(created_at.replace("Z", "+00:00")).strftime("%Y-%m-%d")
+                created_at = datetime.fromisoformat(
+                    created_at.replace("Z", "+00:00")
+                ).strftime("%Y-%m-%d")
 
-            user_data.append({
-                "ID": user["id"],
-                "Name": user["name"],
-                "Email": user["email"],
-                "Role": user["role"],
-                "Status": "Active" if user["is_active"] else "Inactive",
-                "Conversations": user.get("total_conversations", 0),
-                "Assessments": user.get("total_assessments", 0),
-                "Avg Score": f"{user.get('average_score', 0):.1f}" if user.get("average_score") else "N/A",
-                "Created": created_at,
-                "Last Login": last_login or "Never"
-            })
+            user_data.append(
+                {
+                    "ID": user["id"],
+                    "Name": user["name"],
+                    "Email": user["email"],
+                    "Role": user["role"],
+                    "Status": "Active" if user["is_active"] else "Inactive",
+                    "Conversations": user.get("total_conversations", 0),
+                    "Assessments": user.get("total_assessments", 0),
+                    "Avg Score": f"{user.get('average_score', 0):.1f}"
+                    if user.get("average_score")
+                    else "N/A",
+                    "Created": created_at,
+                    "Last Login": last_login or "Never",
+                }
+            )
 
         # Display as dataframe
         df = pd.DataFrame(user_data)
@@ -125,7 +137,7 @@ with tab1:
             user_select = st.selectbox(
                 "Select User:",
                 options=[f"{u['id']} - {u['name']} ({u['email']})" for u in users],
-                key="user_select"
+                key="user_select",
             )
 
             selected_user_id = int(user_select.split(" - ")[0])
@@ -135,7 +147,9 @@ with tab1:
             st.markdown(f"**Name:** {selected_user['name']}")
             st.markdown(f"**Email:** {selected_user['email']}")
             st.markdown(f"**Role:** {selected_user['role']}")
-            st.markdown(f"**Status:** {'Active' if selected_user['is_active'] else 'Inactive'}")
+            st.markdown(
+                f"**Status:** {'Active' if selected_user['is_active'] else 'Inactive'}"
+            )
 
         with col2:
             st.markdown("#### Actions")
@@ -149,14 +163,18 @@ with tab1:
                 new_status = not current_status
                 success, data = api_client.put(
                     f"admin/users/{selected_user_id}/status",
-                    params={"is_active": new_status}
+                    params={"is_active": new_status},
                 )
 
                 if success:
-                    st.success(f"User {'activated' if new_status else 'deactivated'} successfully!")
+                    st.success(
+                        f"User {'activated' if new_status else 'deactivated'} successfully!"
+                    )
                     st.rerun()
                 else:
-                    error_msg = data.get("detail", data.get("error", "Failed to update status"))
+                    error_msg = data.get(
+                        "detail", data.get("error", "Failed to update status")
+                    )
                     st.error(f"Error: {error_msg}")
 
             st.divider()
@@ -167,7 +185,7 @@ with tab1:
                 "New Role:",
                 options=["user", "admin"],
                 index=0 if selected_user["role"] == "user" else 1,
-                key="new_role"
+                key="new_role",
             )
 
             if st.button("Update Role", type="primary", key="update_role"):
@@ -176,14 +194,16 @@ with tab1:
                 else:
                     success, data = api_client.put(
                         f"admin/users/{selected_user_id}/role",
-                        params={"role": new_role}
+                        params={"role": new_role},
                     )
 
                     if success:
                         st.success(f"User role updated to '{new_role}' successfully!")
                         st.rerun()
                     else:
-                        error_msg = data.get("detail", data.get("error", "Failed to update role"))
+                        error_msg = data.get(
+                            "detail", data.get("error", "Failed to update role")
+                        )
                         st.error(f"Error: {error_msg}")
 
     elif success:
@@ -216,7 +236,9 @@ with tab2:
             st.metric("Assessments", stats.get("total_assessments", 0))
         with col5:
             avg_score = stats.get("average_assessment_score")
-            st.metric("Avg Assessment Score", f"{avg_score:.1f}" if avg_score else "N/A")
+            st.metric(
+                "Avg Assessment Score", f"{avg_score:.1f}" if avg_score else "N/A"
+            )
 
         st.divider()
 
@@ -244,7 +266,7 @@ with tab3:
             options=[7, 14, 30, 60, 90],
             index=2,
             format_func=lambda x: f"Last {x} days",
-            key="analytics_days_range"
+            key="analytics_days_range",
         )
     with col2:
         st.markdown("")  # spacing
@@ -252,7 +274,9 @@ with tab3:
             st.rerun()
 
     # Fetch analytics summary
-    success, analytics = api_client.get("admin/analytics/summary", params={"days": days_range})
+    success, analytics = api_client.get(
+        "admin/analytics/summary", params={"days": days_range}
+    )
 
     if success and analytics:
         # Key Engagement Metrics
@@ -270,7 +294,10 @@ with tab3:
         with col4:
             st.metric("Chat Messages", engagement.get("total_chat_messages", 0))
         with col5:
-            st.metric("Assessments Submitted", engagement.get("total_assessments_submitted", 0))
+            st.metric(
+                "Assessments Submitted",
+                engagement.get("total_assessments_submitted", 0),
+            )
 
         st.divider()
 
@@ -278,10 +305,7 @@ with tab3:
         st.markdown("### Daily Active Users")
         dau = analytics.get("dau", {})
         if dau.get("dates"):
-            dau_df = pd.DataFrame({
-                "Date": dau["dates"],
-                "Active Users": dau["counts"]
-            })
+            dau_df = pd.DataFrame({"Date": dau["dates"], "Active Users": dau["counts"]})
             st.line_chart(dau_df.set_index("Date"))
         else:
             st.info("No DAU data available for the selected period.")
@@ -295,10 +319,12 @@ with tab3:
             st.markdown("### Avg Session Duration")
             session_data = analytics.get("session_duration", {})
             if session_data.get("dates"):
-                session_df = pd.DataFrame({
-                    "Date": session_data["dates"],
-                    "Duration (min)": session_data["avg_duration_minutes"]
-                })
+                session_df = pd.DataFrame(
+                    {
+                        "Date": session_data["dates"],
+                        "Duration (min)": session_data["avg_duration_minutes"],
+                    }
+                )
                 st.line_chart(session_df.set_index("Date"))
             else:
                 st.info("No session data available.")
@@ -307,10 +333,12 @@ with tab3:
             st.markdown("### Peak Usage Hours")
             peak = analytics.get("peak_usage", {})
             if peak.get("hours"):
-                peak_df = pd.DataFrame({
-                    "Hour": [f"{h:02d}:00" for h in peak["hours"]],
-                    "Events": peak["event_counts"]
-                })
+                peak_df = pd.DataFrame(
+                    {
+                        "Hour": [f"{h:02d}:00" for h in peak["hours"]],
+                        "Events": peak["event_counts"],
+                    }
+                )
                 st.bar_chart(peak_df.set_index("Hour"))
             else:
                 st.info("No peak usage data available.")
@@ -324,11 +352,15 @@ with tab3:
             st.markdown("### Page Popularity")
             pages = analytics.get("page_popularity", {})
             if pages.get("pages"):
-                page_df = pd.DataFrame({
-                    "Page": pages["pages"],
-                    "Visits": pages["visit_counts"],
-                    "Avg Duration (s)": [f"{d:.0f}" for d in pages["avg_duration_seconds"]]
-                })
+                page_df = pd.DataFrame(
+                    {
+                        "Page": pages["pages"],
+                        "Visits": pages["visit_counts"],
+                        "Avg Duration (s)": [
+                            f"{d:.0f}" for d in pages["avg_duration_seconds"]
+                        ],
+                    }
+                )
                 st.bar_chart(page_df.set_index("Page")["Visits"])
                 st.dataframe(page_df, hide_index=True)
             else:
@@ -338,18 +370,28 @@ with tab3:
             st.markdown("### Topic Popularity")
             topics = analytics.get("topic_popularity", {})
             if topics.get("topics"):
-                topic_df = pd.DataFrame({
-                    "Topic": [TOPIC_DISPLAY_NAMES.get(t, t) for t in topics["topics"]],
-                    "Interactions": topics["interaction_counts"]
-                })
+                topic_df = pd.DataFrame(
+                    {
+                        "Topic": [
+                            TOPIC_DISPLAY_NAMES.get(t, t) for t in topics["topics"]
+                        ],
+                        "Interactions": topics["interaction_counts"],
+                    }
+                )
                 st.bar_chart(topic_df.set_index("Topic"))
             else:
                 st.info("No topic data available.")
 
     elif success:
-        st.info("No analytics data available yet. Events will appear as users interact with the system.")
+        st.info(
+            "No analytics data available yet. Events will appear as users interact with the system."
+        )
     else:
-        error_msg = analytics.get("error", analytics.get("detail", "Failed to load analytics")) if analytics else "Failed to load analytics"
+        error_msg = (
+            analytics.get("error", analytics.get("detail", "Failed to load analytics"))
+            if analytics
+            else "Failed to load analytics"
+        )
         st.error(f"Error: {error_msg}")
 
 # ============================================================================
@@ -377,17 +419,25 @@ with tab4:
         with col2:
             st.markdown("#### System Information")
             st.markdown(f"**Version:** {settings_data.get('version', 'N/A')}")
-            st.markdown(f"**Debug Mode:** {'Enabled' if settings_data.get('debug') else 'Disabled'}")
-            st.markdown(f"**Session Timeout:** {settings_data.get('session_timeout_minutes', 'N/A')} minutes")
+            st.markdown(
+                f"**Debug Mode:** {'Enabled' if settings_data.get('debug') else 'Disabled'}"
+            )
+            st.markdown(
+                f"**Session Timeout:** {settings_data.get('session_timeout_minutes', 'N/A')} minutes"
+            )
 
         st.divider()
 
-        st.info("⚠️ System settings are currently read-only. To modify settings, update the .env file and restart the backend server.")
+        st.info(
+            "⚠️ System settings are currently read-only. To modify settings, update the .env file and restart the backend server."
+        )
 
     elif success:
         st.info("No settings available.")
     else:
-        error_msg = settings_data.get("error", settings_data.get("detail", "Failed to load settings"))
+        error_msg = settings_data.get(
+            "error", settings_data.get("detail", "Failed to load settings")
+        )
         st.error(f"Error: {error_msg}")
 
 st.divider()

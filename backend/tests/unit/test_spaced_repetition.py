@@ -1,6 +1,7 @@
 """
 Unit tests for SpacedRepetitionService.calculate_next_review — SM-2 algorithm.
 """
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -11,8 +12,12 @@ from app.services.spaced_repetition_service import (
 )
 
 
-def _make_competency(decay_factor=DEFAULT_EASE_FACTOR, correct_count=0,
-                     next_review_at=None, last_correct_at=None):
+def _make_competency(
+    decay_factor=DEFAULT_EASE_FACTOR,
+    correct_count=0,
+    next_review_at=None,
+    last_correct_at=None,
+):
     """Build a mock StudentCompetency with the fields SM-2 needs."""
     comp = MagicMock()
     comp.decay_factor = decay_factor
@@ -23,13 +28,13 @@ def _make_competency(decay_factor=DEFAULT_EASE_FACTOR, correct_count=0,
 
 
 class TestCalculateNextReview:
-
     def test_failed_recall_resets_interval(self):
         """Quality < 3 → an interval resets to 1 day."""
         comp = _make_competency()
         next_review, new_ease = SpacedRepetitionService.calculate_next_review(comp, 2)
         # Interval should be 1 day (INITIAL_INTERVALS[0])
         from datetime import datetime, timezone
+
         now = datetime.now(timezone.utc)
         delta = (next_review - now).total_seconds()
         assert 0 < delta <= 86400 + 5  # ~1 day, small tolerance
@@ -57,6 +62,7 @@ class TestCalculateNextReview:
         comp = _make_competency(correct_count=0)  # first review
         next_review, _ = SpacedRepetitionService.calculate_next_review(comp, 4)
         from datetime import datetime, timezone
+
         now = datetime.now(timezone.utc)
         delta_days = (next_review - now).total_seconds() / 86400
         # correct_count=0 → INITIAL_INTERVALS[0] = 1 day

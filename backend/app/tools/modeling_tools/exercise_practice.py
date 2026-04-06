@@ -77,8 +77,7 @@ Retorna: El contenido solicitado según la acción."""
             return self._action_get_exercise(params.get("exercise_id"))
         elif action == "get_hint":
             return self._action_get_hint(
-                params.get("exercise_id"),
-                params.get("hint_index", 0)
+                params.get("exercise_id"), params.get("hint_index", 0)
             )
         elif action == "reveal_solution":
             return self._action_reveal_solution(params.get("exercise_id"))
@@ -100,8 +99,10 @@ Retorna: El contenido solicitado según la acción."""
         result += "|-----|--------|----------------|------------|\n"
 
         for ex in exercises:
-            difficulty = ex.get('difficulty', '') or '—'
-            result += f"| {ex['id']} | {ex['title']} | {ex['model_type']} | {difficulty} |\n"
+            difficulty = ex.get("difficulty", "") or "—"
+            result += (
+                f"| {ex['id']} | {ex['title']} | {ex['model_type']} | {difficulty} |\n"
+            )
 
         result += f"\n*Total: {len(exercises)} ejercicios*"
         return result
@@ -109,7 +110,9 @@ Retorna: El contenido solicitado según la acción."""
     def _action_get_exercise(self, exercise_id: str | None) -> str:
         """Get exercise statement."""
         if not exercise_id:
-            return self._format_error("Se requiere 'exercise_id' para obtener un ejercicio")
+            return self._format_error(
+                "Se requiere 'exercise_id' para obtener un ejercicio"
+            )
 
         if not self.exercise_manager.exercise_exists(exercise_id):
             return self._format_error(
@@ -122,7 +125,9 @@ Retorna: El contenido solicitado según la acción."""
 
         result = f"**Ejercicio: {exercise_id}**\n\n"
         result += statement
-        result += f"\n\n---\n*Este ejercicio tiene {len(hints)} pista(s) disponible(s). "
+        result += (
+            f"\n\n---\n*Este ejercicio tiene {len(hints)} pista(s) disponible(s). "
+        )
         result += "Usa action='get_hint' si necesitas ayuda.*"
 
         return result
@@ -130,7 +135,9 @@ Retorna: El contenido solicitado según la acción."""
     def _action_get_hint(self, exercise_id: str | None, hint_index: int) -> str:
         """Get a specific hint for an exercise."""
         if not exercise_id:
-            return self._format_error("Se requiere 'exercise_id' para obtener una pista")
+            return self._format_error(
+                "Se requiere 'exercise_id' para obtener una pista"
+            )
 
         if not self.exercise_manager.exercise_exists(exercise_id):
             return self._format_error(f"Ejercicio '{exercise_id}' no encontrado")
@@ -158,14 +165,18 @@ Retorna: El contenido solicitado según la acción."""
         result += f"💡 {hint}"
 
         if hint_index < len(hints) - 1:
-            result += f"\n\n*Hay {len(hints) - hint_index - 1} pista(s) más disponible(s).*"
+            result += (
+                f"\n\n*Hay {len(hints) - hint_index - 1} pista(s) más disponible(s).*"
+            )
 
         return result
 
     def _action_reveal_solution(self, exercise_id: str | None) -> str:
         """Reveal the complete solution for an exercise."""
         if not exercise_id:
-            return self._format_error("Se requiere 'exercise_id' para revelar la solución")
+            return self._format_error(
+                "Se requiere 'exercise_id' para revelar la solución"
+            )
 
         if not self.exercise_manager.exercise_exists(exercise_id):
             return self._format_error(f"Ejercicio '{exercise_id}' no encontrado")

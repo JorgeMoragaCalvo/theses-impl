@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 try:
     import numpy as np
     from scipy.optimize import Bounds, LinearConstraint, linprog, milp
+
     SCIPY_AVAILABLE = True
 except ImportError:
     SCIPY_AVAILABLE = False
@@ -26,7 +27,9 @@ except ImportError:
     LinearConstraint = None
     linprog = None
     milp = None
-    logger.warning("scipy not installed - ProblemSolverTool will have limited functionality")
+    logger.warning(
+        "scipy not installed - ProblemSolverTool will have limited functionality"
+    )
 
 
 class ProblemSolverTool(BaseTool):
@@ -139,7 +142,7 @@ Estados posibles: optimal, infeasible, unbounded, error."""
 
     @staticmethod
     def _parse_variables(
-            variables: list[dict[str, Any]]
+        variables: list[dict[str, Any]],
     ) -> tuple[list[str], list[str], list[tuple[float | None, float | None]]]:
         """
         Parse variable definitions.
@@ -208,7 +211,9 @@ Estados posibles: optimal, infeasible, unbounded, error."""
 
     def _parse_constraints(
         self, constraints: list[dict[str, Any]], var_names: list[str]
-    ) -> tuple[list[list[float]], list[float], list[list[float]], list[float], list[str]]:
+    ) -> tuple[
+        list[list[float]], list[float], list[list[float]], list[float], list[str]
+    ]:
         """
         Parse constraints.
 
@@ -222,7 +227,7 @@ Estados posibles: optimal, infeasible, unbounded, error."""
         names: list[str] = []
 
         for i, constraint in enumerate(constraints):
-            name = constraint.get("name", f"c{i+1}")
+            name = constraint.get("name", f"c{i + 1}")
             names.append(name)
 
             expression = constraint.get("expression", "")
@@ -276,9 +281,7 @@ Estados posibles: optimal, infeasible, unbounded, error."""
         return coefficients
 
     @staticmethod
-    def _parse_term(
-            term: str, var_names: list[str]
-    ) -> tuple[float, str | None]:
+    def _parse_term(term: str, var_names: list[str]) -> tuple[float, str | None]:
         """
         Parse a single term like "3*x1", "-x2", "5", "x1".
 
@@ -309,7 +312,7 @@ Estados posibles: optimal, infeasible, unbounded, error."""
                 return float(term), None
             except ValueError:
                 # Extract what looks like a variable
-                match = re.search(r'([a-zA-Z_][a-zA-Z0-9_]*)', term)
+                match = re.search(r"([a-zA-Z_][a-zA-Z0-9_]*)", term)
                 if match:
                     raise ValueError(f"Variable '{match.group(1)}' no definida")
                 raise ValueError(f"Término inválido: '{term}'")
@@ -365,7 +368,10 @@ Estados posibles: optimal, infeasible, unbounded, error."""
         has_rhs_vars = any(c != 0 for c in rhs_coeffs)
         if has_rhs_vars:
             # Move RHS variables to LHS: lhs - rhs_vars <= rhs_constant
-            lhs = [lhs_coef - rhs_coef for lhs_coef, rhs_coef in zip(lhs, rhs_coeffs, strict=True)]
+            lhs = [
+                lhs_coef - rhs_coef
+                for lhs_coef, rhs_coef in zip(lhs, rhs_coeffs, strict=True)
+            ]
             # lhs = [l - r for l, r in zip(lhs, rhs_coeffs)]
         # Get RHS constant
         try:
@@ -379,13 +385,13 @@ Estados posibles: optimal, infeasible, unbounded, error."""
 
     @staticmethod
     def _solve_lp(
-            c: list[float],
+        c: list[float],
         a_ub: list[list[float]],
         b_ub: list[float],
         a_eq: list[list[float]],
         b_eq: list[float],
         bounds: list[tuple[float | None, float | None]],
-        is_maximization: bool
+        is_maximization: bool,
     ) -> dict[str, Any]:
         """Solve LP using scipy.optimize.linprog."""
         result = linprog(
@@ -395,7 +401,7 @@ Estados posibles: optimal, infeasible, unbounded, error."""
             A_eq=a_eq if a_eq else None,
             b_eq=b_eq if b_eq else None,
             bounds=bounds,
-            method='highs'
+            method="highs",
         )
 
         if result.success:
@@ -404,7 +410,9 @@ Estados posibles: optimal, infeasible, unbounded, error."""
                 "status": "optimal",
                 "objective_value": obj_value,
                 "variables": result.x.tolist(),
-                "slack": result.slack.tolist() if hasattr(result, 'slack') and result.slack is not None else None
+                "slack": result.slack.tolist()
+                if hasattr(result, "slack") and result.slack is not None
+                else None,
             }
         else:
             # Determine failure reason
@@ -417,14 +425,14 @@ Estados posibles: optimal, infeasible, unbounded, error."""
 
     @staticmethod
     def _solve_milp(
-            c: list[float],
+        c: list[float],
         a_ub: list[list[float]],
         b_ub: list[float],
         a_eq: list[list[float]],
         b_eq: list[float],
         bounds: list[tuple[float | None, float | None]],
         var_types: list[str],
-        is_maximization: bool
+        is_maximization: bool,
     ) -> dict[str, Any]:
         """Solve MIP using scipy.optimize.milp."""
         n = len(c)
@@ -457,7 +465,7 @@ Estados posibles: optimal, infeasible, unbounded, error."""
             c=np.array(c),
             constraints=constraints if constraints else None,
             integrality=integrality,
-            bounds=scipy_bounds
+            bounds=scipy_bounds,
         )
 
         if result.success:
@@ -465,7 +473,7 @@ Estados posibles: optimal, infeasible, unbounded, error."""
             return {
                 "status": "optimal",
                 "objective_value": obj_value,
-                "variables": result.x.tolist()
+                "variables": result.x.tolist(),
             }
         else:
             if "infeasible" in str(result.message).lower():
@@ -477,10 +485,10 @@ Estados posibles: optimal, infeasible, unbounded, error."""
 
     @staticmethod
     def _format_solution(
-            result: dict[str, Any],
+        result: dict[str, Any],
         var_names: list[str],
         constraint_names: list[str],
-        is_maximization: bool
+        is_maximization: bool,
     ) -> str:
         """Format the solution result."""
         status = result.get("status")

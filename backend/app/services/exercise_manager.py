@@ -25,6 +25,7 @@ class Exercise:
         model: Full model/solution Markdown content
         model_type: Type of optimization model (e.g., "PL", "PLI")
     """
+
     id: str
     title: str
     statement: str
@@ -120,7 +121,9 @@ class ExerciseManager:
 
         # Check if the statement has actual content (not just template)
         if not self._has_actual_content(statement_content):
-            logger.debug(f"Skipping {exercise_id}: statement.md contains only template content")
+            logger.debug(
+                f"Skipping {exercise_id}: statement.md contains only template content"
+            )
             return None
 
         # Parse title from statement
@@ -138,7 +141,9 @@ class ExerciseManager:
 
             # Check if model has actual content
             if not self._has_actual_content(model_content):
-                logger.debug(f"Skipping {exercise_id}: model.md contains only template content")
+                logger.debug(
+                    f"Skipping {exercise_id}: model.md contains only template content"
+                )
                 return None
 
             model_type = self._parse_model_type(model_content)
@@ -203,8 +208,8 @@ class ExerciseManager:
 
         # Content should be significant (more than just headers)
         # Remove Markdown headers and check remaining content length
-        stripped = re.sub(r'^#+\s.*$', '', content, flags=re.MULTILINE)
-        stripped = re.sub(r'<!--.*?-->', '', stripped, flags=re.DOTALL)
+        stripped = re.sub(r"^#+\s.*$", "", content, flags=re.MULTILINE)
+        stripped = re.sub(r"<!--.*?-->", "", stripped, flags=re.DOTALL)
         stripped = stripped.strip()
 
         # Require at least 50 characters of actual content
@@ -255,7 +260,9 @@ class ExerciseManager:
         Looks for ## Tipo de modelo section.
         """
         match = re.search(
-            r"##\s*Tipo de modelo\s*\n+(.+?)(?=\n##|\Z)", content, re.DOTALL | re.IGNORECASE
+            r"##\s*Tipo de modelo\s*\n+(.+?)(?=\n##|\Z)",
+            content,
+            re.DOTALL | re.IGNORECASE,
         )
         if match:
             # Get the first non-empty line after the header

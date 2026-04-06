@@ -29,20 +29,25 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 ALLOWED_EMAIL_DOMAIN = "usach.cl"
 
 
-@router.post("/register", response_model=TokenResponse | RegistrationPendingResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register",
+    response_model=TokenResponse | RegistrationPendingResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 @limiter.limit("5/minute")
-async def register(request: Request, user_data: StudentRegister, db: Session = Depends(get_db)):
+async def register(
+    request: Request, user_data: StudentRegister, db: Session = Depends(get_db)
+):
     """Register a new user and return the JWT token."""
     # Check if email already exists
     existing_user = db.query(Student).filter(Student.email == user_data.email).first()
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
         )
 
     # Check email domain for automatic activation
-    email_domain = str(user_data.email).split('@')[1].lower()
+    email_domain = str(user_data.email).split("@")[1].lower()
     is_allowed_domain = email_domain == ALLOWED_EMAIL_DOMAIN
 
     # Create a new student with a hashed password
@@ -57,37 +62,40 @@ async def register(request: Request, user_data: StudentRegister, db: Session = D
             "mathematical_modeling": "beginner",
             "linear_programming": "beginner",
             "integer_programming": "beginner",
-            "nonlinear_programming": "beginner"
+            "nonlinear_programming": "beginner",
         },
-        preferences={}
+        preferences={},
     )
 
     db.add(new_student)
     db.commit()
     db.refresh(new_student)
 
-    logger.info("New user registered: %d (active: %s)", new_student.id, is_allowed_domain)
+    logger.info(
+        "New user registered: %d (active: %s)", new_student.id, is_allowed_domain
+    )
 
     # Return pending response for non-allowed domains
     if not is_allowed_domain:
         return RegistrationPendingResponse(
             status="pending_approval",
             message="Cuenta creada. Tu cuenta está pendiente de aprobación por un administrador debido al dominio de correo.",
-            user=StudentResponse.model_validate(new_student)
+            user=StudentResponse.model_validate(new_student),
         )
 
     # Create the access token for allowed domain users
     access_token = create_access_token(data={"sub": str(new_student.id)})
 
     return TokenResponse(
-        access_token=access_token,
-        user=StudentResponse.model_validate(new_student)
+        access_token=access_token, user=StudentResponse.model_validate(new_student)
     )
 
 
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit("5/minute")
-async def login(request: Request, credentials: StudentLogin, db: Session = Depends(get_db)):
+async def login(
+    request: Request, credentials: StudentLogin, db: Session = Depends(get_db)
+):
     """Login with email and password, return JWT token."""
     # Authenticate user
     student = authenticate_user(db, str(credentials.email), credentials.password)
@@ -109,8 +117,7 @@ async def login(request: Request, credentials: StudentLogin, db: Session = Depen
     logger.info("User logged in: %d", student.id)
 
     return TokenResponse(
-        access_token=access_token,
-        user=StudentResponse.model_validate(student)
+        access_token=access_token, user=StudentResponse.model_validate(student)
     )
 
 

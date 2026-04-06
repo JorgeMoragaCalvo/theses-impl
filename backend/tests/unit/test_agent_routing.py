@@ -6,7 +6,6 @@ from app.routers.chat import AGENT_REGISTRY, get_agent_for_topic
 
 
 class TestAgentRegistry:
-
     def test_registry_has_all_topics(self):
         expected = {
             "operations_research",
@@ -28,4 +27,5 @@ class TestAgentRegistry:
         agent = get_agent_for_topic("quantum_computing")
         # Should be a LinearProgrammingAgent instance
         from app.agents.linear_programming_agent import LinearProgrammingAgent
+
         assert isinstance(agent, LinearProgrammingAgent)

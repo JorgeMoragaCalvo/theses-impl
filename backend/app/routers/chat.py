@@ -33,7 +33,7 @@ AGENT_REGISTRY = {
     "linear_programming": get_linear_programming_agent,
     "mathematical_modeling": get_mathematical_modeling_agent,
     "nonlinear_programming": get_nonlinear_programming_agent,
-    "integer_programming": get_integer_programming_agent
+    "integer_programming": get_integer_programming_agent,
 }
 
 
@@ -50,7 +50,9 @@ def get_agent_for_topic(topic: str):
     agent_getter = AGENT_REGISTRY.get(topic)
     safe_topic = sanitize_log_value(topic)
     if agent_getter is None:
-        logger.warning(f"No agent found for topic '{safe_topic}', falling back to linear programming agent")
+        logger.warning(
+            f"No agent found for topic '{safe_topic}', falling back to linear programming agent"
+        )
         return get_linear_programming_agent()
 
     logger.info(f"Selected agent for topic: {safe_topic}")
@@ -63,7 +65,7 @@ async def chat(
     request: Request,
     chat_request: ChatRequest,
     db: Session = Depends(get_db),
-    current_user: Student = Depends(get_current_user)
+    current_user: Student = Depends(get_current_user),
 ):
     """
     Send a message and get the AI tutor response.
@@ -75,17 +77,19 @@ async def chat(
     # Get or create conversation
     conversation = None
     if chat_request.conversation_id:
-        conversation = db.query(Conversation).filter(
-            Conversation.id == chat_request.conversation_id,
-            Conversation.is_active == 1
-        ).first()
+        conversation = (
+            db.query(Conversation)
+            .filter(
+                Conversation.id == chat_request.conversation_id,
+                Conversation.is_active == 1,
+            )
+            .first()
+        )
 
     if not conversation:
         # Create the new conversation
         conversation = Conversation(
-            student_id=student_id,
-            topic=chat_request.topic,
-            is_active=1
+            student_id=student_id, topic=chat_request.topic, is_active=1
         )
         db.add(conversation)
         db.commit()
@@ -95,14 +99,12 @@ async def chat(
     if conversation.student_id != student_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this conversation"
+            detail="Not authorized to access this conversation",
         )
 
     # Save user message
     user_message = Message(
-        conversation_id=conversation.id,
-        role="user",
-        content=chat_request.message
+        conversation_id=conversation.id, role="user", content=chat_request.message
     )
     db.add(user_message)
     db.commit()
@@ -122,9 +124,7 @@ async def chat(
 
         # Get student context with the actual topic
         context = conversation_service.get_conversation_context(
-            conversation_id=conversation.id,
-            student_id=student_id,
-            topic=topic_value
+            conversation_id=conversation.id, student_id=student_id, topic=topic_value
         )
 
         # Fetch due spaced-repetition reviews and attach to context
@@ -141,11 +141,13 @@ async def chat(
         response_text = agent.generate_response(
             user_message=chat_request.message,
             conversation_history=conversation_history,
-            context=context
+            context=context,
         )
         agent_type = agent.agent_type
 
-        logger.info(f"Generated response for student {student_id} using {agent_type} agent: {len(response_text)} chars")
+        logger.info(
+            f"Generated response for student {student_id} using {agent_type} agent: {len(response_text)} chars"
+        )
     except Exception as e:
         logger.error(f"Error generating AI response: {str(e)}")
         response_text = (
@@ -159,7 +161,7 @@ async def chat(
         conversation_id=conversation.id,
         role="assistant",
         content=response_text,
-        agent_type=agent_type
+        agent_type=agent_type,
     )
     db.add(assistant_message)
     db.commit()
@@ -171,7 +173,7 @@ async def chat(
         response=response_text,
         agent_type=agent_type,
         topic=chat_request.topic,
-        timestamp=assistant_message.timestamp
+        timestamp=assistant_message.timestamp,
     )
 
 
@@ -179,49 +181,61 @@ async def chat(
 async def get_conversation(
     conversation_id: int,
     db: Session = Depends(get_db),
-    current_user: Student = Depends(get_current_user)
+    current_user: Student = Depends(get_current_user),
 ):
     """Get conversation by ID with all messages. Requires authentication."""
-    conversation = db.query(Conversation).filter(Conversation.id == conversation_id).first()
+    conversation = (
+        db.query(Conversation).filter(Conversation.id == conversation_id).first()
+    )
     if not conversation:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Conversation not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found"
         )
 
     # Users can only view their own conversations
-    if conversation.student_id != current_user.id and current_user.role != UserRole.ADMIN:
+    if (
+        conversation.student_id != current_user.id
+        and current_user.role != UserRole.ADMIN
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to view this conversation"
+            detail="Not authorized to view this conversation",
         )
 
     # Get all messages in conversation
-    messages = db.query(Message).filter(
-        Message.conversation_id == conversation_id
-    ).order_by(Message.timestamp).all()
+    messages = (
+        db.query(Message)
+        .filter(Message.conversation_id == conversation_id)
+        .order_by(Message.timestamp)
+        .all()
+    )
 
     conv = ConversationResponse.model_validate(conversation)
     conv.messages = [MessageResponse.model_validate(msg) for msg in messages]
     return conv
 
 
-@router.get("/students/{student_id}/conversations", response_model=list[ConversationResponse])
+@router.get(
+    "/students/{student_id}/conversations", response_model=list[ConversationResponse]
+)
 async def get_student_conversations(
     student_id: int,
     db: Session = Depends(get_db),
-    current_user: Student = Depends(get_current_user)
+    current_user: Student = Depends(get_current_user),
 ):
     """Get all conversations for a student. Requires authentication."""
     # Users can only view their own conversations, admins can view any
     if current_user.id != student_id and current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to view these conversations"
+            detail="Not authorized to view these conversations",
         )
 
-    conversations = db.query(Conversation).filter(
-        Conversation.student_id == student_id
-    ).order_by(Conversation.started_at.desc()).all()
+    conversations = (
+        db.query(Conversation)
+        .filter(Conversation.student_id == student_id)
+        .order_by(Conversation.started_at.desc())
+        .all()
+    )
 
     return [ConversationResponse.model_validate(conv) for conv in conversations]

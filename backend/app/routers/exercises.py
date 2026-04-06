@@ -46,7 +46,7 @@ async def get_exercise_preview(exercise_id: str):
     if preview is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Exercise '{exercise_id}' not found"
+            detail=f"Exercise '{exercise_id}' not found",
         )
 
     return preview

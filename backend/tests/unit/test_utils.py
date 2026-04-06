@@ -1,12 +1,13 @@
 """
 Unit tests for app.utils — pure functions, no DB or LLM required.
 """
+
 from app.utils import detect_confusion_signals, detect_repeated_topic
 
 # ---- detect_confusion_signals ----
 
-class TestDetectConfusionSignals:
 
+class TestDetectConfusionSignals:
     def test_detect_confusion_high(self):
         result = detect_confusion_signals("no entiendo nada de esto")
         assert result["detected"] is True
@@ -45,8 +46,8 @@ class TestDetectConfusionSignals:
 
 # ---- detect_repeated_topic ----
 
-class TestDetectRepeatedTopic:
 
+class TestDetectRepeatedTopic:
     def test_detect_repeated_topic_found(self):
         history = [
             {"role": "user", "content": "explain simplex method please"},
