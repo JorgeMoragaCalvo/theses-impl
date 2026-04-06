@@ -7,41 +7,40 @@ logger = logging.getLogger(__name__)
 
 
 class NonLinearProgrammingAgent(BaseAgent):
-
     def __init__(self):
         """Initialize the Nonlinear Programming agent."""
         super().__init__(
             agent_name="Tutor de Programación No Lineal",
-            agent_type="nonlinear_programming"
+            agent_type="nonlinear_programming",
         )
 
     def _get_identity_prompt(self, student_name: str) -> str:
-        return f"""Eres un tutor experto en Programacion No Lineal para {student_name}.
+        return f"""Eres un tutor experto en Programación No Lineal para {student_name}.
     TEMAS QUE CUBRES:
-    - Optimizacion sin restricciones: gradiente, Newton, cuasi-Newton (BFGS), busqueda de linea
-    - Optimizacion con restricciones: Lagrange, KKT, conjuntos activos, calificacion de restricciones
+    - Optimización sin restricciones: gradiente, Newton, cuasi-Newton (BFGS), busqueda de linea
+    - Optimización con restricciones: Lagrange, KKT, conjuntos activos, calificación de restricciones
     - Convexidad: conjuntos/funciones convexas, optimos locales vs globales
-    - Metodos numericos: penalizacion, barrera, SQP, punto interior
+    - Métodos numéricos: penalización, barrera, SQP, punto interior
     - Aplicaciones: portafolios, machine learning, diseno de ingenieria"""
 
     def _get_level_prompts(self) -> dict[str, str]:
         return {
             "beginner": """
     NIVEL: PRINCIPIANTE
-    - Prioriza intuicion geometrica antes del formalismo
+    - Prioriza intuición geométrica antes del formalismo
     - Usa problemas 1D/2D que se resuelvan a mano
-    - Evita demostraciones; enfocate en "que" y "por que"
-    - Verifica comprension frecuentemente""",
+    - Evita demostraciones; enfocate en "qué" y "por qué"
+    - Verifica comprensión frecuentemente""",
             "intermediate": """
     NIVEL: INTERMEDIO
     - Asume familiaridad con calculo y algebra lineal
     - Introduce KKT con derivaciones paso a paso
     - Discute convergencia (sin demostraciones rigurosas)
-    - Conecta metodos con aplicaciones reales""",
+    - Conecta métodos con aplicaciones reales""",
             "advanced": """
     NIVEL: AVANZADO
-    - Tratamiento matematico riguroso con demostraciones
-    - Analisis de complejidad y tasas de convergencia
+    - Tratamiento matemático riguroso con demostraciones
+    - Análisis de complejidad y tasas de convergencia
     - Algoritmos avanzados: SQP, punto interior primal-dual
     - Discute literatura reciente y casos edge""",
         }
@@ -52,12 +51,12 @@ class NonLinearProgrammingAgent(BaseAgent):
 
     | Tipo de pregunta | Estrategia | Ejemplo de trigger |
     |------------------|------------|-------------------|
-    | "Como funciona [algoritmo]?" | ALGORITMICO | Pasos numerados, pseudocodigo |
-    | "No entiendo por que..." | CONCEPTUAL | Intuicion primero, luego formalismo |
-    | "Como resuelvo este problema?" | EJEMPLO | Solucion numerica completa |
+    | "Como funciona [algoritmo]?" | ALGORITMICO | Pasos numerados, pseudocódigo |
+    | "No entiendo por que..." | CONCEPTUAL | Intuición primero, luego formalismo |
+    | "Como resuelvo este problema?" | EJEMPLO | Solution numerica completa |
     | "Cual es la diferencia entre X e Y?" | COMPARATIVO | Tabla de pros/contras |
-    | Confusion tras explicacion matematica | GEOMETRICO | Describir superficies, contornos |
-    | "Demuestrame que..." | CALCULO | Derivacion formal paso a paso |
+    | Confusion tras explicación matematica | GEOMETRICO | Describir superficies, contornos |
+    | "Demuéstrame que..." | CALCULO | Derivacion formal paso a paso |
 
     Si detectas confusion repetida sobre el mismo tema -> CAMBIA de estrategia."""
 
@@ -233,8 +232,12 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
     def get_available_strategies(self) -> list[str]:
         """Return available explanation strategies for NLP."""
         return [
-            "algorítmico", "geométrico", "cálculo",
-            "ejemplo", "conceptual", "comparativo"
+            "algorítmico",
+            "geométrico",
+            "cálculo",
+            "ejemplo",
+            "conceptual",
+            "comparativo",
         ]
 
     def is_topic_related(self, message: str) -> bool:
@@ -248,24 +251,70 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
         Extended keyword list for better coverage.
         """
         nlp_keywords = [
-            "programación no lineal", "nlp", "optimización no lineal",
-            "descenso de gradiente", "gradiente", "método de newton",
-            "multiplicador", "lagrange", "lagrangiano", "kkt", "karush",
-            "convexo", "cóncavo", "convexidad", "hessiano", "hessiana",
-            "restricción", "restricciones", "restringido", "sin restricciones",
-            "óptimo", "optimalidad", "optimizar", "optimización", "minimizar", "maximizar",
-            "penalización", "barrera", "punto interior", "sqp",
-            "cuasi-newton", "bfgs", "dfp", "búsqueda de línea",
-            "región de confianza", "armijo", "wolfe",
-            "factible", "infactible", "factibilidad",
-            "mínimo local", "mínimo global", "máximo", "punto estacionario",
-            "función objetivo", "derivada", "gradiente cero",
+            "programación no lineal",
+            "nlp",
+            "optimización no lineal",
+            "descenso de gradiente",
+            "gradiente",
+            "método de newton",
+            "multiplicador",
+            "lagrange",
+            "lagrangiano",
+            "kkt",
+            "karush",
+            "convexo",
+            "cóncavo",
+            "convexidad",
+            "hessiano",
+            "hessiana",
+            "restricción",
+            "restricciones",
+            "restringido",
+            "sin restricciones",
+            "óptimo",
+            "optimalidad",
+            "optimizar",
+            "optimización",
+            "minimizar",
+            "maximizar",
+            "penalización",
+            "barrera",
+            "punto interior",
+            "sqp",
+            "cuasi-newton",
+            "bfgs",
+            "dfp",
+            "búsqueda de línea",
+            "región de confianza",
+            "armijo",
+            "wolfe",
+            "factible",
+            "infactible",
+            "factibilidad",
+            "mínimo local",
+            "mínimo global",
+            "máximo",
+            "punto estacionario",
+            "función objetivo",
+            "derivada",
+            "gradiente cero",
             # Common problem patterns
-            "minimiza", "maximiza", "sujeto a", "encuentra el mínimo",
-            "encuentra el máximo", "punto crítico", "extremo",
+            "minimiza",
+            "maximiza",
+            "sujeto a",
+            "encuentra el mínimo",
+            "encuentra el máximo",
+            "punto crítico",
+            "extremo",
             # English terms (students might use)
-            "gradient descent", "newton method", "constrained", "unconstrained",
-            "convex", "feasible", "objective function", "lagrangian"
+            "gradient descent",
+            "newton method",
+            "constrained",
+            "unconstrained",
+            "convex",
+            "feasible",
+            "objective function",
+            "lagrangian",
         ]
 
         message_lower = message.lower()
@@ -273,7 +322,7 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
 
     @staticmethod
     def _get_off_topic_response() -> str:
-        """Response when query is outside NLP scope."""
+        """Response when a query is outside NLP scope."""
         return (
             "Mi especialidad es Programación No Lineal. Tu pregunta parece ser sobre otro tema.\n\n"
             "Puedo ayudarte con: optimización con/sin restricciones, descenso de gradiente, "
@@ -282,11 +331,16 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
             "¿Tienes alguna pregunta sobre estos temas?"
         )
 
-    def generate_response(self, user_message: str,
-                          conversation_history: list[dict[str, str]],
-                          context: dict[str, Any]) -> str:
+    def generate_response(
+        self,
+        user_message: str,
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any],
+    ) -> str:
         """Generate NLP tutor response (synchronous)."""
-        preprocessed_message, error_message = self._validate_and_preprocess(user_message)
+        preprocessed_message, error_message = self._validate_and_preprocess(
+            user_message
+        )
         if error_message:
             return error_message
 
@@ -302,14 +356,16 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
         return self._generate_and_postprocess(components, conversation_history, context)
 
     async def a_generate_response(
-            self,
-            user_message: str,
-            conversation_history: list[dict[str, str]],
-            context: dict[str, Any]
+        self,
+        user_message: str,
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any],
     ) -> str:
         """Generate NLP tutor response (asynchronous)."""
 
-        preprocessed_message, error_message = self._validate_and_preprocess(user_message)
+        preprocessed_message, error_message = self._validate_and_preprocess(
+            user_message
+        )
         if error_message:
             return error_message
 
@@ -322,7 +378,9 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
             context=context,
         )
 
-        return await self._a_generate_and_postprocess(components, conversation_history, context)
+        return await self._a_generate_and_postprocess(
+            components, conversation_history, context
+        )
 
 
 # ==================== SINGLETON INSTANCE ====================

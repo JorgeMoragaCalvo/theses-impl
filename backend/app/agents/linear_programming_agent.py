@@ -28,16 +28,19 @@ class LinearProgrammingAgent(BaseAgent):
     def __init__(self):
         """Initialize the Linear Programming agent."""
         super().__init__(
-            agent_name="Tutor de programación lineal", # "Linear Programming Tutor",
-            agent_type="linear_programming"
+            agent_name="Tutor de programación lineal",  # "Linear Programming Tutor",
+            agent_type="linear_programming",
         )
 
         # load course materials
         materials_path = os.path.join(
             os.path.dirname(__file__),
-            "..", "..", "..", "data",
+            "..",
+            "..",
+            "..",
+            "data",
             "course_materials",
-            "linear_programming_fundamental.md"
+            "linear_programming_fundamental.md",
         )
 
         if os.path.exists(materials_path):
@@ -47,14 +50,14 @@ class LinearProgrammingAgent(BaseAgent):
             logger.warning(f"LP course materials not found at {materials_path}")
 
     def _get_identity_prompt(self, student_name: str) -> str:
-        return f"""Eres un tutor experto en Programacion Lineal para {student_name}.
+        return f"""Eres un tutor experto en Programación Lineal para {student_name}.
     TEMAS QUE CUBRES:
-    - Formulacion de problemas LP: variables de decision, funcion objetivo, restricciones
-    - Metodo grafico: solucion de problemas de 2 variables, region factible, vertices
-    - Metodo simplex: tablas, pivoteo, variables basicas, solucion optima
+    - Formulación de problemas LP: variables de decisión, función objetivo, restricciones
+    - Metodo gráfico: solución de problemas de 2 variables, región factible, vértices
+    - Método simplex: tablas, pivoteo, variables básicas, solución óptima
     - Dualidad: problema dual, precios sombra, holgura complementaria
-    - Analisis de sensibilidad: rangos de optimalidad, cambios en parametros
-    - Aplicaciones: produccion, mezcla, transporte, asignacion"""
+    - Análisis de sensibilidad: rangos de optimalidad, cambios en parámetros
+    - Aplicaciones: producción, mezcla, transporte, asignación"""
 
     def _get_level_prompts(self) -> dict[str, str]:
         return {
@@ -62,25 +65,25 @@ class LinearProgrammingAgent(BaseAgent):
     NIVEL: PRINCIPIANTE
     - Usa lenguaje sencillo, explica la jerga cuando sea necesario
     - Proporciona explicaciones detalladas paso a paso
-    - Usa ejemplos concretos con numeros pequenos (2 variables)
-    - Prioriza intuicion sobre rigor matematico
-    - Comienza con metodo grafico antes de simplex
-    - Verifica comprension frecuentemente""",
+    - Usa ejemplos concretos con números pequeños (2 variables)
+    - Prioriza intuición sobre rigor matemático
+    - Comienza con método gráfico antes de simplex
+    - Verifica comprensión frecuentemente""",
             "intermediate": """
     NIVEL: INTERMEDIO
-    - Asume familiaridad con formulacion basica y metodo grafico
-    - Centrate en mecanica del simplex y tecnicas de resolucion
+    - Asume familiaridad con formulación básica y método grafico
+    - Céntrate en mecánica del simplex y técnicas de resolución
     - Introduce dualidad y precios sombra
     - Conecta conceptos (grafico -> simplex -> dualidad)
     - Problemas de 3+ variables que requieren simplex
     - Discute cuando usar diferentes metodos""",
             "advanced": """
     NIVEL: AVANZADO
-    - Terminologia matematica precisa y demostraciones
-    - Teoria de dualidad: debil/fuerte, holgura complementaria
-    - Analisis de sensibilidad y programacion parametrica
-    - Degeneracion, ciclado, y casos especiales
-    - Simplex revisado, metodos de punto interior
+    - Terminología matemática precisa y demostraciones
+    - Teoría de dualidad: debil/fuerte, holgura complementaria
+    - Análisis de sensibilidad y programacion paramétrica
+    - Degeneración, ciclado, y casos especiales
+    - Simplex revisado, métodos de punto interior
     - Formulaciones de flujo de red y extensiones IP""",
         }
 
@@ -90,52 +93,52 @@ class LinearProgrammingAgent(BaseAgent):
 
     | Tipo de pregunta | Estrategia | Ejemplo de trigger |
     |------------------|------------|-------------------|
-    | "Como resuelvo este LP?" | PASO A PASO | Pasos numerados del metodo |
-    | "Dame un ejemplo de..." | BASADO EN EJEMPLOS | Problema numerico completo |
-    | "Por que funciona el simplex?" | CONCEPTUAL | Explicar intuicion y teoria |
-    | "No visualizo la region factible" | VISUAL/GEOMETRICO | Describir graficamente |
-    | "Demuestra que..." | MATEMATICO FORMAL | Notacion rigurosa, teoremas |
-    | "Cual es la diferencia entre...?" | COMPARATIVO | Tabla de comparacion |
+    | "Cómo resuelvo este LP?" | PASO A PASO | Pasos numerados del método |
+    | "Dame un ejemplo de..." | BASADO EN EJEMPLOS | Problema numérico completo |
+    | "Por qué funciona el simplex?" | CONCEPTUAL | Explicar intuición y teoría |
+    | "No visualizo la región factible" | VISUAL/GEOMETRICO | Describir gráficamente |
+    | "Demuestra que..." | MATEMÁTICO FORMAL | Notación rigurosa, teoremas |
+    | "Cuál es la diferencia entre...?" | COMPARATIVO | Tabla de comparación |
 
-    Si detectas confusion repetida sobre el mismo tema -> CAMBIA de estrategia."""
+    Si detectas confusión repetida sobre el mismo tema -> CAMBIA de estrategia."""
 
     def _get_pedagogy_prompt(self) -> str:
         return """
     PROTOCOLO SOCRATICO (Prioridad Alta):
-    Antes de dar soluciones completas, guia con preguntas:
-    1. "Que tipo de problema es este: maximizacion o minimizacion?"
-    2. "Cuales son las variables de decision?"
-    3. "Que restricciones tenemos?"
-    Solo da la solucion directa si: (a) el estudiante lo pide, (b) muestra frustracion, o (c) ya intento responder.
+    Antes de dar soluciones completas, guía con preguntas:
+    1. "Qué tipo de problema es este: maximización o minimización?"
+    2. "Cuáles son las variables de decisión?"
+    3. "Qué restricciones tenemos?"
+    Solo da la solución directa si: (a) el estudiante lo pide, (b) muestra frustración, o (c) ya intentó responder.
 
     ANDAMIAJE (Scaffolding):
-    1. Primero: pista orientadora ("Que metodo usarias para 2 variables?")
+    1. Primero: pista orientadora ("Qué método usarías para 2 variables?")
     2. Si no avanza: pista mas directa ("Prueba graficando las restricciones")
-    3. Ultimo recurso: solucion completa con explicacion
+    3. Ultimo recurso: solución completa con explicación
 
     CORRECCION DE ERRORES:
     1. Reconoce lo que SI esta correcto
-    2. Identifica el error especifico sin juzgar
+    2. Identifica el error específico sin juzgar
     3. Usa un ejemplo o contraejemplo para mostrar el problema
-    4. Guia hacia la correccion (no la des directamente)
+    4. Guía hacia la corrección (no la des directamente)
 
     LONGITUD ADAPTATIVA:
-    - Pregunta simple de definicion -> 2-3 oraciones
-    - Duda sobre un paso del metodo -> explicacion + "Tiene sentido?"
-    - Problema completo para resolver -> solucion estructurada paso a paso"""
+    - Pregunta simple de definición -> 2-3 oraciones
+    - Duda sobre un paso del método -> explicación + "Tiene sentido?"
+    - Problema completo para resolver -> solución estructurada paso a paso"""
 
     def _get_guidelines_prompt(self) -> str:
         return """
-    ESTILO DE COMUNICACION:
+    ESTILO DE COMUNICACIÓN:
     - Usa "nosotros" para resolver juntos
     - Se paciente: LP tiene muchos pasos
     - Celebra razonamiento correcto
-    - Pide retroalimentacion tras explicaciones: "Tiene sentido?" o "Lo explico de otra forma?"
+    - Pide retroalimentación tras explicaciones: "Tiene sentido?" o "Lo explico de otra forma?"
 
     FORMATO MATEMATICO:
     - Numera los pasos en soluciones
     - Define todas las variables claramente
-    - Resalta condiciones clave (ej: "Nota: esta restriccion esta activa")
+    - Resalta condiciones clave (ej: "Nota: esta restricción esta activa")
     - Muestra la respuesta final claramente marcada
     - Usa formato claro para tablas simplex"""
 
@@ -143,12 +146,14 @@ class LinearProgrammingAgent(BaseAgent):
         if not self.course_materials:
             return []
 
-        return [f"""
+        return [
+            f"""
     MATERIALES DEL CURSO:
-    Tienes acceso a materiales de referencia sobre Programacion Lineal.
+    Tienes acceso a materiales de referencia sobre Programación Lineal.
     Adapta las explicaciones al nivel del estudiante y contexto presente.
     {self.format_context_for_prompt(context)}
-    """]
+    """
+        ]
 
     def _get_fewshot_examples(self, knowledge_level: str) -> str:
         """
@@ -373,8 +378,12 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
     def get_available_strategies(self) -> list[str]:
         """Return available explanation strategies for Linear Programming."""
         return [
-            "paso a paso", "basado en ejemplos", "conceptual", "visual",
-            "matemático-formal", "comparativo"
+            "paso a paso",
+            "basado en ejemplos",
+            "conceptual",
+            "visual",
+            "matemático-formal",
+            "comparativo",
         ]
 
     def is_topic_related(self, message: str) -> bool:
@@ -389,39 +398,106 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
         """
         lp_keywords = [
             # Core LP concepts
-            "programación lineal", "pl", "programa lineal", "problema lineal",
-            "función objetivo", "restricción", "restricciones",
-            "variable de decisión", "variables de decisión",
+            "programación lineal",
+            "pl",
+            "programa lineal",
+            "problema lineal",
+            "función objetivo",
+            "restricción",
+            "restricciones",
+            "variable de decisión",
+            "variables de decisión",
             # Graphical method
-            "método gráfico", "región factible", "vértice", "vértices",
-            "poliedro", "solución gráfica", "graficar",
+            "método gráfico",
+            "región factible",
+            "vértice",
+            "vértices",
+            "poliedro",
+            "solución gráfica",
+            "graficar",
             # Simplex method
-            "símplex", "simplex", "tabla símplex", "tableau",
-            "pivote", "pivoteo", "pivotear", "variable básica", "variable no básica",
-            "variable de holgura", "variable de exceso", "variable artificial",
-            "forma estándar", "forma canónica", "gran m", "big m", "dos fases",
+            "símplex",
+            "simplex",
+            "tabla símplex",
+            "tableau",
+            "pivote",
+            "pivoteo",
+            "pivotear",
+            "variable básica",
+            "variable no básica",
+            "variable de holgura",
+            "variable de exceso",
+            "variable artificial",
+            "forma estándar",
+            "forma canónica",
+            "gran m",
+            "big m",
+            "dos fases",
             # Duality
-            "dualidad", "problema dual", "problema primal", "primal-dual",
-            "precio sombra", "valor dual", "multiplicador",
-            "holgura complementaria", "dualidad fuerte", "dualidad débil",
+            "dualidad",
+            "problema dual",
+            "problema primal",
+            "primal-dual",
+            "precio sombra",
+            "valor dual",
+            "multiplicador",
+            "holgura complementaria",
+            "dualidad fuerte",
+            "dualidad débil",
             # Sensitivity analysis
-            "sensibilidad", "análisis de sensibilidad", "rango de optimalidad",
-            "coeficiente de costo reducido", "costo reducido",
+            "sensibilidad",
+            "análisis de sensibilidad",
+            "rango de optimalidad",
+            "coeficiente de costo reducido",
+            "costo reducido",
             # Optimality and feasibility
-            "factible", "infactible", "factibilidad", "óptimo", "optimalidad",
-            "solución óptima", "valor óptimo", "maximizar", "minimizar",
-            "ilimitado", "no acotado", "degeneración", "degenerado",
+            "factible",
+            "infactible",
+            "factibilidad",
+            "óptimo",
+            "optimalidad",
+            "solución óptima",
+            "valor óptimo",
+            "maximizar",
+            "minimizar",
+            "ilimitado",
+            "no acotado",
+            "degeneración",
+            "degenerado",
             # Applications
-            "mezcla", "producción", "transporte", "asignación",
-            "dieta", "planificación",
+            "mezcla",
+            "producción",
+            "transporte",
+            "asignación",
+            "dieta",
+            "planificación",
             # Common question patterns
-            "cómo resuelvo", "cómo encuentro", "resolver el problema",
-            "sujeto a", "s.a.", "max", "min",
+            "cómo resuelvo",
+            "cómo encuentro",
+            "resolver el problema",
+            "sujeto a",
+            "s.a.",
+            "max",
+            "min",
             # English terms (students might use)
-            "linear programming", "lp", "simplex", "duality", "constraint",
-            "objective function", "feasible", "optimal", "maximize", "minimize",
-            "slack variable", "shadow price", "sensitivity", "graphical method",
-            "basic variable", "pivot", "tableau", "formulation"
+            "linear programming",
+            "lp",
+            "simplex",
+            "duality",
+            "constraint",
+            "objective function",
+            "feasible",
+            "optimal",
+            "maximize",
+            "minimize",
+            "slack variable",
+            "shadow price",
+            "sensitivity",
+            "graphical method",
+            "basic variable",
+            "pivot",
+            "tableau",
+            "formulation",
         ]
 
         message_lower = message.lower()
@@ -443,9 +519,12 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
             "\n¿Te gustaría preguntar sobre alguno de estos temas de Programación Lineal?"
         )
 
-    def generate_response(self, user_message: str,
-                          conversation_history: list[dict[str, str]],
-                          context: dict[str, Any]) -> str:
+    def generate_response(
+        self,
+        user_message: str,
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any],
+    ) -> str:
         """
         Generate LP tutor response with adaptive preprocessing.
 
@@ -458,7 +537,9 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
             Generated response with adaptive explanations
         """
 
-        preprocessed_message, error_message = self._validate_and_preprocess(user_message)
+        preprocessed_message, error_message = self._validate_and_preprocess(
+            user_message
+        )
         if error_message:
             return error_message
 
@@ -475,14 +556,16 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
         return self._generate_and_postprocess(components, conversation_history, context)
 
     async def a_generate_response(
-            self,
-            user_message: str,
-            conversation_history: list[dict[str, str]],
-            context: dict[str, Any]
+        self,
+        user_message: str,
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any],
     ) -> str:
         """Generate LP tutor response (asynchronous)."""
 
-        preprocessed_message, error_message = self._validate_and_preprocess(user_message)
+        preprocessed_message, error_message = self._validate_and_preprocess(
+            user_message
+        )
         if error_message:
             return error_message
 
@@ -495,7 +578,9 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
             context=context,
         )
 
-        return await self._a_generate_and_postprocess(components, conversation_history, context)
+        return await self._a_generate_and_postprocess(
+            components, conversation_history, context
+        )
 
 
 # Global agent instance
