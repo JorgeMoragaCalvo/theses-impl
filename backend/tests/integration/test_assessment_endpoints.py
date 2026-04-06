@@ -1,6 +1,7 @@
 """
 Integration tests for assessment endpoints.
 """
+
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
@@ -9,7 +10,6 @@ from app.enums import Topic
 
 
 class TestGenerateAssessment:
-
     def test_generate_assessment(self, client, auth_headers, test_db, test_user):
         """POST /assessments/generate → 201."""
         with patch("app.routers.assessments.get_assessment_service") as mock_svc:
@@ -22,17 +22,20 @@ class TestGenerateAssessment:
             }
             mock_svc.return_value = mock_instance
 
-            resp = client.post("/assessments/generate", headers=auth_headers, json={
-                "topic": "linear_programming",
-                "difficulty": "intermediate",
-            })
+            resp = client.post(
+                "/assessments/generate",
+                headers=auth_headers,
+                json={
+                    "topic": "linear_programming",
+                    "difficulty": "intermediate",
+                },
+            )
             assert resp.status_code == 201
             data = resp.json()
             assert data["question"] == "What is LP?"
 
 
 class TestSubmitAssessment:
-
     @staticmethod
     def _create_assessment(test_db, student_id):
         """Helper to create an unsubmitted assessment."""
@@ -82,8 +85,9 @@ class TestSubmitAssessment:
 
 
 class TestGradeAssessment:
-
-    def test_grade_admin_only(self, client, auth_headers, admin_auth_headers, test_db, test_user):
+    def test_grade_admin_only(
+        self, client, auth_headers, admin_auth_headers, test_db, test_user
+    ):
         """Non-admin → 403, admin → 200."""
         # Create a submitted assessment
         a = Assessment(

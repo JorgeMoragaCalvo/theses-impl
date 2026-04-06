@@ -1,13 +1,13 @@
 """
 Unit tests for GradingService — parse logic and prompt building.
 """
+
 from unittest.mock import MagicMock, patch
 
 from app.services.grading_service import GradingService
 
 
 class TestParseGradingResponse:
-
     @staticmethod
     def _make_service():
         db = MagicMock()
@@ -47,7 +47,6 @@ class TestParseGradingResponse:
 
 
 class TestBuildGradingPrompt:
-
     def test_includes_rubric(self):
         prompt = GradingService.build_grading_prompt(
             question="What is LP?",

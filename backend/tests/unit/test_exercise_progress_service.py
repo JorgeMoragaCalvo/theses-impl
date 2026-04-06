@@ -1,11 +1,11 @@
 """
 Unit tests for app.services.exercise_progress_service — pure functions.
 """
+
 from app.services.exercise_progress_service import compute_max_unlocked_rank
 
 
 class TestComputeMaxUnlockedRank:
-
     def test_no_ranked_exercises(self):
         """All rank-0 exercises → returns 0."""
         exercises = [

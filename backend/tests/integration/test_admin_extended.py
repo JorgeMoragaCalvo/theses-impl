@@ -4,7 +4,6 @@ Extended integration tests for /admin/* endpoints — covers analytics, settings
 
 
 class TestGetUserDetails:
-
     def test_get_user(self, client, admin_auth_headers, test_user):
         resp = client.get(f"/admin/users/{test_user.id}", headers=admin_auth_headers)
         assert resp.status_code == 200
@@ -16,7 +15,6 @@ class TestGetUserDetails:
 
 
 class TestUpdateUserRole:
-
     def test_change_role_to_admin(self, client, admin_auth_headers, test_user):
         resp = client.put(
             f"/admin/users/{test_user.id}/role?role=admin",
@@ -48,7 +46,6 @@ class TestUpdateUserRole:
 
 
 class TestUpdateStatusExtended:
-
     def test_cannot_deactivate_self(self, client, admin_auth_headers, test_admin):
         resp = client.put(
             f"/admin/users/{test_admin.id}/status?is_active=false",
@@ -65,7 +62,6 @@ class TestUpdateStatusExtended:
 
 
 class TestSystemSettings:
-
     def test_get_settings(self, client, admin_auth_headers):
         resp = client.get("/admin/settings", headers=admin_auth_headers)
         assert resp.status_code == 200
@@ -79,7 +75,6 @@ class TestSystemSettings:
 
 
 class TestAnalyticsEndpoints:
-
     def test_analytics_summary(self, client, admin_auth_headers):
         resp = client.get("/admin/analytics/summary", headers=admin_auth_headers)
         assert resp.status_code == 200

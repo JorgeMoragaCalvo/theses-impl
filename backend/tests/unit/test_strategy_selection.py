@@ -1,16 +1,20 @@
 """
 Unit tests for BaseAgent.select_explanation_strategy and build_adaptive_prompt_section.
 """
+
 from app.agents.base_agent import BaseAgent
 
 ALL_STRATEGIES = [
-    "step-by-step", "example-based", "analogy-based",
-    "conceptual", "formal-mathematical", "comparative",
+    "step-by-step",
+    "example-based",
+    "analogy-based",
+    "conceptual",
+    "formal-mathematical",
+    "comparative",
 ]
 
 
 class TestSelectExplanationStrategy:
-
     def test_high_confusion_selects_simple(self):
         strategy = BaseAgent.select_explanation_strategy(
             confusion_level="high",
@@ -51,7 +55,6 @@ class TestSelectExplanationStrategy:
 
 
 class TestBuildAdaptivePromptSection:
-
     def test_high_confusion_contains_simplify(self):
         analysis = {"detected": True, "level": "high", "signals": ["high:no entiendo"]}
         result = BaseAgent.build_adaptive_prompt_section(analysis, "step-by-step")

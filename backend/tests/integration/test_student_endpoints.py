@@ -4,7 +4,6 @@ Integration tests for /students/* endpoints.
 
 
 class TestGetStudent:
-
     def test_get_own_profile(self, client, auth_headers, test_user):
         resp = client.get(f"/students/{test_user.id}", headers=auth_headers)
         assert resp.status_code == 200
@@ -20,7 +19,6 @@ class TestGetStudent:
 
 
 class TestUpdateStudent:
-
     def test_update_own_name(self, client, auth_headers, test_user):
         resp = client.put(
             f"/students/{test_user.id}",
@@ -56,7 +54,6 @@ class TestUpdateStudent:
 
 
 class TestListStudents:
-
     def test_admin_can_list(self, client, admin_auth_headers, test_admin):
         resp = client.get("/students", headers=admin_auth_headers)
         assert resp.status_code == 200
@@ -68,7 +65,6 @@ class TestListStudents:
 
 
 class TestCreateStudent:
-
     def test_non_admin_forbidden(self, client, auth_headers):
         resp = client.post(
             "/students",
@@ -79,7 +75,6 @@ class TestCreateStudent:
 
 
 class TestGetStudentProgress:
-
     def test_get_own_progress(self, client, auth_headers, test_user):
         resp = client.get(f"/students/{test_user.id}/progress", headers=auth_headers)
         assert resp.status_code == 200
