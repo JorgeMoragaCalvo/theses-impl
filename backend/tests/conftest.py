@@ -9,6 +9,7 @@ Provides:
 - Singleton reset between tests
 - Test environment variables
 """
+
 import os
 
 # ---------------------------------------------------------------------------
@@ -28,6 +29,7 @@ import sqlalchemy  # noqa: E402
 
 _original_create_engine = sqlalchemy.create_engine
 
+
 def _patched_create_engine(url, **kwargs):
     """Strip PostgreSQL-specific kwargs when using SQLite."""
     if str(url).startswith("sqlite"):
@@ -36,6 +38,7 @@ def _patched_create_engine(url, **kwargs):
         kwargs.pop("pool_pre_ping", None)
         kwargs.setdefault("connect_args", {"check_same_thread": False})
     return _original_create_engine(url, **kwargs)
+
 
 patch("sqlalchemy.create_engine", _patched_create_engine).start()
 # Also patch the reference in sqlalchemy.engine.create
@@ -54,6 +57,7 @@ from sqlalchemy.orm import sessionmaker  # noqa: E402
 # ---------------------------------------------------------------------------
 # 2. SQLite in-memory engine & session
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="session")
 def test_engine():
@@ -99,6 +103,7 @@ def test_db(test_engine):
 # 3. Mocked LLM service
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def fake_llm_service():
     """Return a MagicMock standing in for LLMService."""
@@ -114,6 +119,7 @@ def fake_llm_service():
 # ---------------------------------------------------------------------------
 # 4. FastAPI TestClient
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture()
 def client(test_db, fake_llm_service):
@@ -134,9 +140,14 @@ def client(test_db, fake_llm_service):
     with (
         patch("app.database.init_db"),
         patch("app.database.SessionLocal", return_value=test_db),
-        patch("app.services.llm_service.get_llm_service", return_value=fake_llm_service),
+        patch(
+            "app.services.llm_service.get_llm_service", return_value=fake_llm_service
+        ),
         patch("app.services.llm_service._llm_service", fake_llm_service),
-        patch("app.services.competency_service.get_taxonomy_registry", return_value=fake_registry),
+        patch(
+            "app.services.competency_service.get_taxonomy_registry",
+            return_value=fake_registry,
+        ),
         patch("app.services.competency_service._taxonomy_registry", fake_registry),
         patch("app.main.init_db"),
         patch("app.main.SessionLocal", return_value=test_db),
@@ -158,6 +169,7 @@ def client(test_db, fake_llm_service):
 # ---------------------------------------------------------------------------
 # 5. Pre-created users
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture()
 def test_user(test_db):
@@ -211,6 +223,7 @@ def test_admin(test_db):
 # 6. Auth headers
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def auth_headers(test_user):
     """JWT Bearer headers for the regular test user."""
@@ -228,6 +241,7 @@ def admin_auth_headers(test_admin):
 # ---------------------------------------------------------------------------
 # 7. Reset singletons between tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(autouse=True)
 def reset_singletons():
