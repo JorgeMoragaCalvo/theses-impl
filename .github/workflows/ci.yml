@@ -58,7 +58,7 @@ jobs:
           cd backend
           python -c "from app.main import app; print('✓ FastAPI app imports successfully')"
 
-      - name: Run tests
+      - name: Run tests with coverage
         env:
           DATABASE_URL: "sqlite:///test.db"
           SECRET_KEY: "ci-test-secret-key"
@@ -66,4 +66,4 @@ jobs:
           LLM_PROVIDER: "gemini"
         run: |
           cd backend
-          python -m pytest tests/ -v --tb=short
+          python -m pytest tests/ -v --tb=short --cov-fail-under=70
