@@ -106,24 +106,55 @@ class BaseAgent(ABC):
         """
         meta_patterns = [
             # Spanish
-            "explica el tema", "explícame el tema", "explica este tema",
-            "explícame este tema", "explica la materia", "explícame la materia",
-            "en pocas palabras", "en breve", "brevemente", "en resumen",
-            "qué es esto", "qué es este tema", "qué es esta materia",
-            "de qué trata", "de qué va", "de qué se trata",
-            "cuéntame sobre", "cuéntame acerca",
-            "dame una introducción", "dame un resumen", "dame un overview",
-            "qué estudia", "qué cubre", "qué vamos a ver", "qué se estudia",
-            "qué aprenderé", "qué voy a aprender", "qué aprendo",
-            "presentame el tema", "presentame esta materia",
-            "introducción al tema", "introducción a este tema",
+            "explica el tema",
+            "explícame el tema",
+            "explica este tema",
+            "explícame este tema",
+            "explica la materia",
+            "explícame la materia",
+            "en pocas palabras",
+            "en breve",
+            "brevemente",
+            "en resumen",
+            "qué es esto",
+            "qué es este tema",
+            "qué es esta materia",
+            "de qué trata",
+            "de qué va",
+            "de qué se trata",
+            "cuéntame sobre",
+            "cuéntame acerca",
+            "dame una introducción",
+            "dame un resumen",
+            "dame un overview",
+            "qué estudia",
+            "qué cubre",
+            "qué vamos a ver",
+            "qué se estudia",
+            "qué aprenderé",
+            "qué voy a aprender",
+            "qué aprendo",
+            "presentame el tema",
+            "presentame esta materia",
+            "introducción al tema",
+            "introducción a este tema",
             # English
-            "explain the subject", "explain this topic", "explain this subject",
-            "what is this about", "what is this course", "what is this class",
-            "tell me about this", "tell me about the topic",
-            "give me an introduction", "give me a summary", "give me an overview",
-            "in a few words", "briefly explain", "what do we study",
-            "what is covered", "what will i learn",
+            "explain the subject",
+            "explain this topic",
+            "explain this subject",
+            "what is this about",
+            "what is this course",
+            "what is this class",
+            "tell me about this",
+            "tell me about the topic",
+            "give me an introduction",
+            "give me a summary",
+            "give me an overview",
+            "in a few words",
+            "briefly explain",
+            "what do we study",
+            "what is covered",
+            "what will i learn",
         ]
         msg_lower = message.lower()
         return any(p in msg_lower for p in meta_patterns)
@@ -214,7 +245,9 @@ class BaseAgent(ABC):
         if error_message:
             return error_message
 
-        if not self._is_meta_question(preprocessed_message) and not self.is_topic_related(preprocessed_message):
+        if not self._is_meta_question(
+            preprocessed_message
+        ) and not self.is_topic_related(preprocessed_message):
             return self._get_off_topic_response()
 
         components = self._prepare_generation_components(
@@ -240,7 +273,9 @@ class BaseAgent(ABC):
         if error_message:
             return error_message
 
-        if not self._is_meta_question(preprocessed_message) and not self.is_topic_related(preprocessed_message):
+        if not self._is_meta_question(
+            preprocessed_message
+        ) and not self.is_topic_related(preprocessed_message):
             return self._get_off_topic_response()
 
         components = self._prepare_generation_components(

@@ -587,7 +587,9 @@ Si permites violación con probabilidad ≤ α:
         if error_message:
             return error_message
 
-        if not self._is_meta_question(preprocessed_message) and not self.is_modeling_related(preprocessed_message):
+        if not self._is_meta_question(
+            preprocessed_message
+        ) and not self.is_modeling_related(preprocessed_message):
             return self._get_off_topic_response()
 
         components = self._prepare_generation_components(
@@ -642,7 +644,9 @@ Si permites violación con probabilidad ≤ α:
         if error_message:
             return error_message
 
-        if not self._is_meta_question(preprocessed_message) and not self.is_modeling_related(preprocessed_message):
+        if not self._is_meta_question(
+            preprocessed_message
+        ) and not self.is_modeling_related(preprocessed_message):
             return self._get_off_topic_response()
 
         components = self._prepare_generation_components(

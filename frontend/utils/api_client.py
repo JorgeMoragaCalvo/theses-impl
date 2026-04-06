@@ -238,7 +238,6 @@ class APIClient:
             if key in st.session_state:
                 del st.session_state[key]
 
-
     def _store_auth_data(self, data: dict):
         """Store authentication data in the session state and browser."""
         st.session_state.access_token = data.get("access_token")
