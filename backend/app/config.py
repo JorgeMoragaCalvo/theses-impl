@@ -15,10 +15,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="allow"
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="allow"
     )
 
     # LLM Provider Configuration
@@ -39,7 +36,7 @@ class Settings(BaseSettings):
     # Database Configuration
     # database_url: str = "postgresql://postgres:postgres123@localhost:5432/security"
     database_url: str
-    database_echo: bool = False # True prints all SQL queries to console
+    database_echo: bool = False  # True prints all SQL queries to console
 
     # Chroma Vector Store Configuration
     chroma_persist_directory: str = "./chroma_db"
@@ -107,14 +104,14 @@ class Settings(BaseSettings):
         if is_insecure and not self.debug:
             raise ValueError(
                 "FATAL: SECRET_KEY is not set or uses an insecure default. "
-                "Generate a secure key: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+                'Generate a secure key: python -c "import secrets; print(secrets.token_urlsafe(32))"'
             )
 
         if is_insecure:
             logger.warning(
                 "Using default SECRET_KEY! "
                 "This is INSECURE for production. "
-                "Generate a secure key: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+                'Generate a secure key: python -c "import secrets; print(secrets.token_urlsafe(32))"'
             )
 
 

@@ -39,10 +39,16 @@ else:
     from pythonjsonlogger import json
 
     handler = logging.StreamHandler()
-    handler.setFormatter(json.JsonFormatter(
-        "%(asctime)s %(name)s %(levelname)s %(message)s",
-        rename_fields={"asctime": "timestamp", "levelname": "level", "name": "logger"},
-    ))
+    handler.setFormatter(
+        json.JsonFormatter(
+            "%(asctime)s %(name)s %(levelname)s %(message)s",
+            rename_fields={
+                "asctime": "timestamp",
+                "levelname": "level",
+                "name": "logger",
+            },
+        )
+    )
     logging.root.handlers = [handler]
     logging.root.setLevel(settings.log_level.upper())
 
@@ -54,12 +60,17 @@ if settings.sentry_dsn:
 
     sentry_sdk.init(
         dsn=settings.sentry_dsn,
-        traces_sample_rate=0.0 if settings.debug else settings.sentry_traces_sample_rate,
+        traces_sample_rate=0.0
+        if settings.debug
+        else settings.sentry_traces_sample_rate,
         send_default_pii=False,
         environment="development" if settings.debug else "production",
         release=settings.version,
     )
-    logger.info("Sentry initialized (environment=%s)", "development" if settings.debug else "production")
+    logger.info(
+        "Sentry initialized (environment=%s)",
+        "development" if settings.debug else "production",
+    )
 
 
 # Lifespan context manager
@@ -106,7 +117,7 @@ app = FastAPI(
     description="Backend API for personalized AI tutoring in optimization methods.",
     version=settings.version,
     debug=settings.debug,
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Register rate limiter
@@ -161,7 +172,9 @@ if settings.enable_prometheus:
     ).instrument(app).expose(
         app, endpoint="/metrics", include_in_schema=False, should_gzip=True
     )
-    logger.info("Prometheus metrics enabled at /metrics (restrict access at infra level)")
+    logger.info(
+        "Prometheus metrics enabled at /metrics (restrict access at infra level)"
+    )
 
 
 # Health check endpoint
@@ -178,7 +191,7 @@ async def health_check(db: Session = Depends(get_db)):
         status="healthy" if database_connected else "degraded",
         version=settings.version,
         llm_provider=settings.llm_provider,
-        database_connected=database_connected
+        database_connected=database_connected,
     )
 
 
@@ -190,14 +203,16 @@ async def root():
         "message": "AI Tutoring System for Optimization Methods",
         "version": settings.version,
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
     }
+
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "app.main:app",
         host=settings.backend_host,
         port=settings.backend_port,
-        reload=settings.debug
+        reload=settings.debug,
     )
