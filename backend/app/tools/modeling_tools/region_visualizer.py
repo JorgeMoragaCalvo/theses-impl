@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 # Try to import visualization libraries
 try:
     import numpy as np
+
     NUMPY_AVAILABLE = True
 except ImportError:
     NUMPY_AVAILABLE = False
@@ -25,14 +26,18 @@ except ImportError:
 
 try:
     import matplotlib
-    matplotlib.use('Agg')  # Use non-interactive backend
+
+    matplotlib.use("Agg")  # Use non-interactive backend
     import matplotlib.pyplot as plt
+
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
     matplotlib = None
     plt = None
-    logger.warning("matplotlib not installed - RegionVisualizerTool will have limited functionality")
+    logger.warning(
+        "matplotlib not installed - RegionVisualizerTool will have limited functionality"
+    )
 
 
 class RegionVisualizerTool(BaseTool):
@@ -74,7 +79,14 @@ Retorna: Imagen PNG codificada en base64 de la región factible."""
     # Plot settings
     FIGURE_SIZE: ClassVar[tuple[int, int]] = (8, 6)
     DPI: ClassVar[int] = 100
-    COLORS: ClassVar[list[str]] = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#a65628']
+    COLORS: ClassVar[list[str]] = [
+        "#e41a1c",
+        "#377eb8",
+        "#4daf4a",
+        "#984ea3",
+        "#ff7f00",
+        "#a65628",
+    ]
 
     def _run(self, model_json: str) -> str:
         """
@@ -119,7 +131,7 @@ Retorna: Imagen PNG codificada en base64 de la región factible."""
             return self._format_error("No se proporcionaron restricciones")
 
         try:
-            var_names = [v.get("name", f"x{i+1}") for i, v in enumerate(variables)]
+            var_names = [v.get("name", f"x{i + 1}") for i, v in enumerate(variables)]
             var_bounds = self._get_variable_bounds(variables)
 
             # Parse constraints
@@ -130,7 +142,7 @@ Retorna: Imagen PNG codificada en base64 de la región factible."""
                 var_names=var_names,
                 var_bounds=var_bounds,
                 constraints=parsed_constraints,
-                objective=objective
+                objective=objective,
             )
 
             return f"""**Visualización de Región Factible** ✅
@@ -153,7 +165,7 @@ La imagen muestra:
 
     @staticmethod
     def _get_variable_bounds(
-            variables: list[dict[str, Any]]
+        variables: list[dict[str, Any]],
     ) -> list[tuple[float, float]]:
         """Get bounds for each variable."""
         bounds = []
@@ -163,7 +175,7 @@ La imagen muestra:
             if lower is None:
                 lower = 0
             if upper is None:
-                upper = float('inf')
+                upper = float("inf")
             bounds.append((float(lower), float(upper)))
         return bounds
 
@@ -174,7 +186,7 @@ La imagen muestra:
         parsed = []
 
         for constraint in constraints:
-            name = constraint.get("name", f"c{len(parsed)+1}")
+            name = constraint.get("name", f"c{len(parsed) + 1}")
             expression = constraint.get("expression", "")
 
             if not expression:
@@ -193,20 +205,20 @@ La imagen muestra:
                         except ValueError:
                             rhs_val = 0
 
-                        parsed.append({
-                            "name": name,
-                            "coeffs": coeffs,
-                            "rhs": rhs_val,
-                            "sense": op
-                        })
+                        parsed.append(
+                            {
+                                "name": name,
+                                "coeffs": coeffs,
+                                "rhs": rhs_val,
+                                "sense": op,
+                            }
+                        )
                         break
 
         return parsed
 
     @staticmethod
-    def _parse_expression(
-            expression: str, var_names: list[str]
-    ) -> list[float]:
+    def _parse_expression(expression: str, var_names: list[str]) -> list[float]:
         """Parse a linear expression into coefficients."""
         coefficients = [0.0, 0.0]
 
@@ -236,7 +248,7 @@ La imagen muestra:
         var_names: list[str],
         var_bounds: list[tuple[float, float]],
         constraints: list[dict[str, Any]],
-        objective: dict[str, Any]
+        objective: dict[str, Any],
     ) -> str:
         """Generate the feasible region plot."""
         fig, ax = plt.subplots(figsize=self.FIGURE_SIZE, dpi=self.DPI)
@@ -254,13 +266,13 @@ La imagen muestra:
 
         # Apply variable bounds
         if var_bounds[0][0] is not None:
-            feasible &= (X >= var_bounds[0][0])
-        if var_bounds[0][1] != float('inf'):
-            feasible &= (X <= var_bounds[0][1])
+            feasible &= X >= var_bounds[0][0]
+        if var_bounds[0][1] != float("inf"):
+            feasible &= X <= var_bounds[0][1]
         if var_bounds[1][0] is not None:
-            feasible &= (Y >= var_bounds[1][0])
-        if var_bounds[1][1] != float('inf'):
-            feasible &= (Y <= var_bounds[1][1])
+            feasible &= Y >= var_bounds[1][0]
+        if var_bounds[1][1] != float("inf"):
+            feasible &= Y <= var_bounds[1][1]
 
         # Apply each constraint
         for constraint in constraints:
@@ -269,17 +281,19 @@ La imagen muestra:
             sense = constraint["sense"]
 
             if sense == "<=":
-                feasible &= (a * X + b * Y <= rhs + 1e-10)
+                feasible &= a * X + b * Y <= rhs + 1e-10
             elif sense == ">=":
-                feasible &= (a * X + b * Y >= rhs - 1e-10)
+                feasible &= a * X + b * Y >= rhs - 1e-10
             elif sense == "=":
                 feasible &= np.abs(a * X + b * Y - rhs) < 0.1
 
         # Shade feasible region
-        ax.contourf(X, Y, feasible.astype(int), levels=[0.5, 1.5],
-                    colors=['#a6cee3'], alpha=0.5)
-        ax.contour(X, Y, feasible.astype(int), levels=[0.5],
-                   colors=['#1f78b4'], linewidths=2)
+        ax.contourf(
+            X, Y, feasible.astype(int), levels=[0.5, 1.5], colors=["#a6cee3"], alpha=0.5
+        )
+        ax.contour(
+            X, Y, feasible.astype(int), levels=[0.5], colors=["#1f78b4"], linewidths=2
+        )
 
         # Plot constraint lines
         for i, constraint in enumerate(constraints):
@@ -295,29 +309,50 @@ La imagen muestra:
                 # Clip to visible range
                 mask = (y_line >= -0.5) & (y_line <= y_max + 0.5)
                 if np.any(mask):
-                    ax.plot(x_line[mask], y_line[mask], color=color,
-                           linewidth=2, label=f"{name}: {self._format_constraint(constraint)}")
+                    ax.plot(
+                        x_line[mask],
+                        y_line[mask],
+                        color=color,
+                        linewidth=2,
+                        label=f"{name}: {self._format_constraint(constraint)}",
+                    )
             elif abs(a) > 1e-10:
                 # Vertical line: x = rhs/a
                 x_val = rhs / a
                 if 0 <= x_val <= x_max:
-                    ax.axvline(x=x_val, color=color, linewidth=2,
-                              label=f"{name}: {self._format_constraint(constraint)}")
+                    ax.axvline(
+                        x=x_val,
+                        color=color,
+                        linewidth=2,
+                        label=f"{name}: {self._format_constraint(constraint)}",
+                    )
 
         # Find and plot corner points
         corners = self._find_corner_points(constraints, var_bounds, x_max, y_max)
         if corners:
             corners_x = [c[0] for c in corners]
             corners_y = [c[1] for c in corners]
-            ax.scatter(corners_x, corners_y, color='red', s=100, zorder=5,
-                      edgecolors='darkred', linewidths=2, label='Vértices')
+            ax.scatter(
+                corners_x,
+                corners_y,
+                color="red",
+                s=100,
+                zorder=5,
+                edgecolors="darkred",
+                linewidths=2,
+                label="Vértices",
+            )
 
             # Label corner points
             for cx, cy in corners:
-                ax.annotate(f'({cx:.1f}, {cy:.1f})',
-                           (cx, cy), textcoords="offset points",
-                           xytext=(5, 5), fontsize=9,
-                           bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.7))
+                ax.annotate(
+                    f"({cx:.1f}, {cy:.1f})",
+                    (cx, cy),
+                    textcoords="offset points",
+                    xytext=(5, 5),
+                    fontsize=9,
+                    bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.7),
+                )
 
         # Plot objective function direction if provided
         if objective and objective.get("expression"):
@@ -328,21 +363,27 @@ La imagen muestra:
         ax.set_ylim(-0.5, y_max + 0.5)
         ax.set_xlabel(var_names[0], fontsize=12)
         ax.set_ylabel(var_names[1], fontsize=12)
-        ax.set_title('Región Factible', fontsize=14, fontweight='bold')
+        ax.set_title("Región Factible", fontsize=14, fontweight="bold")
         ax.grid(True, alpha=0.3)
-        ax.legend(loc='upper right', fontsize=9)
-        ax.set_aspect('equal', adjustable='box')
+        ax.legend(loc="upper right", fontsize=9)
+        ax.set_aspect("equal", adjustable="box")
 
         # Add non-negativity indicators
-        ax.axhline(color='black', linewidth=1)
-        ax.axvline(color='black', linewidth=1)
+        ax.axhline(color="black", linewidth=1)
+        ax.axvline(color="black", linewidth=1)
 
         plt.tight_layout()
 
         # Convert to base64
         buffer = io.BytesIO()
-        plt.savefig(buffer, format='png', dpi=self.DPI, bbox_inches='tight',
-                   facecolor='white', edgecolor='none')
+        plt.savefig(
+            buffer,
+            format="png",
+            dpi=self.DPI,
+            bbox_inches="tight",
+            facecolor="white",
+            edgecolor="none",
+        )
         buffer.seek(0)
         image_base64 = base64.b64encode(buffer.read()).decode()
         plt.close(fig)
@@ -351,17 +392,16 @@ La imagen muestra:
 
     @staticmethod
     def _calculate_plot_bounds(
-            constraints: list[dict[str, Any]],
-        var_bounds: list[tuple[float, float]]
+        constraints: list[dict[str, Any]], var_bounds: list[tuple[float, float]]
     ) -> tuple[float, float]:
         """Calculate appropriate plot bounds."""
         x_max = 10.0
         y_max = 10.0
 
         # Check variable upper bounds
-        if var_bounds[0][1] != float('inf'):
+        if var_bounds[0][1] != float("inf"):
             x_max = max(x_max, var_bounds[0][1] * 1.2)
-        if var_bounds[1][1] != float('inf'):
+        if var_bounds[1][1] != float("inf"):
             y_max = max(y_max, var_bounds[1][1] * 1.2)
 
         # Check constraint intercepts
@@ -392,7 +432,7 @@ La imagen muestra:
         constraints: list[dict[str, Any]],
         var_bounds: list[tuple[float, float]],
         x_max: float,
-        y_max: float
+        y_max: float,
     ) -> list[tuple[float, float]]:
         """Find corner points of the feasible region."""
         corners = []
@@ -402,10 +442,14 @@ La imagen muestra:
 
         # x >= lower_x (if specified)
         if var_bounds[0][0] is not None:
-            all_constraints.append({"coeffs": [1, 0], "rhs": var_bounds[0][0], "sense": ">="})
+            all_constraints.append(
+                {"coeffs": [1, 0], "rhs": var_bounds[0][0], "sense": ">="}
+            )
         # y >= lower_y (if specified)
         if var_bounds[1][0] is not None:
-            all_constraints.append({"coeffs": [0, 1], "rhs": var_bounds[1][0], "sense": ">="})
+            all_constraints.append(
+                {"coeffs": [0, 1], "rhs": var_bounds[1][0], "sense": ">="}
+            )
 
         # Find intersections of all pairs of constraints
         for i in range(len(all_constraints)):
@@ -421,15 +465,18 @@ La imagen muestra:
                             for cx, cy in corners
                         )
                         # Appends rounded possible intersection point if not duplicate
-                        if not is_duplicate and 0 <= x <= x_max + 1 and 0 <= y <= y_max + 1:
+                        if (
+                            not is_duplicate
+                            and 0 <= x <= x_max + 1
+                            and 0 <= y <= y_max + 1
+                        ):
                             corners.append((round(x, 4), round(y, 4)))
 
         return corners
 
     @staticmethod
     def _intersect_lines(
-            c1: dict[str, Any],
-        c2: dict[str, Any]
+        c1: dict[str, Any], c2: dict[str, Any]
     ) -> tuple[float, float] | None:
         """Find the intersection of two constraint lines."""
         a1, b1 = c1["coeffs"]
@@ -449,20 +496,20 @@ La imagen muestra:
 
     @staticmethod
     def _is_feasible(
-            x: float,
+        x: float,
         y: float,
         constraints: list[dict[str, Any]],
-        var_bounds: list[tuple[float, float]]
+        var_bounds: list[tuple[float, float]],
     ) -> bool:
         """Check if a point is possible."""
         # Check bounds
         if x < var_bounds[0][0] - 1e-6:
             return False
-        if var_bounds[0][1] != float('inf') and x > var_bounds[0][1] + 1e-6:
+        if var_bounds[0][1] != float("inf") and x > var_bounds[0][1] + 1e-6:
             return False
         if y < var_bounds[1][0] - 1e-6:
             return False
-        if var_bounds[1][1] != float('inf') and y > var_bounds[1][1] + 1e-6:
+        if var_bounds[1][1] != float("inf") and y > var_bounds[1][1] + 1e-6:
             return False
 
         # Check constraints
@@ -487,7 +534,7 @@ La imagen muestra:
         objective: dict[str, Any],
         var_names: list[str],
         x_max: float,
-        y_max: float
+        y_max: float,
     ):
         """Add an arrow showing an objective function direction."""
         expression = objective.get("expression", "")
@@ -499,7 +546,7 @@ La imagen muestra:
             return
 
         # Normalize the gradient vector
-        norm = np.sqrt(coeffs[0]**2 + coeffs[1]**2)
+        norm = np.sqrt(coeffs[0] ** 2 + coeffs[1] ** 2)
         dx = coeffs[0] / norm
         dy = coeffs[1] / norm
 
@@ -511,16 +558,22 @@ La imagen muestra:
         arrow_start = (x_max * 0.85, y_max * 0.15)
         arrow_scale = min(x_max, y_max) * 0.1
 
-        ax.annotate('',
-                   xy=(arrow_start[0] + dx * arrow_scale,
-                       arrow_start[1] + dy * arrow_scale),
-                   xytext=arrow_start,
-                   arrowprops=dict(arrowstyle='->', color='green', lw=2))
+        ax.annotate(
+            "",
+            xy=(arrow_start[0] + dx * arrow_scale, arrow_start[1] + dy * arrow_scale),
+            xytext=arrow_start,
+            arrowprops=dict(arrowstyle="->", color="green", lw=2),
+        )
 
         direction = "mejora" if sense in ("maximize", "max", "maximizar") else "mejora"
-        ax.text(arrow_start[0], arrow_start[1] - y_max * 0.05,
-               f'Dirección de\n{direction}', fontsize=8, color='green',
-               ha='center')
+        ax.text(
+            arrow_start[0],
+            arrow_start[1] - y_max * 0.05,
+            f"Dirección de\n{direction}",
+            fontsize=8,
+            color="green",
+            ha="center",
+        )
 
     @staticmethod
     def _format_constraint(constraint: dict[str, Any]) -> str:

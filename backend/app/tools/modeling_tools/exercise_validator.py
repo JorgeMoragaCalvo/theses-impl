@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ModelComponents:
     """Parsed components of a mathematical model."""
+
     variables: list[str] = field(default_factory=list)
     objective_sense: str = ""  # "min" or "max"
     objective_expression: str = ""
@@ -98,7 +99,9 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
 
         reference = self.exercise_manager.get_solution(exercise_id)
         if not reference:
-            return self._format_error(f"No hay solución de referencia para '{exercise_id}'")
+            return self._format_error(
+                f"No hay solución de referencia para '{exercise_id}'"
+            )
 
         return exercise_id, student_formulation, reference
 
@@ -136,7 +139,9 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
         # 1. Structured parsing and comparison
         ref_components = self._parse_model_markdown(reference)
         student_components = self._parse_model_markdown(student_formulation)
-        structured_feedback = self._compare_components(ref_components, student_components)
+        structured_feedback = self._compare_components(
+            ref_components, student_components
+        )
 
         # 2. LLM semantic comparison for nuanced feedback
         semantic_feedback = self._get_semantic_feedback(
@@ -163,7 +168,8 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
         # Parse variables section
         var_match = re.search(
             r"(?:##?\s*)?Variables?\s*(?:de decisión)?\s*\n+(.*?)(?=\n##|\n#|\Z)",
-            content, re.IGNORECASE | re.DOTALL
+            content,
+            re.IGNORECASE | re.DOTALL,
         )
         if var_match:
             var_section = var_match.group(1).strip()
@@ -174,7 +180,8 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
         # Parse objective section
         obj_match = re.search(
             r"(?:##?\s*)?Función objetivo\s*\n+(.*?)(?=\n##|\n#|\Z)",
-            content, re.IGNORECASE | re.DOTALL
+            content,
+            re.IGNORECASE | re.DOTALL,
         )
         if obj_match:
             obj_section = obj_match.group(1).strip()
@@ -189,7 +196,8 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
         # Parse constraints section
         const_match = re.search(
             r"(?:##?\s*)?Restricciones?\s*\n+(.*?)(?=\n##\s*Tipo|\Z)",
-            content, re.IGNORECASE | re.DOTALL
+            content,
+            re.IGNORECASE | re.DOTALL,
         )
         if const_match:
             const_section = const_match.group(1).strip()
@@ -199,7 +207,8 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
         # Parse model type
         type_match = re.search(
             r"(?:##?\s*)?Tipo de modelo\s*\n+(.*?)(?=\n##|\Z)",
-            content, re.IGNORECASE | re.DOTALL
+            content,
+            re.IGNORECASE | re.DOTALL,
         )
         if type_match:
             type_section = type_match.group(1).strip()
@@ -259,7 +268,9 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
         return feedback
 
     @staticmethod
-    def _compare_variables(ref: ModelComponents, student: ModelComponents) -> dict[str, Any]:
+    def _compare_variables(
+        ref: ModelComponents, student: ModelComponents
+    ) -> dict[str, Any]:
         """Compare variable definitions."""
         ref_var_count = len(ref.variables)
         student_var_count = len(student.variables)
@@ -273,7 +284,9 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
         }
 
     @staticmethod
-    def _compare_objective(ref: ModelComponents, student: ModelComponents) -> dict[str, Any]:
+    def _compare_objective(
+        ref: ModelComponents, student: ModelComponents
+    ) -> dict[str, Any]:
         """Compare objective functions."""
         sense_match = (
             ref.objective_sense.lower() == student.objective_sense.lower()
@@ -289,7 +302,9 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
         }
 
     @staticmethod
-    def _compare_constraints(ref: ModelComponents, student: ModelComponents) -> dict[str, Any]:
+    def _compare_constraints(
+        ref: ModelComponents, student: ModelComponents
+    ) -> dict[str, Any]:
         """Compare constraints."""
         return {
             "reference_count": len(ref.constraints),
@@ -298,7 +313,9 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
         }
 
     @staticmethod
-    def _compare_model_type(ref: ModelComponents, student: ModelComponents) -> dict[str, Any]:
+    def _compare_model_type(
+        ref: ModelComponents, student: ModelComponents
+    ) -> dict[str, Any]:
         """Compare model type identification."""
         ref_type = ref.model_type.lower()
         student_type = student.model_type.lower()
@@ -309,13 +326,15 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
         is_binary = any(t in ref_type for t in ["binaria", "binary", "0-1"])
 
         student_is_lp = any(t in student_type for t in ["lineal", "linear", "pl"])
-        student_is_ip = any(t in student_type for t in ["entera", "integer", "pli", "entero"])
+        student_is_ip = any(
+            t in student_type for t in ["entera", "integer", "pli", "entero"]
+        )
         student_is_binary = any(t in student_type for t in ["binaria", "binary", "0-1"])
 
         type_match = (
-            (is_lp == student_is_lp) and
-            (is_ip == student_is_ip) and
-            (is_binary == student_is_binary)
+            (is_lp == student_is_lp)
+            and (is_ip == student_is_ip)
+            and (is_binary == student_is_binary)
         )
 
         return {
@@ -361,7 +380,7 @@ Responde de forma constructiva y pedagógica, reconociendo lo que está bien y g
                 messages=[{"role": "user", "content": prompt}],
                 system_prompt="Eres un tutor experto en optimización y modelado matemático. Tu objetivo es ayudar al estudiante a mejorar su formulación de manera constructiva.",
                 temperature=0.3,  # Lower temperature for more consistent feedback
-                max_tokens=1000
+                max_tokens=1000,
             )
             return response
         except Exception as e:
@@ -370,9 +389,7 @@ Responde de forma constructiva y pedagógica, reconociendo lo que está bien y g
 
     @staticmethod
     def _format_combined_feedback(
-        exercise_id: str,
-        structured: dict[str, Any],
-        semantic: str
+        exercise_id: str, structured: dict[str, Any], semantic: str
     ) -> str:
         """Format the combined validation feedback."""
         result = f"**Validación de Formulación - Ejercicio {exercise_id}**\n\n"
@@ -403,7 +420,9 @@ Responde de forma constructiva y pedagógica, reconociendo lo que está bien y g
         # Constraints
         const_info = structured["constraints"]
         if const_info["has_constraints"]:
-            result += f"📋 **Restricciones:** {const_info['student_count']} identificadas "
+            result += (
+                f"📋 **Restricciones:** {const_info['student_count']} identificadas "
+            )
             result += f"(referencia tiene ~{const_info['reference_count']})\n"
         else:
             result += "❌ **Restricciones:** No se identificaron restricciones\n"
@@ -438,7 +457,9 @@ Responde de forma constructiva y pedagógica, reconociendo lo que está bien y g
         # Structured parsing (sync)
         ref_components = self._parse_model_markdown(reference)
         student_components = self._parse_model_markdown(student_formulation)
-        structured_feedback = self._compare_components(ref_components, student_components)
+        structured_feedback = self._compare_components(
+            ref_components, student_components
+        )
 
         # Async semantic feedback
         semantic_feedback = await self._get_semantic_feedback_async(
@@ -475,7 +496,7 @@ Responde de forma constructiva, reconociendo lo que está bien y guiando sobre m
                 messages=[{"role": "user", "content": prompt}],
                 system_prompt="Eres un tutor experto en optimización y modelado matemático.",
                 temperature=0.3,
-                max_tokens=1000
+                max_tokens=1000,
             )
             return response
         except Exception as e:

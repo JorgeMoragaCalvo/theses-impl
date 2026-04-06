@@ -53,7 +53,14 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
     model_config = {"arbitrary_types_allowed": True}
 
     # Valid variable types
-    VALID_TYPES: ClassVar[set[str]] = {"continuous", "integer", "binary", "continua", "entera", "binaria"}
+    VALID_TYPES: ClassVar[set[str]] = {
+        "continuous",
+        "integer",
+        "binary",
+        "continua",
+        "entera",
+        "binaria",
+    }
     TYPE_MAPPING: ClassVar[dict[str, str]] = {
         "continua": "continuous",
         "entera": "integer",
@@ -61,7 +68,14 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
     }
 
     # Valid objective senses
-    VALID_SENSES: ClassVar[set[str]] = {"maximize", "minimize", "max", "min", "maximizar", "minimizar"}
+    VALID_SENSES: ClassVar[set[str]] = {
+        "maximize",
+        "minimize",
+        "max",
+        "min",
+        "maximizar",
+        "minimizar",
+    }
     SENSE_MAPPING: ClassVar[dict[str, str]] = {
         "max": "maximize",
         "min": "minimize",
@@ -90,7 +104,7 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
                 valid=False,
                 errors=[f"Error al parsear JSON: {str(e)}"],
                 warnings=[],
-                summary="El modelo no pudo ser parseado"
+                summary="El modelo no pudo ser parseado",
             )
 
         # Validate structure
@@ -99,7 +113,7 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
                 valid=False,
                 errors=["El modelo debe ser un objeto JSON"],
                 warnings=[],
-                summary="Estructura inválida"
+                summary="Estructura inválida",
             )
 
         # Extract components
@@ -118,7 +132,9 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
         warnings.extend(obj_warnings)
 
         # Validate constraints
-        const_errors, const_warnings = self._validate_constraints(constraints, valid_vars)
+        const_errors, const_warnings = self._validate_constraints(
+            constraints, valid_vars
+        )
         errors.extend(const_errors)
         warnings.extend(const_warnings)
 
@@ -128,14 +144,11 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
             is_valid=is_valid,
             num_vars=len(valid_vars),
             num_constraints=len(constraints),
-            objective_sense=objective.get("sense", "no especificado")
+            objective_sense=objective.get("sense", "no especificado"),
         )
 
         return self._format_result(
-            valid=is_valid,
-            errors=errors,
-            warnings=warnings,
-            summary=summary
+            valid=is_valid, errors=errors, warnings=warnings, summary=summary
         )
 
     def _validate_variables(
@@ -163,21 +176,23 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
 
         for i, var in enumerate(variables):
             if not isinstance(var, dict):
-                errors.append(f"Variable {i+1}: debe ser un objeto con 'name' y 'type'")
+                errors.append(
+                    f"Variable {i + 1}: debe ser un objeto con 'name' y 'type'"
+                )
                 continue
 
             # Check name
             name = var.get("name")
             if not name:
-                errors.append(f"Variable {i+1}: falta el nombre ('name')")
+                errors.append(f"Variable {i + 1}: falta el nombre ('name')")
                 continue
 
             if not isinstance(name, str):
-                errors.append(f"Variable {i+1}: el nombre debe ser texto")
+                errors.append(f"Variable {i + 1}: el nombre debe ser texto")
                 continue
 
             # Check for a valid variable name pattern
-            if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', name):
+            if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", name):
                 errors.append(
                     f"Variable '{name}': nombre inválido. "
                     "Use letras, números y guiones bajos (empezando con letra)"
@@ -193,7 +208,9 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
             # Check type
             var_type = var.get("type", "").lower()
             if not var_type:
-                warnings.append(f"Variable '{name}': no se especificó tipo, asumiendo 'continuous'")
+                warnings.append(
+                    f"Variable '{name}': no se especificó tipo, asumiendo 'continuous'"
+                )
                 var_type = "continuous"
             elif var_type in self.TYPE_MAPPING:
                 var_type = self.TYPE_MAPPING[var_type]
@@ -210,9 +227,13 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
 
             if var_type == "binary":
                 if lower is not None and lower != 0:
-                    warnings.append(f"Variable binaria '{name}': cota inferior ignorada (será 0)")
+                    warnings.append(
+                        f"Variable binaria '{name}': cota inferior ignorada (será 0)"
+                    )
                 if upper is not None and upper != 1:
-                    warnings.append(f"Variable binaria '{name}': cota superior ignorada (será 1)")
+                    warnings.append(
+                        f"Variable binaria '{name}': cota superior ignorada (será 1)"
+                    )
             else:
                 if lower is None and var_type != "binary":
                     warnings.append(f"Variable '{name}': sin cota inferior definida")
@@ -301,11 +322,13 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
 
         for i, constraint in enumerate(constraints):
             if not isinstance(constraint, dict):
-                errors.append(f"Restricción {i+1}: debe ser un objeto con 'expression'")
+                errors.append(
+                    f"Restricción {i + 1}: debe ser un objeto con 'expression'"
+                )
                 continue
 
             # Get a constraint name or generate one
-            name = constraint.get("name", f"restriccion_{i+1}")
+            name = constraint.get("name", f"restriccion_{i + 1}")
             if name in seen_names:
                 warnings.append(f"Restricción '{name}': nombre duplicado")
             seen_names.add(name)
@@ -335,7 +358,7 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
 
     @staticmethod
     def _validate_expression(
-            expression: str, valid_vars: set[str], context: str
+        expression: str, valid_vars: set[str], context: str
     ) -> tuple[list[str], list[str]]:
         """
         Validate a mathematical expression (objective or LHS of constraint).
@@ -348,11 +371,22 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
 
         # Extract variable names from expression
         # Pattern matches variable names (not numbers)
-        var_pattern = r'\b([a-zA-Z_][a-zA-Z0-9_]*)\b'
+        var_pattern = r"\b([a-zA-Z_][a-zA-Z0-9_]*)\b"
         found_vars = set(re.findall(var_pattern, expression))
 
         # Remove common function names and constants
-        reserved_words = {'sin', 'cos', 'tan', 'exp', 'log', 'sqrt', 'abs', 'max', 'min', 'sum'}
+        reserved_words = {
+            "sin",
+            "cos",
+            "tan",
+            "exp",
+            "log",
+            "sqrt",
+            "abs",
+            "max",
+            "min",
+            "sum",
+        }
         found_vars -= reserved_words
 
         # Check if all variables are defined
@@ -425,11 +459,13 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
 
     @staticmethod
     def _generate_summary(
-            is_valid: bool, num_vars: int, num_constraints: int, objective_sense: str
+        is_valid: bool, num_vars: int, num_constraints: int, objective_sense: str
     ) -> str:
         """Generate a summary of the validation."""
         if is_valid:
-            sense_text = "maximización" if "max" in objective_sense.lower() else "minimización"
+            sense_text = (
+                "maximización" if "max" in objective_sense.lower() else "minimización"
+            )
             return (
                 f"Modelo válido: {num_vars} variables, "
                 f"{num_constraints} restricciones, "
@@ -440,7 +476,7 @@ Retorna: Resultado de validación con errores, advertencias y resumen."""
 
     @staticmethod
     def _format_result(
-            valid: bool, errors: list[str], warnings: list[str], summary: str
+        valid: bool, errors: list[str], warnings: list[str], summary: str
     ) -> str:
         """Format the validation result as a readable string."""
         result = f"""**Resultado de Validación**
