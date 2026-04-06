@@ -40,7 +40,9 @@ async def get_due_reviews(
 
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Student not found"
+        )
 
     srs = get_spaced_repetition_service(db)
     due = srs.get_due_reviews(student_id, topic=topic, limit=limit)
@@ -55,7 +57,11 @@ async def get_due_reviews(
     )
 
 
-@router.post("/students/{student_id}/reviews/start", response_model=StartReviewResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/students/{student_id}/reviews/start",
+    response_model=StartReviewResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 @limiter.limit("10/minute")
 async def start_review(
     request: Request,
@@ -72,10 +78,14 @@ async def start_review(
         )
 
     # Verify the competency exists
-    competency = db.query(StudentCompetency).filter(
-        StudentCompetency.student_id == student_id,
-        StudentCompetency.concept_id == review_request.concept_id,
-    ).first()
+    competency = (
+        db.query(StudentCompetency)
+        .filter(
+            StudentCompetency.student_id == student_id,
+            StudentCompetency.concept_id == review_request.concept_id,
+        )
+        .first()
+    )
 
     if not competency:
         raise HTTPException(
@@ -135,10 +145,14 @@ async def complete_review(
         )
 
     # Re-read competency for the response
-    competency = db.query(StudentCompetency).filter(
-        StudentCompetency.student_id == review.student_id,
-        StudentCompetency.concept_id == review.concept_id,
-    ).first()
+    competency = (
+        db.query(StudentCompetency)
+        .filter(
+            StudentCompetency.student_id == review.student_id,
+            StudentCompetency.concept_id == review.concept_id,
+        )
+        .first()
+    )
 
     return CompleteReviewResponse(
         review_session_id=completed.id,

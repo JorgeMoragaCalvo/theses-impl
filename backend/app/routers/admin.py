@@ -29,7 +29,7 @@ async def list_all_users(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_admin: Student = Depends(get_current_admin_user)
+    current_admin: Student = Depends(get_current_admin_user),
 ):
     """
     List all users with their progress metrics.
@@ -43,33 +43,40 @@ async def list_all_users(
     users_with_progress = []
     for student in students:
         # Get conversation count
-        conversation_count = db.query(func.count(Conversation.id)).filter(
-            Conversation.student_id == student.id
-        ).scalar()
+        conversation_count = (
+            db.query(func.count(Conversation.id))
+            .filter(Conversation.student_id == student.id)
+            .scalar()
+        )
 
         # Get assessment stats
-        assessment_count = db.query(func.count(Assessment.id)).filter(
-            Assessment.student_id == student.id
-        ).scalar()
+        assessment_count = (
+            db.query(func.count(Assessment.id))
+            .filter(Assessment.student_id == student.id)
+            .scalar()
+        )
 
         # Get average assessment score
-        avg_score = db.query(func.avg(Assessment.score)).filter(
-            Assessment.student_id == student.id,
-            Assessment.score.isnot(None)
-        ).scalar()
+        avg_score = (
+            db.query(func.avg(Assessment.score))
+            .filter(Assessment.student_id == student.id, Assessment.score.isnot(None))
+            .scalar()
+        )
 
-        users_with_progress.append({
-            "id": student.id,
-            "name": student.name,
-            "email": student.email,
-            "role": student.role.value,
-            "is_active": student.is_active,
-            "created_at": student.created_at,
-            "last_login": student.last_login,
-            "total_conversations": conversation_count or 0,
-            "total_assessments": assessment_count or 0,
-            "average_score": float(avg_score) if avg_score else None
-        })
+        users_with_progress.append(
+            {
+                "id": student.id,
+                "name": student.name,
+                "email": student.email,
+                "role": student.role.value,
+                "is_active": student.is_active,
+                "created_at": student.created_at,
+                "last_login": student.last_login,
+                "total_conversations": conversation_count or 0,
+                "total_assessments": assessment_count or 0,
+                "average_score": float(avg_score) if avg_score else None,
+            }
+        )
 
     logger.info(f"Admin {current_admin.id} listed {len(users_with_progress)} users")
     return users_with_progress
@@ -79,7 +86,7 @@ async def list_all_users(
 async def get_user_details(
     user_id: int,
     db: Session = Depends(get_db),
-    current_admin: Student = Depends(get_current_admin_user)
+    current_admin: Student = Depends(get_current_admin_user),
 ):
     """
     Get detailed information about a specific user.
@@ -88,8 +95,7 @@ async def get_user_details(
     student = db.query(Student).filter(Student.id == user_id).first()
     if not student:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     safe_user_id_for_log = _sanitize_log_value(user_id)
@@ -102,7 +108,7 @@ async def update_user_status(
     user_id: int,
     is_active: bool,
     db: Session = Depends(get_db),
-    current_admin: Student = Depends(get_current_admin_user)
+    current_admin: Student = Depends(get_current_admin_user),
 ):
     """
     Activate or deactivate a user account.
@@ -111,15 +117,14 @@ async def update_user_status(
     student = db.query(Student).filter(Student.id == user_id).first()
     if not student:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Prevent admin from deactivating themselves
     if student.id == current_admin.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot deactivate your own account"
+            detail="Cannot deactivate your own account",
         )
 
     student.is_active = is_active
@@ -129,12 +134,14 @@ async def update_user_status(
     action = "activated" if is_active else "deactivated"
     safe_user_id_for_log = _sanitize_log_value(user_id)
     safe_action_for_log = _sanitize_log_value(action)
-    logger.info(f"Admin {current_admin.id} {safe_action_for_log} user {safe_user_id_for_log}")
+    logger.info(
+        f"Admin {current_admin.id} {safe_action_for_log} user {safe_user_id_for_log}"
+    )
 
     return {
         "message": f"User {action} successfully",
         "user_id": user_id,
-        "is_active": is_active
+        "is_active": is_active,
     }
 
 
@@ -143,7 +150,7 @@ async def update_user_role(
     user_id: int,
     role: str,
     db: Session = Depends(get_db),
-    current_admin: Student = Depends(get_current_admin_user)
+    current_admin: Student = Depends(get_current_admin_user),
 ):
     """
     Update a user's role (user or admin).
@@ -152,22 +159,21 @@ async def update_user_role(
     student = db.query(Student).filter(Student.id == user_id).first()
     if not student:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Validate role
     if role not in [UserRole.USER.value, UserRole.ADMIN.value]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid role. Must be 'user' or 'admin'"
+            detail="Invalid role. Must be 'user' or 'admin'",
         )
 
     # Prevent admin from changing their own role
     if student.id == current_admin.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot change your own role"
+            detail="Cannot change your own role",
         )
 
     # Update role
@@ -175,21 +181,23 @@ async def update_user_role(
     db.commit()
     db.refresh(student)
 
-    safe_user_id_for_log = _sanitize_log_value(user_id)  # Ensure user_id is string for logging
-    safe_role_for_log = _sanitize_log_value(role) # Sanitize role for logging
-    logger.info(f"Admin {current_admin.id} changed user {safe_user_id_for_log} role to {safe_role_for_log}")
+    safe_user_id_for_log = _sanitize_log_value(
+        user_id
+    )  # Ensure user_id is string for logging
+    safe_role_for_log = _sanitize_log_value(role)  # Sanitize role for logging
+    logger.info(
+        f"Admin {current_admin.id} changed user {safe_user_id_for_log} role to {safe_role_for_log}"
+    )
 
     return {
         "message": "User role updated successfully",
         "user_id": user_id,
-        "role": role
+        "role": role,
     }
 
 
 @router.get("/settings")
-async def get_system_settings(
-    current_admin: Student = Depends(get_current_admin_user)
-):
+async def get_system_settings(current_admin: Student = Depends(get_current_admin_user)):
     """
     Get system settings (read-only for now).
     Admin only.
@@ -203,14 +211,14 @@ async def get_system_settings(
         "max_tokens": settings.max_tokens,
         "version": settings.version,
         "debug": settings.debug,
-        "session_timeout_minutes": settings.session_timeout_minutes
+        "session_timeout_minutes": settings.session_timeout_minutes,
     }
 
 
 @router.get("/stats")
 async def get_system_stats(
     db: Session = Depends(get_db),
-    current_admin: Student = Depends(get_current_admin_user)
+    current_admin: Student = Depends(get_current_admin_user),
 ):
     """
     Get system-wide statistics.
@@ -220,9 +228,13 @@ async def get_system_stats(
     total_users = db.query(func.count(Student.id)).scalar()
 
     # Count active users
-    active_users = db.query(func.count(Student.id)).filter(
-        Student.is_active #Student.is_active == True
-    ).scalar()
+    active_users = (
+        db.query(func.count(Student.id))
+        .filter(
+            Student.is_active  # Student.is_active == True
+        )
+        .scalar()
+    )
 
     # Count total conversations
     total_conversations = db.query(func.count(Conversation.id)).scalar()
@@ -231,9 +243,11 @@ async def get_system_stats(
     total_assessments = db.query(func.count(Assessment.id)).scalar()
 
     # Get average assessment score
-    avg_assessment_score = db.query(func.avg(Assessment.score)).filter(
-        Assessment.score.isnot(None)
-    ).scalar()
+    avg_assessment_score = (
+        db.query(func.avg(Assessment.score))
+        .filter(Assessment.score.isnot(None))
+        .scalar()
+    )
 
     logger.info(f"Admin {current_admin.id} viewed system stats")
 
@@ -242,7 +256,9 @@ async def get_system_stats(
         "active_users": active_users or 0,
         "total_conversations": total_conversations or 0,
         "total_assessments": total_assessments or 0,
-        "average_assessment_score": float(avg_assessment_score) if avg_assessment_score else None
+        "average_assessment_score": float(avg_assessment_score)
+        if avg_assessment_score
+        else None,
     }
 
 
@@ -251,13 +267,15 @@ async def get_system_stats(
 async def get_analytics_summary(
     days: int = 30,
     db: Session = Depends(get_db),
-    current_admin: Student = Depends(get_current_admin_user)
+    current_admin: Student = Depends(get_current_admin_user),
 ):
     """Get a comprehensive analytics summary. Admin only."""
     service = get_analytics_service(db)
     current_admin_for_log = _sanitize_log_value(current_admin.id)
     days_for_log = _sanitize_log_value(days)
-    logger.info(f"Admin {current_admin_for_log} requested analytics summary ({days_for_log} days)")
+    logger.info(
+        f"Admin {current_admin_for_log} requested analytics summary ({days_for_log} days)"
+    )
     return service.get_analytics_summary(days=days)
 
 
@@ -265,10 +283,11 @@ async def get_analytics_summary(
 async def get_dau(
     days: int = 30,
     db: Session = Depends(get_db),
-    current_admin: Student = Depends(get_current_admin_user)
+    current_admin: Student = Depends(get_current_admin_user),
 ):
     """Daily get active users. Admin only."""
     from datetime import date, timedelta
+
     service = get_analytics_service(db)
     end = date.today()
     start = end - timedelta(days=days)
@@ -279,10 +298,11 @@ async def get_dau(
 async def get_session_durations(
     days: int = 30,
     db: Session = Depends(get_db),
-    current_admin: Student = Depends(get_current_admin_user)
+    current_admin: Student = Depends(get_current_admin_user),
 ):
     """Get average session duration by day. Admin only."""
     from datetime import date, timedelta
+
     service = get_analytics_service(db)
     end = date.today()
     start = end - timedelta(days=days)
@@ -293,10 +313,11 @@ async def get_session_durations(
 async def get_peak_hours(
     days: int = 30,
     db: Session = Depends(get_db),
-    current_admin: Student = Depends(get_current_admin_user)
+    current_admin: Student = Depends(get_current_admin_user),
 ):
     """Get peak usage hours. Admin only."""
     from datetime import date, timedelta
+
     service = get_analytics_service(db)
     end = date.today()
     start = end - timedelta(days=days)
@@ -307,10 +328,11 @@ async def get_peak_hours(
 async def get_page_popularity(
     days: int = 30,
     db: Session = Depends(get_db),
-    current_admin: Student = Depends(get_current_admin_user)
+    current_admin: Student = Depends(get_current_admin_user),
 ):
     """Get page popularity. Admin only."""
     from datetime import date, timedelta
+
     service = get_analytics_service(db)
     end = date.today()
     start = end - timedelta(days=days)
@@ -321,10 +343,11 @@ async def get_page_popularity(
 async def get_topic_popularity(
     days: int = 30,
     db: Session = Depends(get_db),
-    current_admin: Student = Depends(get_current_admin_user)
+    current_admin: Student = Depends(get_current_admin_user),
 ):
     """Get topic popularity. Admin only."""
     from datetime import date, timedelta
+
     service = get_analytics_service(db)
     end = date.today()
     start = end - timedelta(days=days)
@@ -335,10 +358,11 @@ async def get_topic_popularity(
 async def get_engagement_metrics(
     days: int = 30,
     db: Session = Depends(get_db),
-    current_admin: Student = Depends(get_current_admin_user)
+    current_admin: Student = Depends(get_current_admin_user),
 ):
     """Get user engagement metrics. Admin only."""
     from datetime import date, timedelta
+
     service = get_analytics_service(db)
     end = date.today()
     start = end - timedelta(days=days)
