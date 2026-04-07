@@ -299,8 +299,13 @@ async def submit_assessment_answer(
     current_user: Student = Depends(get_current_user),
 ):
     """Submit a student's answer to an assessment and automatically grade it. Requires authentication."""
-    # Get assessment
-    assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
+    # Lock the row to prevent double-submission race (C2)
+    assessment = (
+        db.query(Assessment)
+        .filter(Assessment.id == assessment_id)
+        .with_for_update()
+        .first()
+    )
     if not assessment:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found"
@@ -320,17 +325,13 @@ async def submit_assessment_answer(
             detail="Assessment has already been submitted",
         )
 
-    # Update assessment with answer
+    safe_assessment_id = sanitize_log_value(assessment_id)
+
+    # Stage the submission fields
     assessment.student_answer = answer_data.student_answer
     assessment.submitted_at = datetime.now(timezone.utc)
 
-    # Commit the submission first
-    db.commit()
-    db.refresh(assessment)
-
-    safe_assessment_id = sanitize_log_value(assessment_id)
-
-    # Automatically grade the assessment using LLM
+    # Grade before committing so both happen in one transaction (C4)
     try:
         grading_service = get_grading_service(db)
         competency_service = get_competency_service(db)
@@ -338,7 +339,6 @@ async def submit_assessment_answer(
             assessment, competency_service=competency_service
         )
 
-        # Update assessment with grading results
         assessment.score = score
         assessment.feedback = feedback
         assessment.graded_at = datetime.now(timezone.utc)
@@ -351,10 +351,11 @@ async def submit_assessment_answer(
             f"Student submitted and auto-graded assessment {safe_assessment_id} - Score: {score}/{assessment.max_score}"
         )
     except Exception as e:
+        db.rollback()
         logger.error(f"Failed to auto-grade assessment {safe_assessment_id}: {str(e)}")
-        # Continue even if grading fails - assessment is submitted but not graded
-        logger.info(
-            f"Assessment {safe_assessment_id} submitted but not graded due to error"
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="No se pudo calificar la evaluación. Intente nuevamente.",
         )
 
     return AssessmentResponse.model_validate(assessment)
