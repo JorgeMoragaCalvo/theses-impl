@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 from ..services.exercise_manager import ExerciseManager
@@ -42,14 +43,8 @@ class MathematicalModelingAgent(BaseAgent):
         )
 
         # load course materials
-        materials_path = os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "..",
-            "..",
-            "data",
-            "course_materials",
-            "mathematical_modeling_fundamental.md",
+        materials_path = str(
+            Path(__file__).parent / ".." / ".." / ".." / "data" / "course_materials" / "mathematical_modeling_fundamental.md"
         )
 
         if os.path.exists(materials_path):
@@ -61,15 +56,8 @@ class MathematicalModelingAgent(BaseAgent):
             )
 
         # Load exercises
-        exercises_path = os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "..",
-            "..",
-            "data",
-            "course_materials",
-            "mathematical_modeling",
-            "exercises",
+        exercises_path = str(
+            Path(__file__).parent / ".." / ".." / ".." / "data" / "course_materials" / "mathematical_modeling" / "exercises"
         )
         self.exercise_manager = ExerciseManager(exercises_path)
         logger.info(f"Loaded {self.exercise_manager.get_exercise_count()} exercises")
@@ -563,8 +551,7 @@ Si permites violación con probabilidad ≤ α:
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in modeling_keywords)
 
-    @staticmethod
-    def _get_off_topic_response() -> str:
+    def _get_off_topic_response(self) -> str:
         """Response when a query is outside the modeling scope."""
         return (
             "Mi especialidad es el Modelado Matemático. Tu pregunta parece ser sobre otro tema.\n\n"
@@ -572,120 +559,6 @@ Si permites violación con probabilidad ≤ α:
             "funciones objetivo, restricciones, tipos de modelos (LP, IP, NLP), "
             "problemas de transporte, asignación, producción, y más.\n\n"
             "¿Tienes alguna pregunta sobre estos temas?"
-        )
-
-    def generate_response(
-        self,
-        user_message: str,
-        conversation_history: list[dict[str, str]],
-        context: dict[str, Any],
-    ) -> str:
-        """Generate Mathematical Modeling tutor response (synchronous)."""
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
-        )
-        if error_message:
-            return error_message
-
-        if not self._is_meta_question(
-            preprocessed_message
-        ) and not self.is_modeling_related(preprocessed_message):
-            return self._get_off_topic_response()
-
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
-        # Generate response with tools
-        try:
-            all_tools = self.tools + context.get("tools", [])
-            response = self.llm_service.generate_response_with_tools(
-                messages=components["messages"],
-                tools=all_tools,
-                system_prompt=components["system_prompt"],
-            )
-        except Exception as e:
-            logger.warning(f"Tool-enabled generation failed, falling back: {e}")
-            # Fallback to non-tool generation
-            try:
-                response = self.llm_service.generate_response(
-                    messages=components["messages"],
-                    system_prompt=components["system_prompt"],
-                )
-            except Exception as fallback_e:
-                logger.error(
-                    f"Error in {self.agent_name} response generation: {str(fallback_e)}"
-                )
-                from ..utils import format_error_message
-
-                return format_error_message(fallback_e)
-
-        return self._postprocess_with_feedback(
-            raw_response=response,
-            conversation_history=conversation_history,
-            context=context,
-            confusion_analysis=components["confusion_analysis"],
-            selected_strategy=components["selected_strategy"],
-        )
-
-    async def a_generate_response(
-        self,
-        user_message: str,
-        conversation_history: list[dict[str, str]],
-        context: dict[str, Any],
-    ) -> str:
-        """Generate Mathematical Modeling tutor response (asynchronous)."""
-
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
-        )
-        if error_message:
-            return error_message
-
-        if not self._is_meta_question(
-            preprocessed_message
-        ) and not self.is_modeling_related(preprocessed_message):
-            return self._get_off_topic_response()
-
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
-        # Generate response with tools (async)
-        try:
-            all_tools = self.tools + context.get("tools", [])
-            response = await self.llm_service.a_generate_response_with_tools(
-                messages=components["messages"],
-                tools=all_tools,
-                system_prompt=components["system_prompt"],
-            )
-        except Exception as e:
-            logger.warning(f"Tool-enabled async generation failed, falling back: {e}")
-            # Fallback to non-tool generation
-            try:
-                response = await self.llm_service.a_generate_response(
-                    messages=components["messages"],
-                    system_prompt=components["system_prompt"],
-                )
-            except Exception as fallback_e:
-                logger.error(
-                    f"Error in {self.agent_name} async response generation: {str(fallback_e)}"
-                )
-                from ..utils import format_error_message
-
-                return format_error_message(fallback_e)
-
-        return self._postprocess_with_feedback(
-            raw_response=response,
-            conversation_history=conversation_history,
-            context=context,
-            confusion_analysis=components["confusion_analysis"],
-            selected_strategy=components["selected_strategy"],
-            async_mode=True,
         )
 
 
@@ -702,7 +575,9 @@ def get_mathematical_modeling_agent() -> MathematicalModelingAgent:
     """
     global _modeling_agent
 
-    if _modeling_agent is None:
-        _modeling_agent = MathematicalModelingAgent()
+    agent = _modeling_agent
+    if agent is None:
+        agent = MathematicalModelingAgent()
+        _modeling_agent = agent
 
-    return _modeling_agent
+    return agent
