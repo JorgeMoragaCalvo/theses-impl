@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     cors_origins: str = ""  # Comma-separated allowed origins (e.g., "https://example.com,https://app.example.com")
 
     # Application Configuration
-    version: str = "1.6.5"
+    version: str = "1.6.6"
     debug: bool = False
     log_level: str = "INFO"
 
