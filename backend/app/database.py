@@ -212,9 +212,9 @@ class ConceptHierarchy(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     concept_id = Column(String(255), nullable=False, unique=True, index=True)
-    concept_name = Column(String(255), nullable=False)
+    concept_name: str = Column(String(255), nullable=False)
     topic = Column(Enum(Topic), nullable=False)
-    parent_concept_id = Column(String(255), nullable=True)
+    parent_concept_id: str | None = Column(String(255), nullable=True)
     bloom_level = Column(String(50), nullable=False)
     prerequisites = Column(JSON, default=list)
     extra_data = Column(JSON, default=dict)

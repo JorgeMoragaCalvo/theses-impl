@@ -214,7 +214,7 @@ class ConversationService:
             conversation_extra_data = conversation.extra_data
 
         # Combine contexts
-        context = {
+        context: dict[str, Any] = {
             "conversation_id": conversation_id,
             "conversation_history": history,
             "student": student_context,

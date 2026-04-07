@@ -105,9 +105,10 @@ def get_taxonomy_registry() -> ConceptTaxonomyRegistry:
     global _taxonomy_registry
     if _taxonomy_registry is None:
         taxonomies_path = os.path.join(
-            os.path.dirname(__file__), "..", "..", "..", "data", "concept_taxonomies"
+            os.path.dirname(str(__file__)), "..", "..", "..", "data", "concept_taxonomies"
         )
         _taxonomy_registry = ConceptTaxonomyRegistry(taxonomies_path)
+    assert _taxonomy_registry is not None
     return _taxonomy_registry
 
 
@@ -214,7 +215,7 @@ class CompetencyService:
                 .first()
             )
 
-            concept_name = concept_node.concept_name if concept_node else concept_id
+            concept_name = str(concept_node.concept_name) if concept_node else concept_id
             topic = concept_node.topic if concept_node else Topic.OPERATIONS_RESEARCH
 
             competency = StudentCompetency(
@@ -268,11 +269,14 @@ class CompetencyService:
                 )
                 .first()
             )
+            assert competency is not None
 
+        # noinspection PyTypeChecker
         logger.info(
             f"Updated competency: student={student_id}, concept={concept_id}, "
             f"score={competency.mastery_score:.2f}, level={competency.mastery_level.value}"
         )
+        # noinspection PyTypeChecker
         return competency
 
     @staticmethod
@@ -305,6 +309,7 @@ class CompetencyService:
             logger.warning(f"Unknown topic: {safe_topic}")
             return []
 
+        # noinspection PyTypeChecker
         return (
             self.db.query(StudentCompetency)
             .filter(
