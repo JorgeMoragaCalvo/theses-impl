@@ -1,5 +1,4 @@
 import logging
-from typing import Any
 
 from .base_agent import BaseAgent
 
@@ -93,27 +92,27 @@ class IntegerProgrammingAgent(BaseAgent):
     def _get_pedagogy_prompt(self) -> str:
         return """
     PROTOCOLO SOCRATICO (Prioridad Alta):
-    Antes de dar formulaciones completas, guia con preguntas:
+    Antes de dar formulaciones completas, guía con preguntas:
     1. "Que decisiones son de tipo si/no en este problema?"
     2. "Que variables necesitan ser enteras vs continuas?"
     3. "Como modelamos la restriccion 'si hacemos A, entonces debemos hacer B'?"
-    Solo da la solucion directa si: (a) el estudiante lo pide, (b) muestra frustracion, o (c) ya intento responder.
+    Solo da la solucion directa si: (a) el estudiante lo pide, (b) muestra frustración, o (c) ya intento responder.
 
     ANDAMIAJE (Scaffolding):
-    1. Primero: pista orientadora ("Que tipo de variable necesitas para una decision abrir/no abrir?")
+    1. Primero: pista orientadora ("Que tipo de variable necesitas para una decisión abrir/no abrir?")
     2. Si no avanza: pista mas directa ("Usa una variable binaria y_i in {0,1}")
-    3. Ultimo recurso: formulacion completa con explicacion
+    3. Ultimo recurso: formulacion completa con explicación
 
     CORRECCION DE ERRORES:
     1. Reconoce lo que SI esta correcto
-    2. Identifica el error especifico sin juzgar
+    2. Identifica el error específico sin juzgar
     3. Usa un contraejemplo o caso simple para mostrar el problema
-    4. Guia hacia la correccion (no la des directamente)
+    4. Guía hacia la corrección (no la des directamente)
 
     LONGITUD ADAPTATIVA:
-    - Pregunta simple de definicion -> 2-3 oraciones
-    - Duda sobre modelado especifico -> explicacion + "Tiene sentido?"
-    - Problema completo para formular/resolver -> solucion estructurada paso a paso"""
+    - Pregunta simple de definición -> 2-3 oraciones
+    - Duda sobre modelado específico -> explicación + "Tiene sentido?"
+    - Problema completo para formular/resolver -> solución estructurada paso a paso"""
 
     def _get_guidelines_prompt(self) -> str:
         return """
@@ -596,8 +595,7 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in ip_keywords)
 
-    @staticmethod
-    def _get_off_topic_response() -> str:
+    def _get_off_topic_response(self) -> str:
         """Response when a query is outside the IP scope."""
         return (
             "Mi especialidad es la Programación Entera. Tu pregunta parece ser sobre otro tema.\n\n"
@@ -605,85 +603,6 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             "branch and bound, planos de corte, modelado de restricciones lógicas, "
             "problemas de ubicación, scheduling, asignación, y análisis de gaps de optimalidad.\n\n"
             "¿Tienes alguna pregunta sobre estos temas?"
-        )
-
-    def generate_response(
-        self,
-        user_message: str,
-        conversation_history: list[dict[str, str]],
-        context: dict[str, Any],
-    ) -> str:
-        """
-        Generate IP tutor response with adaptive preprocessing.
-
-        Args:
-            user_message: Current user message
-            conversation_history: Previous messages
-            context: Context dictionary
-
-        Returns:
-            Generated response with adaptive explanations
-        """
-
-        # Preprocess the message
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
-        )
-        if error_message:
-            return error_message
-
-        # Check if the question is IP-related
-        if not self._is_meta_question(preprocessed_message) and not self.is_ip_related(
-            preprocessed_message
-        ):
-            return self._get_off_topic_response()
-
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
-        return self._generate_and_postprocess(components, conversation_history, context)
-
-    async def a_generate_response(
-        self,
-        user_message: str,
-        conversation_history: list[dict[str, str]],
-        context: dict[str, Any],
-    ) -> str:
-        """
-        Async version with adaptive preprocessing.
-
-        Args:
-            user_message: Current user message
-            conversation_history: Previous messages
-            context: Context dictionary
-
-        Returns:
-            Generated response with adaptive explanations
-        """
-        # Preprocess
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
-        )
-        if error_message:
-            return error_message
-
-        # Check if IP-related
-        if not self._is_meta_question(preprocessed_message) and not self.is_ip_related(
-            preprocessed_message
-        ):
-            return self._get_off_topic_response()
-
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
-        return await self._a_generate_and_postprocess(
-            components, conversation_history, context
         )
 
 
@@ -700,7 +619,9 @@ def get_integer_programming_agent() -> IntegerProgrammingAgent:
     """
     global _ip_agent
 
-    if _ip_agent is None:
-        _ip_agent = IntegerProgrammingAgent()
+    agent = _ip_agent
+    if agent is None:
+        agent = IntegerProgrammingAgent()
+        _ip_agent = agent
 
-    return _ip_agent
+    return agent
