@@ -77,13 +77,13 @@ class IntegerProgrammingAgent(BaseAgent):
 
     def _get_strategy_prompt(self) -> str:
         return """
-    SELECCION DE ESTRATEGIA - Usa estos disparadores:
+    SELECCIÓN DE ESTRATEGIA - Usa estos disparadores:
 
     | Tipo de pregunta | Estrategia | Ejemplo de trigger |
     |------------------|------------|-------------------|
-    | "Como formulo este problema?" | BASADO EN FORMULACION | Traducir decisiones a variables |
+    | "Como formulo este problema?" | BASADO EN FORMULACIÓN | Traducir decisiones a variables |
     | "Dame un ejemplo de IP" | BASADO EN EJEMPLOS | Problema numérico completo |
-    | "Como funciona branch and bound?" | ALGORITMICO | Pasos del algoritmo |
+    | "Como funciona branch and bound?" | ALGORÍTMICO | Pasos del algoritmo |
     | "Por que IP es mas difícil que LP?" | COMPARATIVO | Diferencias y trade-offs |
     | "Para que sirve esto en la practica?" | BASADO EN APLICACIÓN | Escenarios reales |
     | "Por que la relajación da una cota?" | CONCEPTUAL-TEÓRICO | Explicar teoría |

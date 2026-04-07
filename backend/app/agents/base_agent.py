@@ -187,10 +187,11 @@ class BaseAgent(ABC):
                 return False
 
             with open(file_path, encoding="utf-8") as f:
-                self.course_materials = f.read()
+                content = f.read()
+            self.course_materials = content
 
             logger.info(
-                f"Loaded course materials from {file_path} ({len(self.course_materials)} chars)"
+                f"Loaded course materials from {file_path} ({len(content)} chars)"
             )
             return True
         except Exception as e:
@@ -239,23 +240,12 @@ class BaseAgent(ABC):
         Generate agent response with adaptive learning, topic checking,
         and optional tool support.
         """
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
+        components, early = self._validate_and_prepare(
+            user_message, conversation_history, context
         )
-        if error_message:
-            return error_message
-
-        if not self._is_meta_question(
-            preprocessed_message
-        ) and not self.is_topic_related(preprocessed_message):
-            return self._get_off_topic_response()
-
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
+        if early is not None:
+            return early
+        assert components is not None
         if self.tools:
             return self._generate_with_tools(components, conversation_history, context)
         return self._generate_and_postprocess(components, conversation_history, context)
@@ -267,23 +257,12 @@ class BaseAgent(ABC):
         context: dict[str, Any],
     ) -> str:
         """Async version of generate_response."""
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
+        components, early = self._validate_and_prepare(
+            user_message, conversation_history, context
         )
-        if error_message:
-            return error_message
-
-        if not self._is_meta_question(
-            preprocessed_message
-        ) and not self.is_topic_related(preprocessed_message):
-            return self._get_off_topic_response()
-
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
+        if early is not None:
+            return early
+        assert components is not None
         if self.tools:
             return await self._a_generate_with_tools(
                 components, conversation_history, context
@@ -458,11 +437,12 @@ class BaseAgent(ABC):
         repeated_topic_info = detect_repeated_topic(conversation_history)
 
         # Combine analyses
+        signals: list[str] = confusion_analysis["signals"]
         result = {
             "detected": confusion_analysis["detected"]
             or repeated_topic_info["repeated"],
             "level": confusion_analysis["level"],
-            "signals": confusion_analysis["signals"],
+            "signals": signals,
             "repeated_topic": repeated_topic_info,
         }
 
@@ -470,7 +450,7 @@ class BaseAgent(ABC):
         if repeated_topic_info["repeated"] and repeated_topic_info["count"] >= 3:
             if result["level"] in ["none", "low"]:
                 result["level"] = "medium"
-                result["signals"].append("repeated_topic_escalation")
+                signals.append("repeated_topic_escalation")
 
         logger.info(
             f"Confusion detection: detected={result['detected']}, "
@@ -722,6 +702,35 @@ class BaseAgent(ABC):
         return response + prompt
 
     # ── Shared adaptive-learning helpers (used by subclass generate_response) ──
+
+    def _validate_and_prepare(
+        self,
+        user_message: str,
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any],
+    ) -> tuple[dict[str, Any] | None, str | None]:
+        """
+        Shared preamble for generate_response and a_generate_response.
+        Returns (components, None) on success or (None, early_return_value) on early exit.
+        """
+        preprocessed_message, error_message = self._validate_and_preprocess(
+            user_message
+        )
+        if error_message:
+            return None, error_message
+        assert preprocessed_message is not None
+
+        if not self._is_meta_question(
+            preprocessed_message
+        ) and not self.is_topic_related(preprocessed_message):
+            return None, self._get_off_topic_response()
+
+        components = self._prepare_generation_components(
+            preprocessed_message=preprocessed_message,
+            conversation_history=conversation_history,
+            context=context,
+        )
+        return components, None
 
     def _validate_and_preprocess(
         self, user_message: str
