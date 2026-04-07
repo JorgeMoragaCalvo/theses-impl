@@ -24,7 +24,7 @@ class LLMService:
     """
 
     def __init__(self):
-        """Initialize LLM service with configured provider."""
+        """Initialize LLM service with a configured provider."""
         self.provider = settings.llm_provider
         self.llm = self._initialize_llm()
         logger.info(f"LLMService initialized with provider: {self.provider}")
@@ -147,6 +147,18 @@ class LLMService:
 
         return langchain_messages
 
+    @staticmethod
+    def _extract_content(content: str | list) -> str:
+        if isinstance(content, str):
+            return content
+        parts = []
+        for block in content:
+            if isinstance(block, dict):
+                parts.append(block.get("text", ""))
+            else:
+                parts.append(str(block))
+        return "".join(parts)
+
     def generate_response(
         self,
         messages: list[dict[str, str]],
@@ -184,7 +196,7 @@ class LLMService:
             response = llm.invoke(langchain_messages)
 
             # Extract content
-            response_text = response.content
+            response_text = self._extract_content(response.content)
 
             logger.info(
                 f"Generated response with {self.provider}: {len(response_text)} characters"
@@ -226,7 +238,7 @@ class LLMService:
 
             # Generate response asynchronously
             response = await llm.ainvoke(langchain_messages)
-            response_text = response.content
+            response_text = self._extract_content(response.content)
 
             logger.info(
                 f"Generated async response with {self.provider}: {len(response_text)} characters"
@@ -295,10 +307,11 @@ class LLMService:
         """
         if not hasattr(response, "tool_calls") or not response.tool_calls:
             prefix = "async " if is_async else ""
+            content = self._extract_content(response.content)
             logger.info(
-                f"Generated {prefix}response with tools (iteration {iteration + 1}): {len(response.content)} chars"
+                f"Generated {prefix}response with tools (iteration {iteration + 1}): {len(content)} chars"
             )
-            return response.content
+            return content
 
         langchain_messages.append(response)
 
@@ -371,7 +384,7 @@ class LLMService:
             # Max iterations reached, get a final response without tools
             logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")
             final_response = llm.invoke(langchain_messages)
-            return final_response.content
+            return self._extract_content(final_response.content)
 
         except Exception as e:
             logger.error(f"Error in generate_response_with_tools: {str(e)}")
@@ -425,7 +438,7 @@ class LLMService:
             # Max iterations reached
             logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")
             final_response = await llm.ainvoke(langchain_messages)
-            return final_response.content
+            return self._extract_content(final_response.content)
 
         except Exception as e:
             logger.error(f"Error in a_generate_response_with_tools: {str(e)}")
@@ -459,7 +472,9 @@ def get_llm_service() -> LLMService:
     """
     global _llm_service
 
-    if _llm_service is None:
-        _llm_service = LLMService()
+    if _llm_service is not None:
+        return _llm_service
 
-    return _llm_service
+    service = LLMService()
+    _llm_service = service
+    return service

@@ -115,7 +115,7 @@ def get_exercise_registry() -> ExerciseRegistry:
     global _exercise_registry
     if _exercise_registry is None:
         base_path = os.path.join(
-            os.path.dirname(__file__), "..", "..", "..", "data", "course_materials"
+            os.path.dirname(str(__file__)), "..", "..", "..", "data", "course_materials"
         )
         _exercise_registry = ExerciseRegistry(base_path)
     return _exercise_registry
@@ -136,7 +136,7 @@ def get_exercise_manager() -> ExerciseManager:
         else:
             # Fallback to direct initialization if the registry doesn't have MM
             exercises_path = os.path.join(
-                os.path.dirname(__file__),
+                os.path.dirname(str(__file__)),
                 "..",
                 "..",
                 "..",
@@ -164,7 +164,7 @@ class ExerciseAssessmentService:
     Service for creating assessments from mathematical modeling exercises.
 
     Supports two modes:
-    - practice: Use exercise directly as assessment
+    - practice: Use exercise directly as an assessment
     - similar: Generate a similar problem using LLM
     """
 
