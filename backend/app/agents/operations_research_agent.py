@@ -294,10 +294,10 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
         return [
             "conceptual",
             "basado en ejemplos",
-            "perspectiva histórica",
+            "histórico-contextual",
             "comparativo",
-            "centrado en la aplicación",
-            "basado en el framework",
+            "algorítmico",
+            "analógico",
         ]
 
     def is_topic_related(self, message: str) -> bool:

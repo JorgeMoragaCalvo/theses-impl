@@ -480,9 +480,9 @@ class BaseAgent(ABC):
         """
         # Default strategies by knowledge level
         default_strategies = {
-            "beginner": ["step-by-step", "example-based", "analogy-based"],
-            "intermediate": ["example-based", "conceptual", "step-by-step"],
-            "advanced": ["conceptual", "formal-mathematical", "comparative"],
+            "beginner": ["paso a paso", "basado en ejemplos", "analógico"],
+            "intermediate": ["basado en ejemplos", "conceptual", "paso a paso"],
+            "advanced": ["conceptual", "formal-matemático", "comparativo"],
         }
 
         # Get preferred strategies for this knowledge level
@@ -493,10 +493,10 @@ class BaseAgent(ABC):
         # Adjust based on the confusion level
         if confusion_level == "high":
             # Use simplest, most concrete strategies
-            preferred = ["step-by-step", "example-based", "analogy-based"]
+            preferred = ["paso a paso", "basado en ejemplos", "analógico"]
         elif confusion_level == "medium":
             # Mix of concrete and conceptual
-            preferred = ["example-based", "step-by-step", "conceptual"]
+            preferred = ["basado en ejemplos", "paso a paso", "conceptual"]
         # For low/none confusion, use knowledge-level defaults
 
         # Filter out recently used strategies to provide variety
@@ -574,11 +574,11 @@ class BaseAgent(ABC):
 
         # Add strategy-specific instructions
         strategy_prompts = {
-            "step-by-step": (
+            "paso a paso": (
                 "📝 Use a STEP-BY-STEP approach: Break down the concept into numbered sequential steps. "
                 "Explain what happens at each step and why. Make each step clear and actionable."
             ),
-            "example-based": (
+            "basado en ejemplos": (
                 "📊 Use an EXAMPLE-BASED approach: Provide a concrete, numerical example. "
                 "Work through the example completely, showing all calculations. "
                 "Then explain how the example demonstrates the general concept."
@@ -588,7 +588,7 @@ class BaseAgent(ABC):
                 "Explain the 'why' behind the concept before the 'how'. "
                 "Help build understanding of the big picture."
             ),
-            "analogy-based": (
+            "analógico": (
                 "🌟 Use an ANALOGY or METAPHOR approach: Relate the concept to something familiar from everyday life. "
                 "Draw parallels that make the abstract concrete. "
                 "Then connect the analogy back to the mathematical concept."
@@ -598,14 +598,24 @@ class BaseAgent(ABC):
                 "Paint a picture with words - explain shapes, regions, lines, points. "
                 "Help the student visualize the concept spatially."
             ),
-            "formal-mathematical": (
+            "formal-matemático": (
                 "🔬 Use a FORMAL MATHEMATICAL approach: Provide rigorous definitions and mathematical notation. "
                 "Show the theoretical foundations. Explain with precision and mathematical exactness."
             ),
-            "comparative": (
+            "comparativo": (
                 "⚖️ Use a COMPARATIVE approach: Compare and contrast with related concepts or methods. "
                 "Highlight similarities and differences. "
                 "Show when to use this approach versus alternatives."
+            ),
+            "algorítmico": (
+                "⚙️ Use an ALGORITHMIC approach: Walk through the algorithm or procedure step by step. "
+                "Show each iteration or stage explicitly. "
+                "Emphasize the decision rules and stopping criteria at each step."
+            ),
+            "histórico-contextual": (
+                "🏛️ Use a HISTORICAL/CONTEXTUAL approach: Explain the origin and motivation of the concept. "
+                "Show the real-world problem it was designed to solve. "
+                "Connect the theory to its practical and historical context."
             ),
         }
 

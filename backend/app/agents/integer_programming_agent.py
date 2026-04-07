@@ -393,12 +393,12 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
     def get_available_strategies(self) -> list[str]:
         """Return available explanation strategies for Integer Programming."""
         return [
-            "formulation-based",
-            "example-driven",
-            "algorithmic",
-            "comparative",
-            "application-based",
-            "conceptual-theoretical",
+            "algorítmico",
+            "basado en ejemplos",
+            "formal-matemático",
+            "comparativo",
+            "conceptual",
+            "visual",
         ]
 
     def is_topic_related(self, message: str) -> bool:

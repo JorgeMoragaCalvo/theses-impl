@@ -377,7 +377,7 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
             "basado en ejemplos",
             "conceptual",
             "visual",
-            "matemático-formal",
+            "formal-matemático",
             "comparativo",
         ]
 

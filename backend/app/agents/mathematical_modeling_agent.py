@@ -421,12 +421,12 @@ Si permites violación con probabilidad ≤ α:
     def get_available_strategies(self) -> list[str]:
         """Return available explanation strategies for Mathematical Modeling."""
         return [
-            "problema primero",
-            "componente por componente",
-            "reconocimiento de patrones",
-            "ingeniería inversa",
+            "paso a paso",
+            "basado en ejemplos",
+            "conceptual",
             "analógico",
-            "basado en plantillas",
+            "comparativo",
+            "visual",
         ]
 
     def is_topic_related(self, message: str) -> bool:

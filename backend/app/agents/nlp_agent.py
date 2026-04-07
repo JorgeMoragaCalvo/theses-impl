@@ -232,9 +232,9 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
         """Return available explanation strategies for NLP."""
         return [
             "algorítmico",
-            "geométrico",
-            "cálculo",
-            "ejemplo",
+            "visual",
+            "formal-matemático",
+            "basado en ejemplos",
             "conceptual",
             "comparativo",
         ]
