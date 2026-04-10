@@ -131,12 +131,18 @@ cors_origins = (
     else []
 )
 
-if not cors_origins:
-    if settings.debug:
-        logger.warning("CORS: No origins configured and debug=True, allowing all origins")
-        cors_origins = ["*"]
-    else:
-        raise RuntimeError("CORS_ORIGINS must be set in production. Add it to your .env file.")
+if not cors_origins and settings.debug:
+    logger.warning("CORS: No origins configured and debug=True, allowing all origins")
+    cors_origins = ["*"]
+elif not cors_origins:
+    logger.warning("CORS: No origins configured. Set CORS_ORIGINS in .env")
+
+# if not cors_origins:
+#     if settings.debug:
+#         logger.warning("CORS: No origins configured and debug=True, allowing all origins")
+#         cors_origins = ["*"]
+#     else:
+#         raise RuntimeError("CORS_ORIGINS must be set in production. Add it to your .env file.")
 
 app.add_middleware(
     CORSMiddleware,
