@@ -49,12 +49,17 @@ class AnalyticsService:
             )
             db_events.append(db_event)
 
-        self.db.add_all(db_events)
-        self.db.commit()
-        logger.info(
-            f"Recorded {len(db_events)} activity events for student {student_id}"
-        )
-        return len(db_events)
+        try:
+            self.db.add_all(db_events)
+            self.db.commit()
+            logger.info(
+                f"Recorded {len(db_events)} activity events for student {student_id}"
+            )
+            return len(db_events)
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Failed to record activity events for student {student_id}: {e}")
+            raise
 
     def get_daily_active_users(
         self, start_date: date, end_date: date

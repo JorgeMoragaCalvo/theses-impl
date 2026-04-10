@@ -117,7 +117,7 @@ class GradingService:
                         c for c in concepts_tested if registry.concept_exists(c)
                     ]
                     performance_score = (
-                        score / assessment.max_score if assessment.max_score else 0.0
+                        score / assessment.max_score if assessment.max_score and assessment.max_score > 0 else 0.0
                     )
                     is_correct = performance_score >= 0.6
                     for concept_id in valid_concepts:

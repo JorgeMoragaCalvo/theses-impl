@@ -245,7 +245,8 @@ class BaseAgent(ABC):
         )
         if early is not None:
             return early
-        assert components is not None
+        if components is None:
+            raise ValueError(f"{self.agent_name}: _validate_and_prepare returned None components without an early response")
         if self.tools:
             return self._generate_with_tools(components, conversation_history, context)
         return self._generate_and_postprocess(components, conversation_history, context)
@@ -262,7 +263,8 @@ class BaseAgent(ABC):
         )
         if early is not None:
             return early
-        assert components is not None
+        if components is None:
+            raise ValueError(f"{self.agent_name}: _validate_and_prepare returned None components without an early response")
         if self.tools:
             return await self._a_generate_with_tools(
                 components, conversation_history, context
@@ -728,7 +730,8 @@ class BaseAgent(ABC):
         )
         if error_message:
             return None, error_message
-        assert preprocessed_message is not None
+        if preprocessed_message is None:
+            raise ValueError(f"{self.agent_name}: _validate_and_preprocess returned None without an error message")
 
         if not self._is_meta_question(
             preprocessed_message

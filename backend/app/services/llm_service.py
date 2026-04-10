@@ -6,6 +6,12 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, Tool
 from langchain_core.tools import BaseTool
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from ..config import settings
 
@@ -50,6 +56,7 @@ class LLMService:
                 temperature=settings.temperature,
                 max_output_tokens=settings.max_tokens,
                 google_api_key=settings.google_api_key,
+                request_timeout=settings.llm_timeout,
             )
 
         elif self.provider == "openai":
@@ -63,6 +70,7 @@ class LLMService:
                 temperature=settings.temperature,
                 max_tokens=settings.max_tokens,
                 openai_api_key=settings.openai_api_key,
+                request_timeout=settings.llm_timeout,
             )
 
         elif self.provider == "anthropic":
@@ -76,6 +84,7 @@ class LLMService:
                 temperature=settings.temperature,
                 max_tokens=settings.max_tokens,
                 anthropic_api_key=settings.anthropic_api_key,
+                timeout=settings.llm_timeout,
             )
         else:
             raise ValueError(
@@ -103,6 +112,7 @@ class LLMService:
                     temperature=temperature or settings.temperature,
                     max_output_tokens=max_tokens or settings.max_tokens,
                     google_api_key=settings.google_api_key,
+                    request_timeout=settings.llm_timeout,
                 )
             elif self.provider == "openai":
                 return ChatOpenAI(
@@ -110,6 +120,7 @@ class LLMService:
                     temperature=temperature or settings.temperature,
                     max_tokens=max_tokens or settings.max_tokens,
                     openai_api_key=settings.openai_api_key,
+                    request_timeout=settings.llm_timeout,
                 )
             else:
                 return ChatAnthropic(
@@ -117,9 +128,32 @@ class LLMService:
                     temperature=temperature or settings.temperature,
                     max_tokens=max_tokens or settings.max_tokens,
                     anthropic_api_key=settings.anthropic_api_key,
+                    timeout=settings.llm_timeout,
                 )
         else:
             return self.llm
+
+    @staticmethod
+    @retry(
+        retry=retry_if_exception_type(Exception),
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=8),
+        reraise=True,
+    )
+    def _invoke_with_retry(llm, messages: list) -> Any:
+        """Invoke LLM synchronously with automatic retry on transient failures."""
+        return llm.invoke(messages)
+
+    @staticmethod
+    @retry(
+        retry=retry_if_exception_type(Exception),
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=8),
+        reraise=True,
+    )
+    async def _ainvoke_with_retry(llm, messages: list) -> Any:
+        """Invoke LLM asynchronously with automatic retry on transient failures."""
+        return await llm.ainvoke(messages)
 
     @staticmethod
     def _convert_message(messages: list[dict[str, str]]) -> list:
@@ -193,7 +227,7 @@ class LLMService:
             llm = self._get_llm_with_overrides(temperature, max_tokens)
 
             # Generate response
-            response = llm.invoke(langchain_messages)
+            response = self._invoke_with_retry(llm, langchain_messages)
 
             # Extract content
             response_text = self._extract_content(response.content)
@@ -237,7 +271,7 @@ class LLMService:
             llm = self._get_llm_with_overrides(temperature, max_tokens)
 
             # Generate response asynchronously
-            response = await llm.ainvoke(langchain_messages)
+            response = await self._ainvoke_with_retry(llm, langchain_messages)
             response_text = self._extract_content(response.content)
 
             logger.info(
@@ -373,7 +407,7 @@ class LLMService:
 
             # Tool execution loop
             for iteration in range(max_tool_iterations):
-                response = llm_with_tools.invoke(langchain_messages)
+                response = self._invoke_with_retry(llm_with_tools, langchain_messages)
 
                 result = self._process_tool_calls(
                     response, langchain_messages, tools, iteration
@@ -383,7 +417,7 @@ class LLMService:
 
             # Max iterations reached, get a final response without tools
             logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")
-            final_response = llm.invoke(langchain_messages)
+            final_response = self._invoke_with_retry(llm, langchain_messages)
             return self._extract_content(final_response.content)
 
         except Exception as e:
@@ -427,7 +461,7 @@ class LLMService:
 
             # Tool execution loop
             for iteration in range(max_tool_iterations):
-                response = await llm_with_tools.ainvoke(langchain_messages)
+                response = await self._ainvoke_with_retry(llm_with_tools, langchain_messages)
 
                 result = self._process_tool_calls(
                     response, langchain_messages, tools, iteration, is_async=True
@@ -437,7 +471,7 @@ class LLMService:
 
             # Max iterations reached
             logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")
-            final_response = await llm.ainvoke(langchain_messages)
+            final_response = await self._ainvoke_with_retry(llm, langchain_messages)
             return self._extract_content(final_response.content)
 
         except Exception as e:
