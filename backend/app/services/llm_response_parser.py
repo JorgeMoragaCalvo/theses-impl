@@ -46,8 +46,17 @@ def parse_llm_json_response(llm_response: str) -> dict[str, Any]:
         if not response_text:
             raise ValueError("Stripped response is empty, no JSON found.")
 
-        # Parse JSON
-        return json.loads(response_text)
+        # Primary parse attempt
+        try:
+            return json.loads(response_text)
+        except json.JSONDecodeError:
+            # Secondary attempt: extract embedded JSON object from surrounding text
+            # (handles cases where the LLM adds preamble/postamble around the JSON)
+            json_start = response_text.find("{")
+            json_end = response_text.rfind("}")
+            if json_start != -1 and json_end > json_start:
+                return json.loads(response_text[json_start : json_end + 1])
+            raise
 
     except json.JSONDecodeError as e:
         logger.error(f"Failed to decode JSON from LLM response: {e}")

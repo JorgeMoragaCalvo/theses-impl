@@ -34,5 +34,4 @@
 - $x_{ij} \geq 0$ $\forall$ $i$ en {p, f, j, e} y $j$ en {b, o, p}
 
 ## Tipo de modelo
-
 Programación Lineal (PL). La función objetivo y todas las restricciones son lineales, y las variables de decisión son continuas y no negativas.
