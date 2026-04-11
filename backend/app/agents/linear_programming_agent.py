@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 from .base_agent import BaseAgent
@@ -33,14 +34,8 @@ class LinearProgrammingAgent(BaseAgent):
         )
 
         # load course materials
-        materials_path = os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "..",
-            "..",
-            "data",
-            "course_materials",
-            "linear_programming_fundamental.md",
+        materials_path = str(
+            Path(__file__).parent / ".." / ".." / ".." / "data" / "course_materials" / "linear_programming_fundamental.md"
         )
 
         if os.path.exists(materials_path):
@@ -382,7 +377,7 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
             "basado en ejemplos",
             "conceptual",
             "visual",
-            "matemático-formal",
+            "formal-matemático",
             "comparativo",
         ]
 
@@ -503,8 +498,7 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in lp_keywords)
 
-    @staticmethod
-    def _get_off_topic_response() -> str:
+    def _get_off_topic_response(self) -> str:
         """
         Standard off-topic response for both sync and async flows.
         """
@@ -517,69 +511,6 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
             "- Comprensión de la dualidad y el análisis de sensibilidad\n"
             "- Análisis de ejemplos y aplicaciones de PL\n"
             "\n¿Te gustaría preguntar sobre alguno de estos temas de Programación Lineal?"
-        )
-
-    def generate_response(
-        self,
-        user_message: str,
-        conversation_history: list[dict[str, str]],
-        context: dict[str, Any],
-    ) -> str:
-        """
-        Generate LP tutor response with adaptive preprocessing.
-
-        Args:
-            user_message: Current user message
-            conversation_history: Previous messages
-            context: Context dictionary
-
-        Returns:
-            Generated response with adaptive explanations
-        """
-
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
-        )
-        if error_message:
-            return error_message
-
-        # Check if the question is LP-related
-        if not self.is_lp_related(preprocessed_message):
-            return self._get_off_topic_response()
-
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
-        return self._generate_and_postprocess(components, conversation_history, context)
-
-    async def a_generate_response(
-        self,
-        user_message: str,
-        conversation_history: list[dict[str, str]],
-        context: dict[str, Any],
-    ) -> str:
-        """Generate LP tutor response (asynchronous)."""
-
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
-        )
-        if error_message:
-            return error_message
-
-        if not self.is_lp_related(preprocessed_message):
-            return self._get_off_topic_response()
-
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
-        return await self._a_generate_and_postprocess(
-            components, conversation_history, context
         )
 
 
@@ -596,7 +527,9 @@ def get_linear_programming_agent() -> LinearProgrammingAgent:
     """
     global _lp_agent
 
-    if _lp_agent is None:
-        _lp_agent = LinearProgrammingAgent()
+    agent = _lp_agent
+    if agent is None:
+        agent = LinearProgrammingAgent()
+        _lp_agent = agent
 
-    return _lp_agent
+    return agent

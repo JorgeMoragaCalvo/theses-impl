@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     cors_origins: str = ""  # Comma-separated allowed origins (e.g., "https://example.com,https://app.example.com")
 
     # Application Configuration
-    version: str = "1.6.5"
+    version: str = "1.6.6"
     debug: bool = False
     log_level: str = "INFO"
 
@@ -66,12 +66,14 @@ class Settings(BaseSettings):
 
     # Session and Authentication Configuration
     secret_key: str = "your-secret-key-change-this-in-production-min-32-chars"  # Must be changed in .env
+    admin_password: str = ""  # Set ADMIN_PASSWORD in .env
     session_timeout_minutes: int = 60
     access_token_expire_days: int = 7  # JWT token expiration
 
     # LLM Configuration
     temperature: float = 0.4
     max_tokens: int = 2000
+    llm_timeout: int = 60  # Seconds before an LLM call is aborted
 
     @property
     def current_api_key(self) -> str:

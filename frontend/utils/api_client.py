@@ -238,9 +238,6 @@ class APIClient:
             if key in st.session_state:
                 del st.session_state[key]
 
-        # Clear localStorage
-        self._clear_token_from_browser()
-
     def _store_auth_data(self, data: dict):
         """Store authentication data in the session state and browser."""
         st.session_state.access_token = data.get("access_token")
@@ -250,9 +247,6 @@ class APIClient:
         st.session_state.student_email = data["user"]["email"]
         st.session_state.user_role = data["user"]["role"]
 
-        # Store token in browser localStorage (for persistence)
-        self._store_token_in_browser(data.get("access_token"), data.get("user"))
-
     def get_current_user(self) -> tuple[bool, Any]:
         """
         Get current authenticated user information.
@@ -261,48 +255,6 @@ class APIClient:
             Tuple of (success, user_data/error)
         """
         return self.get("/auth/me")
-
-    @staticmethod
-    def _store_token_in_browser(token: str, user: dict):
-        """
-        Store authentication token in browser localStorage for persistence.
-
-        Args:
-            token: JWT access token
-            user: User data dictionary
-        """
-        # Use Streamlit's JS execution to store in localStorage
-        storage_data = json.dumps({"token": token, "user": user})
-        st.components.v1.html(
-            f"""
-            <script>
-                localStorage.setItem('auth_data', '{storage_data}');
-            </script>
-            """,
-            height=0,
-        )
-
-    @staticmethod
-    def _clear_token_from_browser():
-        """Clear authentication token from browser localStorage."""
-        st.components.v1.html(
-            """
-            <script>
-                localStorage.removeItem('auth_data');
-            </script>
-            """,
-            height=0,
-        )
-
-    def load_token_from_browser(self):
-        """
-        Attempt to load the authentication token from browser localStorage.
-        This should be called on app startup.
-        """
-        # Note: Reading from localStorage in Streamlit requires a component
-        # For now, we'll rely on session_state persistence
-        # In production, you might want to use a proper Streamlit component
-        pass
 
     @staticmethod
     def is_authenticated() -> bool:

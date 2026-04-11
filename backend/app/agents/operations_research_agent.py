@@ -294,10 +294,10 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
         return [
             "conceptual",
             "basado en ejemplos",
-            "perspectiva histórica",
+            "histórico-contextual",
             "comparativo",
-            "centrado en la aplicación",
-            "basado en el framework",
+            "algorítmico",
+            "analógico",
         ]
 
     def is_topic_related(self, message: str) -> bool:
@@ -557,8 +557,7 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
 
         return keyword_match or is_general_or_question
 
-    @staticmethod
-    def _get_off_topic_response() -> str:
+    def _get_off_topic_response(self) -> str:
         """
         Standard off-topic response for both sync and async flows.
         """
@@ -572,143 +571,6 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
             "- Prepararse para usar agentes especializados (Programación Lineal, Programación Entera, etc.)\n"
             "- Comprender los marcos de toma de decisiones y los enfoques de resolución de problemas\n"
             "\n¿Te gustaría preguntar sobre alguno de estos temas de Investigación de Operaciones?"
-        )
-
-    def generate_response(
-        self,
-        user_message: str,
-        conversation_history: list[dict[str, str]],
-        context: dict[str, Any],
-    ) -> str:
-        """
-        Generate OR tutor response with adaptive preprocessing.
-
-        Args:
-            user_message: Current user message
-            conversation_history: Previous messages
-            context: Context dictionary
-
-        Returns:
-            Generated response with adaptive explanations
-        """
-        # Validate and preprocess
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
-        )
-        if error_message:
-            return error_message
-
-        # Check if the question is OR-related
-        if not self.is_or_related(preprocessed_message):
-            return self._get_off_topic_response()
-
-        # Prepare generation components
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
-        # Generate response with tools
-        try:
-            all_tools = self.tools + context.get("tools", [])
-            response = self.llm_service.generate_response_with_tools(
-                messages=components["messages"],
-                tools=all_tools,
-                system_prompt=components["system_prompt"],
-            )
-        except Exception as e:
-            logger.warning(f"Tool-enabled generation failed, falling back: {e}")
-            # Fallback to non-tool generation
-            try:
-                response = self.llm_service.generate_response(
-                    messages=components["messages"],
-                    system_prompt=components["system_prompt"],
-                )
-            except Exception as fallback_e:
-                logger.error(
-                    f"Error in {self.agent_name} response generation: {str(fallback_e)}"
-                )
-                from ..utils import format_error_message
-
-                return format_error_message(fallback_e)
-
-        # Postprocess and add feedback
-        return self._postprocess_with_feedback(
-            raw_response=response,
-            conversation_history=conversation_history,
-            context=context,
-            confusion_analysis=components["confusion_analysis"],
-            selected_strategy=components["selected_strategy"],
-        )
-
-    async def a_generate_response(
-        self,
-        user_message: str,
-        conversation_history: list[dict[str, str]],
-        context: dict[str, Any],
-    ) -> str:
-        """
-        Async version with adaptive preprocessing.
-
-        Args:
-            user_message: Current user message
-            conversation_history: Previous messages
-            context: Context dictionary
-
-        Returns:
-            Generated response with adaptive explanations
-        """
-        # Validate and preprocess
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
-        )
-        if error_message:
-            return error_message
-
-        # Check if OR-related
-        if not self.is_or_related(preprocessed_message):
-            return self._get_off_topic_response()
-
-        # Prepare generation components
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
-        # Generate response with tools (async)
-        try:
-            all_tools = self.tools + context.get("tools", [])
-            response = await self.llm_service.a_generate_response_with_tools(
-                messages=components["messages"],
-                tools=all_tools,
-                system_prompt=components["system_prompt"],
-            )
-        except Exception as e:
-            logger.warning(f"Tool-enabled async generation failed, falling back: {e}")
-            # Fallback to non-tool generation
-            try:
-                response = await self.llm_service.a_generate_response(
-                    messages=components["messages"],
-                    system_prompt=components["system_prompt"],
-                )
-            except Exception as fallback_e:
-                logger.error(
-                    f"Error in {self.agent_name} async response generation: {str(fallback_e)}"
-                )
-                from ..utils import format_error_message
-
-                return format_error_message(fallback_e)
-
-        # Postprocess and add feedback
-        return self._postprocess_with_feedback(
-            raw_response=response,
-            conversation_history=conversation_history,
-            context=context,
-            confusion_analysis=components["confusion_analysis"],
-            selected_strategy=components["selected_strategy"],
-            async_mode=True,
         )
 
 
@@ -725,7 +587,9 @@ def get_operations_research_agent() -> OperationsResearchAgent:
     """
     global _or_agent
 
-    if _or_agent is None:
-        _or_agent = OperationsResearchAgent()
+    agent = _or_agent
+    if agent is None:
+        agent = OperationsResearchAgent()
+        _or_agent = agent
 
-    return _or_agent
+    return agent

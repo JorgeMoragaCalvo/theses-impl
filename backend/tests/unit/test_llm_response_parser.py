@@ -35,7 +35,5 @@ class TestParseLlmJsonResponse:
 
     def test_parse_json_with_surrounding_text(self):
         raw = 'Here is the result: {"answer": 42}'
-        # The parser should try to parse the whole stripped text
-        # which is not valid JSON, so this should raise
-        with pytest.raises((json.JSONDecodeError, ValueError)):
-            parse_llm_json_response(raw)
+        result = parse_llm_json_response(raw)
+        assert result == {"answer": 42}

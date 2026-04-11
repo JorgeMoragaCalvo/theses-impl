@@ -59,11 +59,11 @@ class Student(Base):
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     last_login = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(
         DateTime,
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
     )
     # Knowledge levels for each topic (stored as JSON)
     knowledge_levels = Column(
@@ -88,7 +88,7 @@ class Conversation(Base):
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, nullable=False, index=True)
     topic = Column(Enum(Topic), nullable=False)
-    started_at = Column(DateTime, default=datetime.now(timezone.utc))
+    started_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     ended_at = Column(DateTime, nullable=True)
     is_active = Column(Integer, default=1)  # 1=True, 0=False
     # Extra data stores session metadata and adaptive learning tracking:
@@ -110,7 +110,7 @@ class Message(Base):
     conversation_id = Column(Integer, nullable=False, index=True)
     role = Column(String(50), nullable=False)  # user, assistant, system
     content = Column(Text, nullable=False)
-    timestamp = Column(DateTime, default=datetime.now(timezone.utc))
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     # Agent information
     agent_type = Column(String(100), nullable=True)  # Which the agent responded
     # Extra data stores adaptive learning metadata:
@@ -150,7 +150,7 @@ class Assessment(Base):
         DateTime, nullable=True
     )  # When admin overrode the auto-grade
 
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     submitted_at = Column(DateTime, nullable=True)
     graded_at = Column(DateTime, nullable=True)
 
@@ -172,7 +172,7 @@ class Feedback(Base):
     is_helpful = Column(Integer, nullable=True)  # 1=True, 0=False
     comment = Column(Text, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Metadata
     extra_data = Column(JSON, default=dict)
@@ -212,9 +212,9 @@ class ConceptHierarchy(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     concept_id = Column(String(255), nullable=False, unique=True, index=True)
-    concept_name = Column(String(255), nullable=False)
+    concept_name: str = Column(String(255), nullable=False)
     topic = Column(Enum(Topic), nullable=False)
-    parent_concept_id = Column(String(255), nullable=True)
+    parent_concept_id: str | None = Column(String(255), nullable=True)
     bloom_level = Column(String(50), nullable=False)
     prerequisites = Column(JSON, default=list)
     extra_data = Column(JSON, default=dict)
@@ -246,10 +246,10 @@ class ActivityEvent(Base):
     student_id = Column(Integer, nullable=False, index=True)
     session_id = Column(String(255), nullable=False, index=True)
     event_category = Column(Enum(EventCategory), nullable=False, index=True)
-    event_action = Column(String(255), nullable=False)
-    page_name = Column(String(255), nullable=True, index=True)
+    event_action: str = Column(String(255), nullable=False)
+    page_name: str | None = Column(String(255), nullable=True, index=True)
     topic = Column(String(255), nullable=True)
-    timestamp = Column(DateTime, default=datetime.now(timezone.utc), index=True)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     duration_seconds = Column(Float, nullable=True)
     extra_data = Column(JSON, default=dict)
 
@@ -263,6 +263,9 @@ def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
 

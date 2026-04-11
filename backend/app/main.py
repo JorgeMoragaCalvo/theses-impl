@@ -130,6 +130,7 @@ cors_origins = (
     if settings.cors_origins
     else []
 )
+
 if not cors_origins and settings.debug:
     logger.warning("CORS: No origins configured and debug=True, allowing all origins")
     cors_origins = ["*"]

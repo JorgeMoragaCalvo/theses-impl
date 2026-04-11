@@ -35,6 +35,7 @@ class AnalyticsService:
         """Batch insert activity events. Returns count of inserted events."""
         db_events = []
         for event in events:
+            # noinspection PyTypeChecker
             db_event = ActivityEvent(
                 student_id=student_id,
                 session_id=event.session_id,
@@ -48,12 +49,17 @@ class AnalyticsService:
             )
             db_events.append(db_event)
 
-        self.db.add_all(db_events)
-        self.db.commit()
-        logger.info(
-            f"Recorded {len(db_events)} activity events for student {student_id}"
-        )
-        return len(db_events)
+        try:
+            self.db.add_all(db_events)
+            self.db.commit()
+            logger.info(
+                f"Recorded {len(db_events)} activity events for student {student_id}"
+            )
+            return len(db_events)
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Failed to record activity events for student {student_id}: {e}")
+            raise
 
     def get_daily_active_users(
         self, start_date: date, end_date: date
@@ -62,7 +68,7 @@ class AnalyticsService:
         results = (
             self.db.query(
                 cast(ActivityEvent.timestamp, Date).label("day"),
-                func.count(func.distinct(ActivityEvent.student_id)).label("count"),
+                func.count(func.distinct(ActivityEvent.student_id)).label("total"),
             )
             .filter(
                 cast(ActivityEvent.timestamp, Date) >= start_date,
@@ -74,7 +80,7 @@ class AnalyticsService:
         )
 
         dates = [row.day.isoformat() for row in results]
-        counts = [row.count for row in results]
+        counts = [row.total for row in results]
         return DailyActiveUsersResponse(dates=dates, counts=counts)
 
     def get_avg_session_duration(
@@ -126,7 +132,7 @@ class AnalyticsService:
         results = (
             self.db.query(
                 func.extract("hour", ActivityEvent.timestamp).label("hour"),
-                func.count(ActivityEvent.id).label("count"),
+                func.count(ActivityEvent.id).label("total"),
             )
             .filter(
                 cast(ActivityEvent.timestamp, Date) >= start_date,
@@ -138,7 +144,7 @@ class AnalyticsService:
         )
 
         hours = [int(row.hour) for row in results]
-        event_counts = [row.count for row in results]
+        event_counts = [row.total for row in results]
         return PeakUsageResponse(hours=hours, event_counts=event_counts)
 
     def get_page_popularity(
@@ -201,7 +207,7 @@ class AnalyticsService:
             # Queries topic interactions within the date range
             self.db.query(
                 ActivityEvent.topic,
-                func.count(ActivityEvent.id).label("count"),
+                func.count(ActivityEvent.id).label("total"),
             )
             .filter(
                 ActivityEvent.topic.isnot(None),
@@ -214,7 +220,7 @@ class AnalyticsService:
         )
 
         topics = [row.topic for row in results]
-        interaction_counts = [row.count for row in results]
+        interaction_counts = [row.total for row in results]
         return TopicPopularityResponse(
             topics=topics, interaction_counts=interaction_counts
         )

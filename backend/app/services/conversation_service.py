@@ -214,7 +214,7 @@ class ConversationService:
             conversation_extra_data = conversation.extra_data
 
         # Combine contexts
-        context = {
+        context: dict[str, Any] = {
             "conversation_id": conversation_id,
             "conversation_history": history,
             "student": student_context,
@@ -506,8 +506,14 @@ class ConversationService:
                         f"Incomplete assessment: {assessment.question[:100]}"
                     )
 
-            # Remove duplicates and limit
-            unique_gaps = list(set(knowledge_gaps))[:5]
+            # Remove duplicates while preserving insertion order, then limit
+            seen: set[str] = set()
+            unique_gaps = []
+            for gap in knowledge_gaps:
+                if gap not in seen:
+                    seen.add(gap)
+                    unique_gaps.append(gap)
+            unique_gaps = unique_gaps[:5]
 
             safe_student_id = _sanitize_for_log(student_id)
             safe_topic = _sanitize_for_log(topic)

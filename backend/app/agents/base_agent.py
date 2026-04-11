@@ -97,6 +97,68 @@ class BaseAgent(ABC):
 
     # ── Topic relevance (abstract) ──
 
+    @staticmethod
+    def _is_meta_question(message: str) -> bool:
+        """
+        Return True for vague/meta questions that should always be answered
+        by the agent in the context of its own topic, regardless of keywords.
+        Examples: "explícame el tema", "en pocas palabras", "qué es esto".
+        """
+        meta_patterns = [
+            # Spanish
+            "explica el tema",
+            "explícame el tema",
+            "explica este tema",
+            "explícame este tema",
+            "explica la materia",
+            "explícame la materia",
+            "en pocas palabras",
+            "en breve",
+            "brevemente",
+            "en resumen",
+            "qué es esto",
+            "qué es este tema",
+            "qué es esta materia",
+            "de qué trata",
+            "de qué va",
+            "de qué se trata",
+            "cuéntame sobre",
+            "cuéntame acerca",
+            "dame una introducción",
+            "dame un resumen",
+            "dame un overview",
+            "qué estudia",
+            "qué cubre",
+            "qué vamos a ver",
+            "qué se estudia",
+            "qué aprenderé",
+            "qué voy a aprender",
+            "qué aprendo",
+            "presentame el tema",
+            "presentame esta materia",
+            "introducción al tema",
+            "introducción a este tema",
+            # English
+            "explain the subject",
+            "explain this topic",
+            "explain this subject",
+            "what is this about",
+            "what is this course",
+            "what is this class",
+            "tell me about this",
+            "tell me about the topic",
+            "give me an introduction",
+            "give me a summary",
+            "give me an overview",
+            "in a few words",
+            "briefly explain",
+            "what do we study",
+            "what is covered",
+            "what will i learn",
+        ]
+        msg_lower = message.lower()
+        return any(p in msg_lower for p in meta_patterns)
+
     @abstractmethod
     def is_topic_related(self, message: str) -> bool:
         """Return True if the message is within this agent's topic scope."""
@@ -125,10 +187,11 @@ class BaseAgent(ABC):
                 return False
 
             with open(file_path, encoding="utf-8") as f:
-                self.course_materials = f.read()
+                content = f.read()
+            self.course_materials = content
 
             logger.info(
-                f"Loaded course materials from {file_path} ({len(self.course_materials)} chars)"
+                f"Loaded course materials from {file_path} ({len(content)} chars)"
             )
             return True
         except Exception as e:
@@ -177,21 +240,13 @@ class BaseAgent(ABC):
         Generate agent response with adaptive learning, topic checking,
         and optional tool support.
         """
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
+        components, early = self._validate_and_prepare(
+            user_message, conversation_history, context
         )
-        if error_message:
-            return error_message
-
-        if not self.is_topic_related(preprocessed_message):
-            return self._get_off_topic_response()
-
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
+        if early is not None:
+            return early
+        if components is None:
+            raise ValueError(f"{self.agent_name}: _validate_and_prepare returned None components without an early response")
         if self.tools:
             return self._generate_with_tools(components, conversation_history, context)
         return self._generate_and_postprocess(components, conversation_history, context)
@@ -203,21 +258,13 @@ class BaseAgent(ABC):
         context: dict[str, Any],
     ) -> str:
         """Async version of generate_response."""
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
+        components, early = self._validate_and_prepare(
+            user_message, conversation_history, context
         )
-        if error_message:
-            return error_message
-
-        if not self.is_topic_related(preprocessed_message):
-            return self._get_off_topic_response()
-
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
+        if early is not None:
+            return early
+        if components is None:
+            raise ValueError(f"{self.agent_name}: _validate_and_prepare returned None components without an early response")
         if self.tools:
             return await self._a_generate_with_tools(
                 components, conversation_history, context
@@ -392,11 +439,12 @@ class BaseAgent(ABC):
         repeated_topic_info = detect_repeated_topic(conversation_history)
 
         # Combine analyses
+        signals: list[str] = confusion_analysis["signals"]
         result = {
             "detected": confusion_analysis["detected"]
             or repeated_topic_info["repeated"],
             "level": confusion_analysis["level"],
-            "signals": confusion_analysis["signals"],
+            "signals": signals,
             "repeated_topic": repeated_topic_info,
         }
 
@@ -404,7 +452,7 @@ class BaseAgent(ABC):
         if repeated_topic_info["repeated"] and repeated_topic_info["count"] >= 3:
             if result["level"] in ["none", "low"]:
                 result["level"] = "medium"
-                result["signals"].append("repeated_topic_escalation")
+                signals.append("repeated_topic_escalation")
 
         logger.info(
             f"Confusion detection: detected={result['detected']}, "
@@ -434,9 +482,9 @@ class BaseAgent(ABC):
         """
         # Default strategies by knowledge level
         default_strategies = {
-            "beginner": ["step-by-step", "example-based", "analogy-based"],
-            "intermediate": ["example-based", "conceptual", "step-by-step"],
-            "advanced": ["conceptual", "formal-mathematical", "comparative"],
+            "beginner": ["paso a paso", "basado en ejemplos", "analógico"],
+            "intermediate": ["basado en ejemplos", "conceptual", "paso a paso"],
+            "advanced": ["conceptual", "formal-matemático", "comparativo"],
         }
 
         # Get preferred strategies for this knowledge level
@@ -447,10 +495,10 @@ class BaseAgent(ABC):
         # Adjust based on the confusion level
         if confusion_level == "high":
             # Use simplest, most concrete strategies
-            preferred = ["step-by-step", "example-based", "analogy-based"]
+            preferred = ["paso a paso", "basado en ejemplos", "analógico"]
         elif confusion_level == "medium":
             # Mix of concrete and conceptual
-            preferred = ["example-based", "step-by-step", "conceptual"]
+            preferred = ["basado en ejemplos", "paso a paso", "conceptual"]
         # For low/none confusion, use knowledge-level defaults
 
         # Filter out recently used strategies to provide variety
@@ -528,11 +576,11 @@ class BaseAgent(ABC):
 
         # Add strategy-specific instructions
         strategy_prompts = {
-            "step-by-step": (
+            "paso a paso": (
                 "📝 Use a STEP-BY-STEP approach: Break down the concept into numbered sequential steps. "
                 "Explain what happens at each step and why. Make each step clear and actionable."
             ),
-            "example-based": (
+            "basado en ejemplos": (
                 "📊 Use an EXAMPLE-BASED approach: Provide a concrete, numerical example. "
                 "Work through the example completely, showing all calculations. "
                 "Then explain how the example demonstrates the general concept."
@@ -542,7 +590,7 @@ class BaseAgent(ABC):
                 "Explain the 'why' behind the concept before the 'how'. "
                 "Help build understanding of the big picture."
             ),
-            "analogy-based": (
+            "analógico": (
                 "🌟 Use an ANALOGY or METAPHOR approach: Relate the concept to something familiar from everyday life. "
                 "Draw parallels that make the abstract concrete. "
                 "Then connect the analogy back to the mathematical concept."
@@ -552,14 +600,24 @@ class BaseAgent(ABC):
                 "Paint a picture with words - explain shapes, regions, lines, points. "
                 "Help the student visualize the concept spatially."
             ),
-            "formal-mathematical": (
+            "formal-matemático": (
                 "🔬 Use a FORMAL MATHEMATICAL approach: Provide rigorous definitions and mathematical notation. "
                 "Show the theoretical foundations. Explain with precision and mathematical exactness."
             ),
-            "comparative": (
+            "comparativo": (
                 "⚖️ Use a COMPARATIVE approach: Compare and contrast with related concepts or methods. "
                 "Highlight similarities and differences. "
                 "Show when to use this approach versus alternatives."
+            ),
+            "algorítmico": (
+                "⚙️ Use an ALGORITHMIC approach: Walk through the algorithm or procedure step by step. "
+                "Show each iteration or stage explicitly. "
+                "Emphasize the decision rules and stopping criteria at each step."
+            ),
+            "histórico-contextual": (
+                "🏛️ Use a HISTORICAL/CONTEXTUAL approach: Explain the origin and motivation of the concept. "
+                "Show the real-world problem it was designed to solve. "
+                "Connect the theory to its practical and historical context."
             ),
         }
 
@@ -656,6 +714,36 @@ class BaseAgent(ABC):
         return response + prompt
 
     # ── Shared adaptive-learning helpers (used by subclass generate_response) ──
+
+    def _validate_and_prepare(
+        self,
+        user_message: str,
+        conversation_history: list[dict[str, str]],
+        context: dict[str, Any],
+    ) -> tuple[dict[str, Any] | None, str | None]:
+        """
+        Shared preamble for generate_response and a_generate_response.
+        Returns (components, None) on success or (None, early_return_value) on early exit.
+        """
+        preprocessed_message, error_message = self._validate_and_preprocess(
+            user_message
+        )
+        if error_message:
+            return None, error_message
+        if preprocessed_message is None:
+            raise ValueError(f"{self.agent_name}: _validate_and_preprocess returned None without an error message")
+
+        if not self._is_meta_question(
+            preprocessed_message
+        ) and not self.is_topic_related(preprocessed_message):
+            return None, self._get_off_topic_response()
+
+        components = self._prepare_generation_components(
+            preprocessed_message=preprocessed_message,
+            conversation_history=conversation_history,
+            context=context,
+        )
+        return components, None
 
     def _validate_and_preprocess(
         self, user_message: str

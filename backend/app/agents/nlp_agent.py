@@ -1,5 +1,4 @@
 import logging
-from typing import Any
 
 from .base_agent import BaseAgent
 
@@ -233,9 +232,9 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
         """Return available explanation strategies for NLP."""
         return [
             "algorítmico",
-            "geométrico",
-            "cálculo",
-            "ejemplo",
+            "visual",
+            "formal-matemático",
+            "basado en ejemplos",
             "conceptual",
             "comparativo",
         ]
@@ -320,66 +319,14 @@ La calificación de restricciones (LICQ) garantiza que los multiplicadores son �
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in nlp_keywords)
 
-    @staticmethod
-    def _get_off_topic_response() -> str:
-        """Response when a query is outside NLP scope."""
+    def _get_off_topic_response(self) -> str:
+        """Response when a query is outside the NLP scope."""
         return (
             "Mi especialidad es Programación No Lineal. Tu pregunta parece ser sobre otro tema.\n\n"
             "Puedo ayudarte con: optimización con/sin restricciones, descenso de gradiente, "
             "método de Newton, condiciones KKT, multiplicadores de Lagrange, convexidad, "
             "métodos de penalización/barrera, y aplicaciones en ML e ingeniería.\n\n"
             "¿Tienes alguna pregunta sobre estos temas?"
-        )
-
-    def generate_response(
-        self,
-        user_message: str,
-        conversation_history: list[dict[str, str]],
-        context: dict[str, Any],
-    ) -> str:
-        """Generate NLP tutor response (synchronous)."""
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
-        )
-        if error_message:
-            return error_message
-
-        if not self.is_nlp_related(preprocessed_message):
-            return self._get_off_topic_response()
-
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
-        return self._generate_and_postprocess(components, conversation_history, context)
-
-    async def a_generate_response(
-        self,
-        user_message: str,
-        conversation_history: list[dict[str, str]],
-        context: dict[str, Any],
-    ) -> str:
-        """Generate NLP tutor response (asynchronous)."""
-
-        preprocessed_message, error_message = self._validate_and_preprocess(
-            user_message
-        )
-        if error_message:
-            return error_message
-
-        if not self.is_nlp_related(preprocessed_message):
-            return self._get_off_topic_response()
-
-        components = self._prepare_generation_components(
-            preprocessed_message=preprocessed_message,
-            conversation_history=conversation_history,
-            context=context,
-        )
-
-        return await self._a_generate_and_postprocess(
-            components, conversation_history, context
         )
 
 
@@ -390,6 +337,8 @@ _nlp_agent: NonLinearProgrammingAgent | None = None
 def get_nonlinear_programming_agent() -> NonLinearProgrammingAgent:
     """Get or create the global NLP agent instance."""
     global _nlp_agent
-    if _nlp_agent is None:
-        _nlp_agent = NonLinearProgrammingAgent()
-    return _nlp_agent
+    agent = _nlp_agent
+    if agent is None:
+        agent = NonLinearProgrammingAgent()
+        _nlp_agent = agent
+    return agent

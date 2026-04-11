@@ -167,9 +167,20 @@ class SpacedRepetitionService:
             concept_id=concept_id,
             scheduled_at=now,
         )
-        self.db.add(session)
-        self.db.commit()
-        self.db.refresh(session)
+        try:
+            self.db.add(session)
+            self.db.commit()
+            self.db.refresh(session)
+        except Exception as e:
+            self.db.rollback()
+            safe_student_id = _sanitize_log_value(str(student_id))
+            safe_concept = _sanitize_log_value(str(concept_id))
+            safe_error = _sanitize_log_value(str(e))
+            logger.error(
+                f"Failed to create review session for student={safe_student_id}, "
+                f"concept={safe_concept}: {safe_error}"
+            )
+            raise
 
         safe_student_id = _sanitize_log_value(str(student_id))
         safe_concept = _sanitize_log_value(str(concept_id))
@@ -273,8 +284,13 @@ class SpacedRepetitionService:
         session.completed_at = now
         session.next_review_scheduled = next_review_at
 
-        self.db.commit()
-        self.db.refresh(session)
+        try:
+            self.db.commit()
+            self.db.refresh(session)
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Failed to complete review session {session.id}: {e}")
+            raise
 
         # Sanitize user-provided values before logging to avoid log injection
         sanitized_performance_quality = _sanitize_log_value(str(performance_quality))
@@ -313,7 +329,12 @@ class SpacedRepetitionService:
 
         # Schedule first review in 1 day
         competency.next_review_at = datetime.now(timezone.utc) + timedelta(days=1)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Failed to schedule initial review for student={student_id}, concept={concept_id}: {e}")
+            raise
 
         logger.info(
             f"Scheduled initial review for student={student_id}, concept={concept_id} "
