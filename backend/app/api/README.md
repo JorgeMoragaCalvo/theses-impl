@@ -67,3 +67,4 @@ Currently, all endpoints are defined directly in `main.py`. When the API grows, 
 - **v1.6.4** (2026-02-27): Added testing implementation.
 - **v1.6.5** (2026-04-03): Security, routing and main.py improvements.
 - **v1.6.6** (2026-04-06): Coverage tests.
+- **v1.6.7** (2026-04-11): Code review and exercises.
