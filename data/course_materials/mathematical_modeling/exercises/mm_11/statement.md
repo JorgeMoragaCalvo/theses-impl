@@ -19,3 +19,8 @@ Considerando que el costo de transporte es proporcional a la distancia entre dos
 - Indique tipo de modelo.
 
 ## Pistas
+
+- Identifique los orígenes (minas) y destinos (hornos) del problema.
+- La oferta total (500 t) es menor que la demanda total (3000 t): el problema es **no balanceado**. Use igualdades para la oferta y desigualdades (≤) para la demanda.
+- Las distancias de la tabla son directamente los coeficientes de costo en la función objetivo.
+- El modelo tiene 12 variables de decisión ($x_{ij}$, una por cada par mina–horno).

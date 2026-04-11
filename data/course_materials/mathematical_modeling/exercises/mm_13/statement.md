@@ -24,3 +24,8 @@ Modelar el problema para determinar un calendario de producción con el fin de m
 - Indique tipo de modelo.
 
 ## Pistas
+
+- Defina variables separadas para producción en tiempo regular, tiempo extra e inventario final, por cada trimestre.
+- La ecuación clave es el **balance de inventario**: $I_t = I_{t-1} + r_t + h_t - d_t$.
+- Forzar $I_t \geq 0$ garantiza que la demanda se cumpla a tiempo (sin faltantes).
+- El costo de mantenimiento se aplica sobre el inventario al **final** de cada trimestre, no al inicio.
