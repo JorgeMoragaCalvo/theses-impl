@@ -173,7 +173,13 @@ class SpacedRepetitionService:
             self.db.refresh(session)
         except Exception as e:
             self.db.rollback()
-            logger.error(f"Failed to create review session for student={student_id}, concept={concept_id}: {e}")
+            safe_student_id = _sanitize_log_value(str(student_id))
+            safe_concept = _sanitize_log_value(str(concept_id))
+            safe_error = _sanitize_log_value(str(e))
+            logger.error(
+                f"Failed to create review session for student={safe_student_id}, "
+                f"concept={safe_concept}: {safe_error}"
+            )
             raise
 
         safe_student_id = _sanitize_log_value(str(student_id))
