@@ -65,3 +65,13 @@ class EventCategory(str, Enum):
     SESSION_END = "session_end"
     IDLE_START = "idle_start"
     IDLE_END = "idle_end"
+
+
+class AffectState(str, Enum):
+    """Detected affective/emotional state of the student during a session."""
+
+    ENGAGED = "engaged"
+    FRUSTRATED = "frustrated"
+    BORED = "bored"
+    DISENGAGED = "disengaged"
+    NEUTRAL = "neutral"

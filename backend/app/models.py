@@ -229,6 +229,7 @@ class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=10000)
     conversation_id: int | None = None
     topic: Topic  # The required field - auto-detect feature will be implemented later
+    session_id: str | None = Field(None, max_length=255)
 
 
 class ChatResponse(BaseModel):

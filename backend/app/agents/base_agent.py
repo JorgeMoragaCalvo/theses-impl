@@ -526,6 +526,7 @@ class BaseAgent(ABC):
     def build_adaptive_prompt_section(
         confusion_analysis: dict[str, Any],
         selected_strategy: str,
+        affect_analysis: dict[str, Any] | None = None,
     ) -> str:
         """
         Build adaptive instructions to inject into system prompt based on confusion analysis.
@@ -533,6 +534,7 @@ class BaseAgent(ABC):
         Args:
             confusion_analysis: Results from detect_student_confusion()
             selected_strategy: Selected explanation strategy
+            affect_analysis: Optional result from AffectDetectionService.detect()
 
         Returns:
             String with adaptive instructions for the LLM
@@ -625,6 +627,36 @@ class BaseAgent(ABC):
             adaptive_instructions.append(
                 f"🎯 EXPLANATION STRATEGY: {strategy_prompts[selected_strategy]}"
             )
+
+        # Add affect-aware instructions derived from session behavioral signals
+        if affect_analysis:
+            state = affect_analysis.get("state", "neutral")
+            confidence = affect_analysis.get("confidence", 0.0)
+            affect_prompts = {
+                "frustrated": (
+                    "😤 BEHAVIORAL SIGNAL: The student shows signs of frustration "
+                    "(repeated topic switching or escalating confusion). "
+                    "Be extra patient and empathetic. Acknowledge that the material is challenging. "
+                    "Offer encouragement and break explanations into smaller, achievable steps in Spanish."
+                ),
+                "bored": (
+                    "😴 BEHAVIORAL SIGNAL: The student shows signs of disengagement or boredom "
+                    "(prolonged idle time). Re-engage with a surprising fact, a real-world application, "
+                    "or a quick challenge question to stimulate their interest in Spanish."
+                ),
+                "disengaged": (
+                    "⚠️ BEHAVIORAL SIGNAL: The student may be on the verge of disengaging "
+                    "(quit shortly after a recent failure). Be encouraging and highlight what they already "
+                    "understand correctly. Offer a simpler entry point to rebuild their confidence in Spanish."
+                ),
+                "engaged": (
+                    "✅ BEHAVIORAL SIGNAL: The student is actively engaged. "
+                    "You may challenge them with a slightly more complex question or introduce a nuance "
+                    "to deepen their understanding in Spanish."
+                ),
+            }
+            if confidence >= 0.3 and state in affect_prompts:
+                adaptive_instructions.append(affect_prompts[state])
 
         # Combine all instructions
         if adaptive_instructions:
@@ -782,10 +814,12 @@ class BaseAgent(ABC):
             all_available_strategies=self.get_available_strategies(),
         )
 
-        # Build adaptive prompt section
+        # Build adaptive prompt section (includes affect state if available)
+        affect_analysis = context.get("affect_analysis")
         adaptive_prompt = self.build_adaptive_prompt_section(
             confusion_analysis=confusion_analysis,
             selected_strategy=selected_strategy,
+            affect_analysis=affect_analysis,
         )
 
         # Get base system prompt
