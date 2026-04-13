@@ -18,10 +18,11 @@ from ..models import (
     MessageResponse,
 )
 from ..rate_limit import limiter
+from ..services.affect_service import get_affect_service
 from ..services.conversation_service import get_conversation_service
 from ..services.spaced_repetition_service import get_spaced_repetition_service
 from ..tools.spaced_repetition_tool import SpacedRepetitionReviewTool
-from ..utils import sanitize_log_value
+from ..utils import detect_confusion_signals, sanitize_log_value
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +110,7 @@ async def chat(
     db.add(user_message)
     db.commit()
 
+    affect_extra: dict = {}
     try:
         # Get the appropriate agent based on the topic
         topic_value = chat_request.topic.value  # Get string value from enum
@@ -137,6 +139,21 @@ async def chat(
                 SpacedRepetitionReviewTool(db=db, student_id=student_id)
             ]
 
+        # Detect student affective state from session activity events
+        if chat_request.session_id:
+            confusion_for_affect = detect_confusion_signals(chat_request.message)
+            affect_svc = get_affect_service(db)
+            affect_result = affect_svc.detect(
+                student_id=student_id,
+                session_id=chat_request.session_id,
+                confusion_analysis=confusion_for_affect,
+            )
+            context["affect_analysis"] = affect_result
+            affect_extra = {
+                "affect_state": affect_result.get("state", "neutral"),
+                "affect_signals": affect_result.get("signals", []),
+            }
+
         # Generate AI response using the selected agent
         response_text = agent.generate_response(
             user_message=chat_request.message,
@@ -162,6 +179,7 @@ async def chat(
         role="assistant",
         content=response_text,
         agent_type=agent_type,
+        extra_data=affect_extra,
     )
     db.add(assistant_message)
     db.commit()
