@@ -9,10 +9,12 @@ from sqlalchemy.orm import Session
 
 from ..database import ConceptHierarchy, StudentCompetency
 from ..enums import MasteryLevel, Topic
+from .bkt_service import BKTService
 
 """
 Competency Service - Tracks student mastery of individual concepts.
-Uses Exponentially Weighted Average (EWA) for mastery score updates.
+Uses Bayesian Knowledge Tracing (BKT) as the primary mastery signal.
+EWA (mastery_score) is retained for backward compatibility and analytics.
 """
 
 logger = logging.getLogger(__name__)
@@ -239,7 +241,7 @@ class CompetencyService:
             competency.correct_count += 1
             competency.last_correct_at = now
 
-        # EWA update
+        # EWA update (retained for backward compatibility and analytics)
         if competency.attempts_count == 1:
             competency.mastery_score = float(performance_score)
         else:
@@ -251,9 +253,13 @@ class CompetencyService:
         # Clamp to [0, 1]
         competency.mastery_score = max(0.0, min(1.0, competency.mastery_score))
 
-        # Recalculate mastery level
+        # BKT update — P(L_n) is the primary mastery signal
+        bkt = BKTService()
+        bkt.update(competency, is_correct)
+
+        # Recalculate mastery level using BKT posterior as the primary score
         competency.mastery_level = self.calculate_mastery_level(
-            competency.mastery_score, competency.attempts_count
+            competency.bkt_p_learn, competency.attempts_count
         )
 
         try:
@@ -274,7 +280,8 @@ class CompetencyService:
         # noinspection PyTypeChecker
         logger.info(
             f"Updated competency: student={student_id}, concept={concept_id}, "
-            f"score={competency.mastery_score:.2f}, level={competency.mastery_level.value}"
+            f"ewa={competency.mastery_score:.3f}, bkt={competency.bkt_p_learn:.3f}, "
+            f"level={competency.mastery_level.value}"
         )
         # noinspection PyTypeChecker
         return competency
@@ -344,6 +351,7 @@ class CompetencyService:
                     "concept_name": comp.concept_name,
                     "mastery_level": comp.mastery_level.value,
                     "mastery_score": round(comp.mastery_score, 3),
+                    "bkt_p_learn": round(comp.bkt_p_learn, 3) if comp.bkt_p_learn is not None else None,
                     "attempts_count": comp.attempts_count,
                 }
             )
