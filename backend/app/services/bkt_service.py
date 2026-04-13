@@ -14,10 +14,10 @@ Parameters per concept (defaults used when no fitted values are available):
 from ..database import StudentCompetency
 
 # Default BKT parameters (conservative priors)
-DEFAULT_P_L0: float = 0.1   # Low prior — assume student doesn't know concept yet
-DEFAULT_P_T: float = 0.3    # Moderate learning rate per attempt
-DEFAULT_P_G: float = 0.25   # Guess probability (1-in-4 chance)
-DEFAULT_P_S: float = 0.1    # Low slip probability
+DEFAULT_P_L0: float = 0.1  # Low prior — assume student doesn't know concept yet
+DEFAULT_P_T: float = 0.3  # Moderate learning rate per attempt
+DEFAULT_P_G: float = 0.25  # Guess probability (1-in-4 chance)
+DEFAULT_P_S: float = 0.1  # Low slip probability
 
 
 def bkt_update(
@@ -47,10 +47,10 @@ def bkt_update(
     """
     # Likelihood of the observation given each knowledge state
     if is_correct:
-        p_obs_given_know = 1.0 - p_s      # knew it and didn't slip
-        p_obs_given_not_know = p_g         # didn't know but guessed right
+        p_obs_given_know = 1.0 - p_s  # knew it and didn't slip
+        p_obs_given_not_know = p_g  # didn't know but guessed right
     else:
-        p_obs_given_know = p_s             # knew it but slipped
+        p_obs_given_know = p_s  # knew it but slipped
         p_obs_given_not_know = 1.0 - p_g  # didn't know and didn't guess correctly
 
     # Total probability of this observation (normalising constant)

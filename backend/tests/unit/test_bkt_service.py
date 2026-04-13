@@ -4,17 +4,11 @@ hand-computed reference values using default parameters:
   P(L0)=0.1, P(T)=0.3, P(G)=0.25, P(S)=0.1
 """
 
-import pytest
-
 from app.services.bkt_service import (
-    DEFAULT_P_G,
     DEFAULT_P_L0,
-    DEFAULT_P_S,
-    DEFAULT_P_T,
     BKTService,
     bkt_update,
 )
-
 
 # ---------------------------------------------------------------------------
 # Hand-computed reference values
@@ -112,7 +106,9 @@ class TestBktMonotonicity:
         for p_init in [0.0, 0.1, 0.5, 0.9, 1.0]:
             for correct in [True, False]:
                 result = bkt_update(p_init, is_correct=correct)
-                assert 0.0 <= result <= 1.0, f"Out of [0,1]: p_init={p_init}, correct={correct} → {result}"
+                assert 0.0 <= result <= 1.0, (
+                    f"Out of [0,1]: p_init={p_init}, correct={correct} → {result}"
+                )
 
 
 class TestBktServiceOrm:
