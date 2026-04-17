@@ -6,9 +6,9 @@ Replaces the EWA mastery score update with a probabilistic posterior estimate.
 
 Parameters per concept (defaults used when no fitted values are available):
   P(L0) — prior probability a student already knows the concept
-  P(T)  — probability of learning on each opportunity (transition)
-  P(G)  — probability of guessing correctly without knowing
-  P(S)  — probability of slipping (incorrect despite knowing)
+  P(T) — probability of learning on each opportunity (transition)
+  P(G) — probability of guessing correctly without knowing
+  P(S) — probability of slipping (incorrect despite knowing)
 """
 
 from ..database import StudentCompetency
@@ -17,7 +17,7 @@ from ..database import StudentCompetency
 DEFAULT_P_L0: float = 0.1  # Low prior — assume student doesn't know concept yet
 DEFAULT_P_T: float = 0.3  # Moderate learning rate per attempt
 DEFAULT_P_G: float = 0.25  # Guess probability (1-in-4 chance)
-DEFAULT_P_S: float = 0.1  # Low slip probability
+DEFAULT_P_S: float = 0.1  # Low-slip probability
 
 
 def bkt_update(
@@ -31,12 +31,12 @@ def bkt_update(
     BKT forward pass: compute P(L_{n+1}) given one observation.
 
     Steps:
-      1. Compute likelihood of the observed answer given each latent state.
+      1. Compute the likelihood of the observed answer given each latent state.
       2. Apply Bayes' rule to get the posterior P(L_n | observation).
       3. Apply the learning transition to get P(L_{n+1}).
 
     Args:
-        p_learn:    Current P(L_n) — probability student knows the concept.
+        p_learn:    Current P(L_n) — a probability student knows the concept.
         is_correct: Whether the student answered correctly.
         p_t:        Learning rate (transition probability).
         p_g:        Guess probability (correct answer without knowledge).
@@ -53,7 +53,7 @@ def bkt_update(
         p_obs_given_know = p_s  # knew it but slipped
         p_obs_given_not_know = 1.0 - p_g  # didn't know and didn't guess correctly
 
-    # Total probability of this observation (normalising constant)
+    # Total probability of this observation (normalizing constant)
     p_obs = p_obs_given_know * p_learn + p_obs_given_not_know * (1.0 - p_learn)
 
     if p_obs <= 0.0:
@@ -77,11 +77,12 @@ class BKTService:
     transaction.
     """
 
-    def update(self, competency: StudentCompetency, is_correct: bool) -> float:
+    @staticmethod
+    def update(competency: StudentCompetency, is_correct: bool) -> float:
         """
         Update the BKT estimate stored in competency.bkt_p_learn.
 
-        If bkt_p_learn is NULL (first-ever update), initialises to P(L0) before
+        If bkt_p_learn is NULL (first-ever update), initializes to P(L0) before
         applying the forward pass.
 
         Args:
@@ -89,7 +90,7 @@ class BKTService:
             is_correct: Whether the current attempt was correct.
 
         Returns:
-            The new P(L_{n+1}) value written to competency.bkt_p_learn.
+            The new P(L_{n+1}) value is written to competency.bkt_p_learn.
         """
         current = competency.bkt_p_learn
         if current is None:
@@ -101,7 +102,7 @@ class BKTService:
 
     @staticmethod
     def get_p_learn(competency: StudentCompetency) -> float:
-        """Return current BKT estimate, falling back to P(L0) if not yet set."""
+        """Return the current BKT estimate, falling back to P(L0) if not yet set."""
         if competency.bkt_p_learn is None:
             return DEFAULT_P_L0
         return float(competency.bkt_p_learn)
