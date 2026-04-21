@@ -198,6 +198,8 @@ class StudentCompetency(Base):
     last_correct_at = Column(DateTime, nullable=True)
     decay_factor = Column(Float, default=2.5)  # SM-2 ease factor, reserved for Phase 3
     next_review_at = Column(DateTime, nullable=True)
+    # BKT: P(L_n) — posterior probability student knows this concept (replaces EWA as primary signal)
+    bkt_p_learn = Column(Float, nullable=True)
     extra_data = Column(JSON, default=dict)
 
     __table_args__ = (
