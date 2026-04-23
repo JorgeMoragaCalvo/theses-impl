@@ -31,6 +31,23 @@ api_client = get_api_client(BACKEND_URL)
 
 st.set_page_config(page_title="Chat - AI Tutor", page_icon="💬", layout="wide")
 
+st.html("""
+    <script>
+    function alignUserMessages() {
+        const messages = window.parent.document.querySelectorAll('[data-testid="stChatMessage"]');
+        messages.forEach(msg => {
+            const avatarEl = msg.firstElementChild;
+            if (avatarEl && avatarEl.textContent.includes('🧑‍🎓')) {
+                msg.style.setProperty('flex-direction', 'row-reverse', 'important');
+            }
+        });
+    }
+    const chatObserver = new MutationObserver(alignUserMessages);
+    chatObserver.observe(window.parent.document.body, { childList: true, subtree: true });
+    alignUserMessages();
+    </script>
+""")
+
 st.title("💬 Chatea con el tutor de IA")
 
 # Check if the user is authenticated
@@ -55,7 +72,7 @@ if "chat_messages" not in st.session_state:
 
 # Display chat
 for message in st.session_state.chat_messages:
-    with st.chat_message(message["role"]):
+    with st.chat_message(message["role"], avatar="🧑‍🎓" if message["role"] == "user" else "🎓"):
         st.markdown(message["content"])
         if "agent_type" in message and message["role"] == "assistant":
             st.caption(f"Agent: {message['agent_type']}")
@@ -65,11 +82,11 @@ if prompt := st.chat_input(placeholder="Haz tu pregunta..."):
     # Add the user message
     st.session_state.chat_messages.append({"role": "user", "content": prompt})
 
-    with st.chat_message("user"):
+    with st.chat_message("user", avatar="🧑‍🎓"):
         st.markdown(prompt)
 
     # Get AI response
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar="🎓"):
         with st.spinner("El Tutor de IA está pensando..."):
             # Use the authenticated API client (student_id extracted from token)
             success, data = api_client.post(

@@ -70,6 +70,23 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+st.html("""
+    <script>
+    function alignUserMessages() {
+        const messages = window.parent.document.querySelectorAll('[data-testid="stChatMessage"]');
+        messages.forEach(msg => {
+            const avatarEl = msg.firstElementChild;
+            if (avatarEl && avatarEl.textContent.includes('🧑‍🎓')) {
+                msg.style.setProperty('flex-direction', 'row-reverse', 'important');
+            }
+        });
+    }
+    const chatObserver = new MutationObserver(alignUserMessages);
+    chatObserver.observe(window.parent.document.body, { childList: true, subtree: true });
+    alignUserMessages();
+    </script>
+""")
+
 
 def check_backend_health():
     """Check if the backend is available."""
@@ -343,16 +360,16 @@ def main():
 
         # Display chat history
         for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
+            with st.chat_message(message["role"], avatar="🧑‍🎓" if message["role"] == "user" else "🎓"):
                 st.markdown(message["content"])
 
         if prompt := st.chat_input("Haz una pregunta sobre métodos de optimización..."):
             # Add the user message to chat
             st.session_state.messages.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
+            with st.chat_message("user", avatar="🧑‍🎓"):
                 st.markdown(prompt)
 
-            with st.chat_message("assistant"):
+            with st.chat_message("assistant", avatar="🎓"):
                 with st.spinner("Pensando..."):
                     # Get a selected topic from the session state
                     selected_topic = st.session_state.get(
