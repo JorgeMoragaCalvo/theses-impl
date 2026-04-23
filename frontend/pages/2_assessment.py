@@ -30,7 +30,6 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 # Get API client
 api_client = get_api_client(BACKEND_URL)
 
-st.set_page_config(page_title="Evaluación - Tutor de IA", page_icon="📝", layout="wide")
 
 
 # Check if the user is authenticated

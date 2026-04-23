@@ -29,7 +29,6 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 # Get API client
 api_client = get_api_client(BACKEND_URL)
 
-st.set_page_config(page_title="Chat - AI Tutor", page_icon="💬", layout="wide")
 
 st.html("""
     <script>

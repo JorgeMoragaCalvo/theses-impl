@@ -20,10 +20,6 @@ from utils.constants import (
 )
 from utils.idle_detector import inject_idle_detector
 
-"""
-Página principal de la aplicación - Tutor de IA para métodos de optimización.
-"""
-
 # Load environment variables
 load_dotenv()
 
@@ -415,5 +411,11 @@ def main():
                     st.rerun()
 
 
-if __name__ == "__main__":
-    main()
+pg = st.navigation([
+    st.Page(main, title="app", icon="🏠"),
+    st.Page("pages/1_chat.py", title="chat", icon="💬"),
+    st.Page("pages/2_assessment.py", title="evaluación", icon="📝"),
+    st.Page("pages/3_progress.py", title="progreso", icon="📊"),
+    st.Page("pages/4_admin.py", title="admin", icon="⚙️"),
+])
+pg.run()
