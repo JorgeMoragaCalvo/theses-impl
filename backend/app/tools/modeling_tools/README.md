@@ -232,3 +232,4 @@ __all__ = [
 - **v1.6.5** (2026-04-03): Security, routing and main.py improvements.
 - **v1.6.6** (2026-04-06): Coverage tests.
 - **v1.6.7** (2026-04-11): Code review and exercises.
+- **v1.7.7** (2026-04-23): Affect detection, BKT/DKT knowledge tracing, chat and assessment bugs.
