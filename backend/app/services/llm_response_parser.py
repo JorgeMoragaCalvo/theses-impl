@@ -31,13 +31,13 @@ def parse_llm_json_response(llm_response: str) -> dict[str, Any]:
         # Remove Markdown code blocks if present
         if "```json" in response_text:
             start = response_text.find("```json") + 7
-            end = response_text.find("```", start)
+            end = response_text.rfind("```", start)
             if end == -1:
                 end = len(response_text)
             response_text = response_text[start:end].strip()
         elif "```" in response_text:
             start = response_text.find("```") + 3
-            end = response_text.find("```", start)
+            end = response_text.rfind("```", start)
             if end == -1:
                 end = len(response_text)
             response_text = response_text[start:end].strip()

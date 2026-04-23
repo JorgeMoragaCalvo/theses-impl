@@ -86,9 +86,9 @@ class TestAddFeedbackRequestToResponse:
         assert "Answer here." in resp
         assert len(resp) > len("Answer here.")
         assert (
-            "analogy" in resp.lower()
-            or "example" in resp.lower()
-            or "step" in resp.lower()
+            "analogía" in resp.lower()
+            or "ejemplo" in resp.lower()
+            or "paso" in resp.lower()
         )
 
     def test_medium_confusion(self):

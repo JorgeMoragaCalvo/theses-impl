@@ -84,13 +84,20 @@ def fetch_single_assessment(assessment_id: int) -> dict[str, Any] | None:
     return data
 
 
+DIFFICULTY_MAP = {
+    "Principiante": "beginner",
+    "Intermedio": "intermediate",
+    "Avanzado": "advanced",
+}
+
+
 def generate_assessment(
     topic: str, difficulty: str, conversation_id: int | None = None
 ) -> dict[str, Any] | None:
     """Generate a new assessment (student_id extracted from token)."""
-    payload = {"topic": topic, "difficulty": difficulty.lower()}
+    payload = {"topic": topic, "difficulty": difficulty}
     if conversation_id:
-        payload["conversation_id"] = str(conversation_id)
+        payload["conversation_id"] = conversation_id
 
     success, data = api_client.post("assessments/generate", json_data=payload)
     if not success:
@@ -650,7 +657,8 @@ with tab3:
                     new_topic, new_topic.lower().replace(" ", "_")
                 )
                 # student_id extracted from the auth token automatically
-                result = generate_assessment(topic_value, new_difficulty)
+                difficulty_value = DIFFICULTY_MAP.get(new_difficulty, new_difficulty.lower())
+                result = generate_assessment(topic_value, difficulty_value)
 
                 if result is not None:
                     st.session_state.current_assessment = result
@@ -671,7 +679,8 @@ with tab3:
         question = current.get("question", "")
         topic = current.get("topic", "")
 
-        st.subheader(f"📝 Evaluación: {topic}")
+        topic_display = TOPIC_DISPLAY_NAMES.get(topic, topic.replace("_", " ").title())
+        st.subheader(f"📝 Evaluación: {topic_display}")
         st.markdown("**Pregunta:**")
         st.markdown(question)
 
