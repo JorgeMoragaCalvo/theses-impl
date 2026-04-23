@@ -347,8 +347,11 @@ Genera la evaluación ahora.
                 r = extracted.get("rubric", "")
                 if q:
                     return {"question": q, "correct_answer": a, "rubric": r}
-            except json.JSONDecodeError:
-                pass
+            except json.JSONDecodeError as exc:
+                logger.debug(
+                    "Fallback JSON extraction failed in _parse_fallback: %s",
+                    _sanitize_for_log(exc),
+                )
 
         # Second attempt: regex extraction — handles literal newlines inside JSON string values
         def _re_extract(text: str, field: str) -> str:
