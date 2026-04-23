@@ -713,20 +713,20 @@ class BaseAgent(ABC):
         """
         feedback_prompts = {
             "high": [
-                "\n\nDoes this explanation make more sense? If anything is still unclear, please let me know and I'll try explaining it a different way.",
-                "\n\nI want to make sure this is clear. Can you tell me if this makes sense, or if you'd like me to explain any part differently?",
+                "\n\n¿Tiene más sentido esta explicación? Si algo sigue sin quedar claro, avísame e intentaré explicarlo de otra manera.",
+                "\n\nQuiero asegurarme de que esto sea claro. ¿Puedes decirme si tiene sentido o si quieres que explique alguna parte de forma diferente?",
             ],
             "medium": [
-                "\n\nDoes that help clarify things? Feel free to ask if you need more explanation on any part.",
-                "\n\nIs this clearer now? Let me know if you'd like me to elaborate on anything.",
+                "\n\n¿Eso ayuda a aclarar las cosas? No dudes en preguntar si necesitas más explicación sobre alguna parte.",
+                "\n\n¿Está más claro ahora? Avísame si quieres que elabore algo más.",
             ],
             "low": [
-                "\n\nDoes this answer your question? Happy to provide more details if needed.",
-                "\n\nLet me know if you'd like me to explain anything further!",
+                "\n\n¿Responde eso tu pregunta? Con gusto doy más detalles si es necesario.",
+                "\n\n¡Avísame si quieres que explique algo más!",
             ],
             "none": [
-                "\n\nFeel free to ask if you'd like more examples or a different explanation approach!",
-                "\n\nLet me know if you'd like to explore this further or try a practice problem!",
+                "\n\n¡No dudes en preguntar si quieres más ejemplos o un enfoque de explicación diferente!",
+                "\n\n¡Avísame si quieres profundizar en esto o intentar un ejercicio de práctica!",
             ],
         }
 
@@ -737,7 +737,7 @@ class BaseAgent(ABC):
 
             # Add alternative approach options for high confusion
             if confusion_level == "high":
-                prompt += "\n\nI can explain this using:\n- A concrete example with numbers\n- A step-by-step breakdown\n- An analogy to something familiar\n\nWhich would help you most?"
+                prompt += "\n\nPuedo explicar esto usando:\n- Un ejemplo concreto con números\n- Un desglose paso a paso\n- Una analogía con algo familiar\n\n¿Cuál te sería más útil?"
 
         else:
             prompts = feedback_prompts.get(confusion_level, feedback_prompts["none"])
@@ -765,7 +765,8 @@ class BaseAgent(ABC):
         if preprocessed_message is None:
             raise ValueError(f"{self.agent_name}: _validate_and_preprocess returned None without an error message")
 
-        if not self._is_meta_question(
+        is_fresh_conversation = not conversation_history
+        if is_fresh_conversation and not self._is_meta_question(
             preprocessed_message
         ) and not self.is_topic_related(preprocessed_message):
             return None, self._get_off_topic_response()

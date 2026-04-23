@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -158,21 +159,22 @@ class AssessmentService:
         recent_scores = assessment_performance.get("recent_scores", [])
 
         # Build base prompt
-        prompt = f"""You are an expert educational assessment designer for optimization methods and operations research.
-Your task is to generate a personalized assessment question for a student learning about {topic}.
+        prompt = f"""Eres un experto en diseño de evaluaciones educativas para cursos de métodos de optimización e investigación de operaciones.
+Tu tarea es generar una pregunta de evaluación personalizada para un estudiante que está aprendiendo sobre {topic}.
+IMPORTANTE: Toda la evaluación debe estar escrita en español, incluyendo el enunciado, la solución y la rúbrica.
 
-## Student Profile:
-- Knowledge Level: {knowledge_level} ({student_context.get("knowledge_level_description", "")})
-- Average Score on Past Assessments: {assessment_performance.get("average_score", "N/A")}
-- Recent Performance: {recent_scores if recent_scores else "No prior assessments"}
+## Perfil del estudiante:
+- Nivel de conocimiento: {knowledge_level} ({student_context.get("knowledge_level_description", "")})
+- Promedio en evaluaciones anteriores: {assessment_performance.get("average_score", "N/A")}
+- Rendimiento reciente: {recent_scores if recent_scores else "Sin evaluaciones previas"}
 """
 
         # Add knowledge gaps if available
         if knowledge_gaps:
-            prompt += "\n## Identified Knowledge Gaps:\n"
+            prompt += "\n## Brechas de conocimiento identificadas:\n"
             for gap in knowledge_gaps:
                 prompt += f"- {gap}\n"
-            prompt += "\nPlease design the assessment to target these weak areas.\n"
+            prompt += "\nPor favor, diseña la evaluación para abordar estas áreas débiles.\n"
 
         # Add conversation context if available
         if conversation_context:
@@ -183,7 +185,7 @@ Your task is to generate a personalized assessment question for a student learni
             # Get recent topics from the conversation
             recent_messages = conversation_context.get("conversation_history", [])
             if recent_messages:
-                recent_topics_summary = "Recent discussion topics: " + "; ".join(
+                recent_topics_summary = "Temas discutidos recientemente: " + "; ".join(
                     [
                         msg.get("content", "")[:100]
                         for msg in recent_messages[-3:]
@@ -191,10 +193,10 @@ Your task is to generate a personalized assessment question for a student learni
                     ]
                 )
                 prompt += (
-                    f"\n## Recent Conversation Context:\n{recent_topics_summary}\n"
+                    f"\n## Contexto de conversación reciente:\n{recent_topics_summary}\n"
                 )
                 prompt += (
-                    "Please build on concepts recently discussed in the conversation.\n"
+                    "Por favor, construye sobre los conceptos discutidos recientemente en la conversación.\n"
                 )
 
             # Add learning preferences
@@ -204,82 +206,83 @@ Your task is to generate a personalized assessment question for a student learni
                     if strategies_used
                     else None
                 )
-                prompt += "\n## Learning Preferences:\n"
-                prompt += f"- Teaching strategies used: {', '.join(set(strategies_used[:5]))}\n"
+                prompt += "\n## Preferencias de aprendizaje:\n"
+                prompt += f"- Estrategias de enseñanza utilizadas: {', '.join(set(strategies_used[:5]))}\n"
                 if most_used:
-                    prompt += f"- Most frequently used approach: {most_used}\n"
+                    prompt += f"- Enfoque más utilizado: {most_used}\n"
                 if successful_strategies:
                     best_strategy = max(
                         successful_strategies.items(), key=lambda x: x[1]
                     )[0]
-                    prompt += f"- Most successful strategy: {best_strategy}\n"
-                    prompt += "Please align the problem presentation with the student's preferred learning style.\n"
+                    prompt += f"- Estrategia más exitosa: {best_strategy}\n"
+                    prompt += "Por favor, alinea la presentación del problema con el estilo de aprendizaje preferido del estudiante.\n"
 
         # Add difficulty-specific guidelines
         difficulty_guidelines = {
-            "beginner": "Focus on fundamental concepts and basic problem-solving. Include step-by-step guidance hints if needed.",
-            "intermediate": "Include moderate complexity with multiple steps. Student should demonstrate understanding of core concepts and their application.",
-            "advanced": "Create a challenging problem requiring deep understanding, critical thinking, and potentially multiple solution approaches.",
+            "beginner": "Enfócate en conceptos fundamentales y resolución básica de problemas. Incluye pistas de orientación paso a paso si es necesario.",
+            "intermediate": "Incluye complejidad moderada con múltiples pasos. El estudiante debe demostrar comprensión de los conceptos centrales y su aplicación.",
+            "advanced": "Crea un problema desafiante que requiera comprensión profunda, pensamiento crítico y potencialmente múltiples enfoques de solución.",
         }
-        prompt += f"\n## Difficulty Level: {difficulty}\n{difficulty_guidelines.get(difficulty, '')}\n"
+        prompt += f"\n## Nivel de dificultad: {difficulty}\n{difficulty_guidelines.get(difficulty, '')}\n"
 
         # Add topic-specific guidelines
         topic_guidelines = {
             "linear_programming": """
-            Generate a Linear Programming problem involving:
-            - Problem formulation (decision variables, objective function, constraints)
-            - Solution method (graphical method for 2 variables, or simplex for more)
-            - Interpretation of results
-            Ensure the problem is practical and relatable.""",
+            Genera un problema de Programación Lineal que involucre:
+            - Formulación del problema (variables de decisión, función objetivo, restricciones)
+            - Método de solución (método gráfico para 2 variables, o simplex para más)
+            - Interpretación de resultados
+            Asegúrate de que el problema sea práctico y relevante.""",
             "mathematical_modeling": """
-            Generate a Mathematical Modeling problem involving:
-            - Translating a real-world scenario into mathematical formulation
-            - Identifying decision variables and parameters
-            - Formulating objective function and constraints
-            - Explaining the reasoning behind the model
-            Focus on realistic business or operational scenarios.""",
+            Genera un problema de Modelado Matemático que involucre:
+            - Traducir un escenario del mundo real a formulación matemática
+            - Identificar variables de decisión y parámetros
+            - Formular función objetivo y restricciones
+            - Explicar el razonamiento detrás del modelo
+            Enfócate en escenarios empresariales u operacionales realistas.""",
             "operations_research": """
-            Generate an Operations Research problem that may involve:
-            - Optimization problem formulation
-            - Resource allocation
-            - Decision analysis
-            - Practical application context""",
+            Genera un problema de Investigación de Operaciones que pueda involucrar:
+            - Formulación de problemas de optimización
+            - Asignación de recursos
+            - Análisis de decisiones
+            - Contexto de aplicación práctica""",
             "integer_programming": """
-            Generate an Integer Programming problem involving:
-            - Discrete decision variables
-            - Practical scenarios requiring whole number solutions
-            - Formulation and solving techniques""",
+            Genera un problema de Programación Entera que involucre:
+            - Variables de decisión discretas
+            - Escenarios prácticos que requieran soluciones en números enteros
+            - Técnicas de formulación y resolución""",
             "nonlinear_programming": """
-            Generate a Nonlinear Programming problem involving:
-            - Nonlinear objective functions or constraints
-            - Optimization techniques
-            - Practical applications""",
+            Genera un problema de Programación No Lineal que involucre:
+            - Funciones objetivo o restricciones no lineales
+            - Técnicas de optimización
+            - Aplicaciones prácticas""",
         }
-        prompt += f"\n## Topic Guidelines:\n{topic_guidelines.get(topic, 'Generate a relevant optimization problem.')}\n"
+        prompt += f"\n## Orientaciones por tema:\n{topic_guidelines.get(topic, 'Genera un problema de optimización relevante.')}\n"
 
         # Output format instructions
         prompt += """
-## Output Format:
-Please provide your response in the following JSON format:
+## Formato de salida:
+Proporciona tu respuesta en el siguiente formato JSON:
 
 ```json
     {
-        "question": "The complete problem statement with all necessary information and context",
-        "correct_answer": "Detailed step-by-step solution showing all work and reasoning",
-        "rubric": "Grading rubric with point allocation: e.g., 'Formulation (3 pts), Solution (3 pts), Interpretation (1 pt)'"
+        "question": "El enunciado completo del problema con toda la información y contexto necesarios",
+        "correct_answer": "Solución detallada paso a paso mostrando todo el trabajo y razonamiento",
+        "rubric": "Rúbrica de calificación con asignación de puntaje: ej. 'Formulación (3 pts), Solución (3 pts), Interpretación (1 pt)'"
     }
 ```
 
-## Important Guidelines:
-1. Make the question clear, specific, and complete
-2. Ensure the problem is solvable with the student's current knowledge level
-3. Target identified weaknesses while building on strengths
-4. Provide a comprehensive solution that could serve as a teaching tool
-5. Create a fair and objective grading rubric (default max score: 7.0 points)
-6. Use realistic, engaging scenarios when possible
-7. IMPORTANT: Respond ONLY with the JSON object, no additional text before or after
+## Pautas importantes:
+1. El enunciado debe ser claro, específico y completo
+2. Asegúrate de que el problema sea resoluble con el nivel de conocimiento actual del estudiante
+3. Apunta a las debilidades identificadas mientras construyes sobre las fortalezas
+4. Proporciona una solución completa que pueda servir como herramienta de enseñanza
+5. Crea una rúbrica de calificación justa y objetiva (puntaje máximo por defecto: 7,0 puntos)
+6. Usa escenarios realistas y atractivos cuando sea posible
+7. NUNCA uses el símbolo $ para valores monetarios; escribe "pesos", "CLP" o solo el número. Reserva el símbolo $ únicamente para notación LaTeX de fórmulas matemáticas.
+8. IMPORTANTE: Responde ÚNICAMENTE con el objeto JSON, sin texto adicional antes ni después
 
-Generate the assessment now.
+Genera la evaluación ahora.
 """
 
         return prompt
@@ -298,8 +301,17 @@ Generate the assessment now.
             # Use the shared parser to get the JSON data
             parsed = parse_llm_json_response(llm_response)
 
+            question = parsed.get("question", "")
+            if isinstance(question, dict):
+                question = (
+                    question.get("problem_statement")
+                    or question.get("text")
+                    or question.get("question")
+                    or question.get("statement")
+                    or json.dumps(question)
+                )
             return {
-                "question": parsed.get("question", ""),
+                "question": question,
                 "correct_answer": parsed.get("correct_answer", ""),
                 "rubric": parsed.get("rubric", ""),
             }
@@ -320,7 +332,50 @@ Generate the assessment now.
         Returns:
             Dictionary with best-effort parsed components
         """
-        # Try to identify sections by common markers
+        # First attempt: try to find and parse the outermost JSON object in the
+        # original response. parse_llm_json_response may have already stripped a
+        # code-block and tried parsing on the truncated text — here we search the
+        # full original string, so we pick up the JSON even when backticks inside
+        # string values caused an early cut.
+        json_start = llm_response.find("{")
+        json_end = llm_response.rfind("}")
+        if json_start != -1 and json_end > json_start:
+            try:
+                extracted = json.loads(llm_response[json_start : json_end + 1])
+                q = extracted.get("question", "")
+                a = extracted.get("correct_answer", "")
+                r = extracted.get("rubric", "")
+                if q:
+                    return {"question": q, "correct_answer": a, "rubric": r}
+            except json.JSONDecodeError:
+                pass
+
+        # Second attempt: regex extraction — handles literal newlines inside JSON string values
+        def _re_extract(text: str, field: str) -> str:
+            m = re.search(
+                r'"' + re.escape(field) + r'"\s*:\s*"((?:[^"\\]|\\.)*)"',
+                text,
+                re.DOTALL,
+            )
+            if not m:
+                return ""
+            return (
+                m.group(1)
+                .replace("\\n", "\n")
+                .replace("\\t", "\t")
+                .replace('\\"', '"')
+                .replace("\\\\", "\\")
+            )
+
+        q = _re_extract(llm_response, "question")
+        if q:
+            return {
+                "question": q,
+                "correct_answer": _re_extract(llm_response, "correct_answer"),
+                "rubric": _re_extract(llm_response, "rubric"),
+            }
+
+        # Fourth attempt: line-based section extraction
         question = ""
         answer = ""
         rubric = ""
