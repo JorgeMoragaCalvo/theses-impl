@@ -608,7 +608,7 @@ def main():
         # Show the main chat interface for logged-in users
         st.markdown("### 💬 Chatea con un tutor de IA")
         st.markdown(
-            "¡Haga preguntas sobre cualquier tema relacionado con el método de optimización!"
+            "¡Haz preguntas sobre un tema relacionado con métodos de optimización!"
         )
 
         # Initialize chat history
