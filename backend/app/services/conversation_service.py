@@ -722,6 +722,7 @@ class ConversationService:
                 try:
                     activity_entry = {
                         "type": "conversation",
+                        "id": conv.id,
                         "timestamp": conv.started_at.isoformat()
                         if conv.started_at
                         else None,

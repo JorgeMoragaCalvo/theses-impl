@@ -18,6 +18,7 @@ from utils.activity_tracker import (
 from utils.api_client import get_api_client
 from utils.constants import TOPIC_OPTIONS, TOPICS_LIST
 from utils.idle_detector import inject_idle_detector
+from utils.pages_registry import get_home_page
 
 """
 Página de chat - Interfaz de conversación detallada con selección de temas.
@@ -167,4 +168,8 @@ with st.sidebar:
     if st.button("Logout", key="logout_btn", type="primary"):
         flush_events()
         api_client.logout()
-        st.switch_page("app.py")
+        home = get_home_page()
+        if home is not None:
+            st.switch_page(home)
+        else:
+            st.rerun()

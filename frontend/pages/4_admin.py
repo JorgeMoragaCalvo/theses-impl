@@ -14,6 +14,7 @@ from utils.activity_tracker import PAGE_ADMIN, flush_events, track_page_visit
 from utils.api_client import get_api_client
 from utils.constants import TOPIC_DISPLAY_NAMES
 from utils.idle_detector import inject_idle_detector
+from utils.pages_registry import get_home_page
 
 """
 Admin Dashboard - User and system management (Admin only).
@@ -468,4 +469,8 @@ with st.sidebar:
     if st.button("Logout", key="logout_btn", type="primary"):
         flush_events()
         api_client.logout()
-        st.switch_page("app.py")
+        home = get_home_page()
+        if home is not None:
+            st.switch_page(home)
+        else:
+            st.rerun()
