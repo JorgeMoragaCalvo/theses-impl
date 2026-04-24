@@ -19,6 +19,7 @@ from utils.activity_tracker import (
 from utils.api_client import get_api_client
 from utils.constants import TOPIC_DISPLAY_NAMES, TOPIC_OPTIONS, TOPICS_LIST
 from utils.idle_detector import inject_idle_detector
+from utils.pages_registry import get_home_page
 
 """
 Página de evaluación - Problemas de práctica y cuestionarios.
@@ -30,7 +31,6 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 # Get API client
 api_client = get_api_client(BACKEND_URL)
 
-st.set_page_config(page_title="Evaluación - Tutor de IA", page_icon="📝", layout="wide")
 
 
 # Check if the user is authenticated
@@ -42,6 +42,88 @@ if not api_client.is_authenticated():
 # Analytics tracking
 track_page_visit(PAGE_ASSESSMENT)
 inject_idle_detector(backend_url=BACKEND_URL)
+
+# Custom CSS
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+
+    .section-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px;
+        padding: 1.4rem 1.6rem;
+        margin-bottom: 1.4rem;
+    }
+    .section-card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #e2e8f0;
+        margin-bottom: 1rem;
+    }
+
+    /* ── Knowledge level badges ── */
+    .kl-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.7rem;
+    }
+    .kl-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
+        padding: 0.55rem 0.9rem;
+        min-width: 200px;
+    }
+    .kl-dot {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .kl-dot-beginner   { background: #60a5fa; }
+    .kl-dot-intermediate { background: #34d399; }
+    .kl-dot-advanced   { background: #fbbf24; }
+    .kl-topic { font-size: 0.88rem; font-weight: 600; color: #e2e8f0; }
+    .kl-level { font-size: 0.78rem; color: #94a3b8; margin-left: auto; }
+
+    /* ── Topic pills ── */
+    .topic-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .topic-pill {
+        background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2));
+        border: 1px solid rgba(99,102,241,0.35);
+        color: #c7d2fe;
+        font-size: 0.82rem;
+        font-weight: 500;
+        padding: 0.35rem 0.85rem;
+        border-radius: 999px;
+    }
+
+    /* ── Activity timeline ── */
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.8rem;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        margin-top: 0.1rem;
+    }
+    .activity-body { flex: 1; }
+    .activity-title { font-size: 0.88rem; font-weight: 600; color: #e2e8f0; }
+    .activity-meta  { font-size: 0.78rem; color: #64748b; margin-top: 0.1rem; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Get student_id from the session
 student_id = st.session_state.get("student_id")
@@ -238,20 +320,16 @@ with tab1:
         knowledge_levels = progress_data.get("knowledge_levels", {})
         if knowledge_levels:
             st.subheader("🎯 Niveles de conocimiento")
-            cols = st.columns(min(3, len(knowledge_levels)))
-            for idx, (topic, level) in enumerate(knowledge_levels.items()):
-                with cols[idx % 3]:
-                    # Color code based on level
-                    if level == "beginner":
-                        color = "🔵"
-                    elif level == "intermediate":
-                        color = "🟢"
-                    else:
-                        color = "🟡"
-
-                    st.markdown(
-                        f"{color} **{topic.replace('_', ' ').title()}**: {level.capitalize()}"
-                    )
+            _level_es = {"beginner": "Principiante", "intermediate": "Intermedio", "advanced": "Avanzado"}
+            badges_html = "".join(
+                f'<div class="kl-badge">'
+                f'<div class="kl-dot kl-dot-{level}"></div>'
+                f'<span class="kl-topic">{TOPIC_DISPLAY_NAMES.get(topic, topic.replace("_", " ").title())}</span>'
+                f'<span class="kl-level">{_level_es.get(level, level.capitalize())}</span>'
+                f'</div>'
+                for topic, level in knowledge_levels.items()
+            )
+            st.markdown(f'<div class="kl-grid">{badges_html}</div>', unsafe_allow_html=True)
 
         st.divider()
 
@@ -259,56 +337,75 @@ with tab1:
         topics_covered = progress_data.get("topics_covered", [])
         if topics_covered:
             st.subheader("📚 Temas tratados")
-            # Display as badges
-            topic_html = " ".join(
-                [
-                    f'<span style="background-color: #0d0d0d; padding: 0.3rem 0.7rem; '  # #e0e7ff
-                    f'border-radius: 1rem; margin: 0.2rem; display: inline-block;">{topic}</span>'
-                    for topic in topics_covered
-                ]
+            pills_html = "".join(
+                f'<span class="topic-pill">{TOPIC_DISPLAY_NAMES.get(t, t.replace("_", " ").title())}</span>'
+                for t in topics_covered
             )
-            st.markdown(topic_html, unsafe_allow_html=True)
+            st.markdown(f'<div class="topic-pills">{pills_html}</div>', unsafe_allow_html=True)
             st.divider()
 
         # Recent Activity Timeline
         recent_activity = progress_data.get("recent_activity", [])
         if recent_activity:
             st.subheader("📅 Actividad reciente")
-
-            for activity in recent_activity[:10]:  # Show the last 10 activities
+            for activity in recent_activity[:10]:
                 activity_type = activity.get("type", "unknown")
                 timestamp = activity.get("timestamp", "")
-                topic = activity.get("topic", "General")
+                topic_key = activity.get("topic", "General")
+                topic_name = TOPIC_DISPLAY_NAMES.get(
+                    topic_key,
+                    topic_key.replace("_", " ").title() if isinstance(topic_key, str) else topic_key,
+                )
 
-                # Format timestamp
                 try:
                     dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
-                    time_str = dt.strftime("%Y-%m-%d %H:%M")
+                    time_str = dt.strftime("%d/%m/%Y %H:%M")
                 except (ValueError, TypeError):
                     time_str = timestamp
 
                 if activity_type == "conversation":
+                    conv_id = activity.get("id")
                     message_count = activity.get("message_count", 0)
-                    st.markdown(
-                        f"💬 **Conversación** - {topic} - {message_count} mensajes - *{time_str}*"
-                    )
+                    label = f"💬 Conversación · {topic_name} — {message_count} mensajes · {time_str}"
+                    with st.expander(label):
+                        if conv_id:
+                            cache_key = f"_conv_detail_{conv_id}"
+                            if cache_key not in st.session_state:
+                                if st.button("Cargar conversación", key=f"load_{conv_id}"):
+                                    detail_success, detail_data = api_client.get(
+                                        f"conversations/{conv_id}"
+                                    )
+                                    if detail_success:
+                                        st.session_state[cache_key] = detail_data
+                                    else:
+                                        st.error("No se pudo cargar la conversación.")
+                            if st.session_state.get(cache_key):
+                                messages = st.session_state[cache_key].get("messages", [])
+                                if messages:
+                                    for msg in messages:
+                                        role = msg.get("role", "user")
+                                        content = msg.get("content", "")
+                                        avatar = "🧑‍🎓" if role == "user" else "🎓"
+                                        with st.chat_message(role, avatar=avatar):
+                                            st.markdown(content)
+                                else:
+                                    st.info("No hay mensajes en esta conversación.")
+                        else:
+                            st.info("ID de conversación no disponible.")
+
                 elif activity_type == "assessment":
                     score = activity.get("score")
                     status = activity.get("status", "unknown")
-
-                    status_emoji = {
-                        "calificado/a": "✅",
-                        "enviado": "📝",
-                        "pendiente": "⏳",
-                    }.get(status, "❓")
-
-                    score_str = (
-                        f"Puntaje: {score}"
-                        if score is not None
-                        else status.capitalize()
-                    )
+                    status_emoji = {"graded": "✅", "submitted": "📝", "pending": "⏳"}.get(status, "❓")
+                    score_str = f"Puntaje: {score}" if score is not None else status.capitalize()
                     st.markdown(
-                        f"{status_emoji} **Evaluación** - {topic} - {score_str} - *{time_str}*"
+                        f'<div class="activity-item">'
+                        f'<div class="activity-icon">{status_emoji}</div>'
+                        f'<div class="activity-body">'
+                        f'<div class="activity-title">Evaluación · {topic_name}</div>'
+                        f'<div class="activity-meta">{score_str} · {time_str}</div>'
+                        f'</div></div>',
+                        unsafe_allow_html=True,
                     )
         else:
             st.info(
@@ -553,11 +650,20 @@ with tab3:
                     )
                     model_type = ex.get("model_type", "")
                     difficulty = ex.get("difficulty", "")
-                    label = f"[{topic_display}] {ex['id']} - {ex['title']}"
-                    if model_type:
-                        label += f" ({model_type})"
-                    if difficulty:
-                        label += f" [{difficulty}]"
+                    _diff_es = {
+                        "very-easy": "muy fácil",
+                        "easy": "fácil",
+                        "easy-medium": "fácil-medio",
+                        "medium": "medio",
+                        "medium-hard": "medio-difícil",
+                        "hard": "difícil",
+                        "very-hard": "muy difícil",
+                    }
+                    ex_num = ex["id"].split("_")[-1].lstrip("0") or ex["id"].split("_")[-1]
+                    title = ex["title"]
+                    details = f" ({model_type})" if model_type else ""
+                    diff_str = f" · {_diff_es.get(difficulty, difficulty)}" if difficulty else ""
+                    label = f"{topic_display} · {ex_num} · {title}{details}{diff_str}"
                     exercise_options[label] = ex["id"]
 
                 # Clear cached selectbox value if the options have changed
@@ -780,7 +886,11 @@ with st.sidebar:
     st.divider()
     if st.button("Logout", key="logout_btn", type="primary"):
         api_client.logout()
-        st.switch_page("app.py")
+        home = get_home_page()
+        if home is not None:
+            st.switch_page(home)
+        else:
+            st.rerun()
 
 st.divider()
 st.caption(

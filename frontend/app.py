@@ -19,10 +19,7 @@ from utils.constants import (
     TOPICS_LIST,
 )
 from utils.idle_detector import inject_idle_detector
-
-"""
-Página principal de la aplicación - Tutor de IA para métodos de optimización.
-"""
+from utils.pages_registry import set_home_page
 
 # Load environment variables
 load_dotenv()
@@ -49,26 +46,250 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    .main-header {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #1f77b4;
-        text-align: center;
-        margin-bottom: 1rem;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
     }
-    .sub-header {
-        font-size: 1.2rem;
-        color: #666;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
+
     .stButton>button {
         width: 100%;
+    }
+
+    /* ── Hero ── */
+    .hero-section {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%);
+        border-radius: 16px;
+        padding: 3rem 2rem 2.5rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 70% 30%, rgba(255,255,255,0.08) 0%, transparent 60%);
+    }
+    .hero-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.18);
+        color: #fff;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 0.35rem 1rem;
+        border-radius: 999px;
+        margin-bottom: 1.2rem;
+        border: 1px solid rgba(255,255,255,0.25);
+    }
+    .hero-title {
+        font-size: 2.6rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 0 0.8rem;
+        line-height: 1.2;
+    }
+    .hero-subtitle {
+        font-size: 1.1rem;
+        color: rgba(255,255,255,0.85);
+        margin: 0 auto 2rem !important;
+        max-width: 520px;
+        line-height: 1.6;
+        text-align: center !important;
+    }
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 2.5rem;
+        flex-wrap: wrap;
+    }
+    .hero-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #fff;
+    }
+    .hero-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    .hero-stat-label {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.75);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-top: 0.1rem;
+    }
+    .hero-stat-divider {
+        width: 1px;
+        background: rgba(255,255,255,0.25);
+        align-self: stretch;
+        margin: 0.3rem 0;
+    }
+
+    /* ── Feature cards ── */
+    .features-row {
+        display: flex;
+        gap: 1.2rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    .feature-card {
+        flex: 1;
+        min-width: 220px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-left: 4px solid #6366f1;
+        border-radius: 12px;
+        padding: 1.4rem 1.2rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(99,102,241,0.18);
+    }
+    .feature-card:nth-child(2) { border-left-color: #8b5cf6; }
+    .feature-card:nth-child(3) { border-left-color: #3b82f6; }
+    .feature-card-icon {
+        font-size: 2rem;
+        margin-bottom: 0.6rem;
+    }
+    .feature-card-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #e2e8f0;
+        margin-bottom: 0.5rem;
+    }
+    .feature-card-desc {
+        font-size: 0.88rem;
+        color: #94a3b8;
+        line-height: 1.55;
+        margin-bottom: 0.8rem;
+    }
+    .feature-card-cta {
+        font-size: 0.8rem;
+        color: #818cf8;
+        font-style: italic;
+    }
+
+    /* ── Steps ── */
+    .steps-section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #e2e8f0;
+        margin-bottom: 1.2rem;
+    }
+    .steps-row {
+        display: flex;
+        gap: 1.2rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    .step-card {
+        flex: 1;
+        min-width: 180px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-left: 4px solid #6366f1;
+        border-radius: 12px;
+        padding: 1.2rem 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.9rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .step-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(99,102,241,0.18);
+    }
+    .step-card:nth-child(2) { border-left-color: #8b5cf6; }
+    .step-card:nth-child(3) { border-left-color: #3b82f6; }
+    .step-number {
+        flex-shrink: 0;
+        width: 2.2rem;
+        height: 2.2rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .step-body {}
+    .step-title {
+        font-size: 0.93rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 0.25rem;
+    }
+    .step-detail {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        line-height: 1.5;
+    }
+
+    /* ── Topic cards ── */
+    .topic-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-left: 4px solid #6366f1;
+        border-radius: 10px;
+        padding: 1rem 1.1rem;
+        margin-bottom: 0.9rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .topic-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(99,102,241,0.18);
+    }
+    .topic-card-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #c7d2fe;
+        margin-bottom: 0.5rem;
+    }
+    .topic-card ul {
+        margin: 0;
+        padding-left: 1.2rem;
+    }
+    .topic-card li {
+        font-size: 0.82rem;
+        color: #94a3b8;
+        line-height: 1.55;
+        margin-bottom: 0.2rem;
+    }
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #e2e8f0;
+        margin-bottom: 1.2rem;
     }
     </style>
 """,
     unsafe_allow_html=True,
 )
+
+st.html("""
+    <script>
+    function alignUserMessages() {
+        const messages = window.parent.document.querySelectorAll('[data-testid="stChatMessage"]');
+        messages.forEach(msg => {
+            const avatarEl = msg.firstElementChild;
+            if (avatarEl && avatarEl.textContent.includes('🧑‍🎓')) {
+                msg.style.setProperty('flex-direction', 'row-reverse', 'important');
+            }
+        });
+    }
+    const chatObserver = new MutationObserver(alignUserMessages);
+    chatObserver.observe(window.parent.document.body, { childList: true, subtree: true });
+    alignUserMessages();
+    </script>
+""")
 
 
 def check_backend_health():
@@ -88,11 +309,32 @@ def main():
 
     # Header
     st.markdown(
-        '<p class="main-header">🎓 Tutor de IA para métodos de optimización</p>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        '<p class="sub-header">Tu asistente personalizado para aprender técnicas de optimización</p>',
+        """
+        <div class="hero-section">
+            <div class="hero-badge">🎓 Sistema de Tutoría Adaptativa</div>
+            <h1 class="hero-title">Domina los Métodos<br>de Optimización</h1>
+            <p class="hero-subtitle">
+                Tu asistente de IA personalizado para aprender técnicas de optimización
+                con retroalimentación instantánea y seguimiento de progreso.
+            </p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-value">5</span>
+                    <span class="hero-stat-label">Temas</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="hero-stat-value">IA</span>
+                    <span class="hero-stat-label">Adaptativa</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="hero-stat-value">⚡</span>
+                    <span class="hero-stat-label">Retroalimentación instantánea</span>
+                </div>
+            </div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
@@ -263,67 +505,100 @@ def main():
         return
 
     if not api_client.is_authenticated():
-        # Welcome screen
-        st.markdown("### ¡Bienvenido al sistema de tutoría de IA! 👋")
-
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            st.markdown("#### 💬 Chat")
-            st.write(
-                "Interactúa con tutores de IA especializados en diferentes temas de optimización."
-            )
-            st.info("Haz preguntas, obtén explicaciones y resuelve problemas.")
-        with col2:
-            st.markdown("#### 📝 Evaluaciones")
-            st.write(
-                "Pon a prueba tus conocimientos con problemas de práctica generados por IA"
-            )
-            st.info("Obtén comentarios instantáneos y sugerencias personalizadas")
-        with col3:
-            st.markdown("#### 📊 Progreso")
-            st.write(
-                "Realiza un seguimiento de tu recorrido de aprendizaje en todos los temas"
-            )
-            st.info("Vea tu mejora e identifica áreas en las que centrarte")
+        # Feature cards
+        st.markdown(
+            """
+            <div class="features-row">
+                <div class="feature-card">
+                    <div class="feature-card-icon">💬</div>
+                    <div class="feature-card-title">Chat con IA</div>
+                    <div class="feature-card-desc">
+                        Interactúa con tutores de IA especializados en cada tema de optimización.
+                        Obtén explicaciones adaptadas a tu nivel de conocimiento.
+                    </div>
+                    <div class="feature-card-cta">→ Haz preguntas y resuelve problemas</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon">📝</div>
+                    <div class="feature-card-title">Evaluaciones</div>
+                    <div class="feature-card-desc">
+                        Pon a prueba tus conocimientos con ejercicios de práctica generados por IA
+                        y recibe retroalimentación detallada al instante.
+                    </div>
+                    <div class="feature-card-cta">→ Comentarios instantáneos y personalizados</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon">📊</div>
+                    <div class="feature-card-title">Seguimiento de Progreso</div>
+                    <div class="feature-card-desc">
+                        Visualiza tu avance en cada tema, identifica áreas de mejora y
+                        mantén un historial de tu aprendizaje.
+                    </div>
+                    <div class="feature-card-cta">→ Ve tu mejora a lo largo del tiempo</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
         st.divider()
 
-        st.markdown("### 🚀 Empezando")
-        st.markdown("""
-        1. **Inicia sesión o regístrate** en la barra lateral para acceder a tu cuenta
-            - Nuevos usuarios: Haz clic en "Registrarse" y crea una cuenta
-            - Usuarios existentes: Haz clic en "Iniciar sesión" con tus credenciales
-        2. **Empieza a aprender** con tutores de IA
-        3. **Navega a las páginas** usando el menú lateral:
-            - **Chat**: Habla con tutores de IA sobre métodos de optimización
-            - **Evaluación**: Realiza cuestionarios de práctica y obtén retroalimentación instantánea
-            - **Progreso**: Consulta tus estadísticas de aprendizaje y mejoras
-            - **Administrador** (solo administradores): Gestiona usuarios y consulta las estadísticas del sistema
-        """)
+        # Getting started steps
+        st.markdown('<p class="steps-section-title">🚀 Primeros pasos</p>', unsafe_allow_html=True)
+        st.markdown(
+            """
+            <div class="steps-row">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-body">
+                        <div class="step-title">Regístrate o inicia sesión</div>
+                        <div class="step-detail">
+                            Crea tu cuenta en la barra lateral o accede con tus credenciales existentes.
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-body">
+                        <div class="step-title">Elige tu tema</div>
+                        <div class="step-detail">
+                            Selecciona el área de optimización que quieres explorar: LP, IP, NLP y más.
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-body">
+                        <div class="step-title">Aprende con tu tutor de IA</div>
+                        <div class="step-detail">
+                            Chatea, realiza evaluaciones y consulta tu progreso desde el menú lateral.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
         st.divider()
 
-        st.markdown("### 📚 Lo que aprenderás")
+        # Topics section
+        st.markdown('<p class="section-title">📚 Lo que aprenderás</p>', unsafe_allow_html=True)
 
         col1, col2 = st.columns(2)
 
-        # First column: first 3 topics
+        def _topic_card(topic: str) -> str:
+            descriptions = TOPIC_DESCRIPTIONS.get(topic, [])
+            items = "".join(f"<li>{d}</li>" for d in descriptions)
+            return f'<div class="topic-card"><div class="topic-card-title">{topic}</div><ul>{items}</ul></div>'
+
         with col1:
             for topic in TOPICS_LIST[:3]:
-                descriptions = TOPIC_DESCRIPTIONS.get(topic, [])
-                st.markdown(f"**{topic}**")
-                for desc in descriptions:
-                    st.markdown(f"- {desc}")
-                st.markdown("")  # Add spacing
+                st.markdown(_topic_card(topic), unsafe_allow_html=True)
 
-        # Second column: remaining topics
         with col2:
             for topic in TOPICS_LIST[3:]:
-                descriptions = TOPIC_DESCRIPTIONS.get(topic, [])
-                st.markdown(f"**{topic}**")
-                for desc in descriptions:
-                    st.markdown(f"- {desc}")
-                st.markdown("")  # Add spacing
+                st.markdown(_topic_card(topic), unsafe_allow_html=True)
 
     else:
         # Analytics tracking
@@ -333,7 +608,7 @@ def main():
         # Show the main chat interface for logged-in users
         st.markdown("### 💬 Chatea con un tutor de IA")
         st.markdown(
-            "¡Haga preguntas sobre cualquier tema relacionado con el método de optimización!"
+            "¡Haz preguntas sobre un tema relacionado con métodos de optimización!"
         )
 
         # Initialize chat history
@@ -343,16 +618,16 @@ def main():
 
         # Display chat history
         for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
+            with st.chat_message(message["role"], avatar="🧑‍🎓" if message["role"] == "user" else "🎓"):
                 st.markdown(message["content"])
 
         if prompt := st.chat_input("Haz una pregunta sobre métodos de optimización..."):
             # Add the user message to chat
             st.session_state.messages.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
+            with st.chat_message("user", avatar="🧑‍🎓"):
                 st.markdown(prompt)
 
-            with st.chat_message("assistant"):
+            with st.chat_message("assistant", avatar="🎓"):
                 with st.spinner("Pensando..."):
                     # Get a selected topic from the session state
                     selected_topic = st.session_state.get(
@@ -398,5 +673,13 @@ def main():
                     st.rerun()
 
 
-if __name__ == "__main__":
-    main()
+home_page = st.Page(main, title="app", icon="🏠")
+set_home_page(home_page)
+pg = st.navigation([
+    home_page,
+    st.Page("pages/1_chat.py", title="chat", icon="💬"),
+    st.Page("pages/2_assessment.py", title="evaluación", icon="📝"),
+    st.Page("pages/3_progress.py", title="progreso", icon="📊"),
+    st.Page("pages/4_admin.py", title="admin", icon="⚙️"),
+])
+pg.run()

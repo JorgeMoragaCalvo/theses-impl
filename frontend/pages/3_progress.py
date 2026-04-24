@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
 from utils.activity_tracker import PAGE_PROGRESS, track_page_visit
 from utils.api_client import get_api_client
 from utils.idle_detector import inject_idle_detector
+from utils.pages_registry import get_home_page
 
 """
 Página de seguimiento del progreso - análisis del aprendizaje de los estudiantes
@@ -24,7 +25,6 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 # Get API client
 api_client = get_api_client(BACKEND_URL)
 
-st.set_page_config(page_title="Progress - AI Tutor", page_icon="📊", layout="wide")
 
 st.title("📊 Tu progreso de aprendizaje")
 
@@ -203,4 +203,8 @@ with st.sidebar:
     st.divider()
     if st.button("Logout", key="logout_btn", type="primary"):
         api_client.logout()
-        st.switch_page("app.py")
+        home = get_home_page()
+        if home is not None:
+            st.switch_page(home)
+        else:
+            st.rerun()
