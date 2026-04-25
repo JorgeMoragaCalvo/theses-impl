@@ -575,7 +575,7 @@ La imagen muestra:
             if self._is_feasible(float(x), float(y), constraints, var_bounds)
         ]
         if feasible_pts:
-            fx, fy = zip(*feasible_pts)
+            fx, fy = zip(*feasible_pts, strict=False)
             ax.scatter(
                 fx, fy,
                 color="green",
