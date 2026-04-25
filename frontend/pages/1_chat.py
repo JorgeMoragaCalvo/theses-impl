@@ -1,4 +1,6 @@
+import base64
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -29,6 +31,23 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # Get API client
 api_client = get_api_client(BACKEND_URL)
+
+_BASE64_IMAGE_RE = re.compile(r"!\[([^\]]*)\]\(data:image/png;base64,([A-Za-z0-9+/=]+)\)")
+
+
+def render_message(content: str) -> None:
+    """Render a chat message, extracting any embedded base64 PNG images."""
+    last = 0
+    for match in _BASE64_IMAGE_RE.finditer(content):
+        text_before = content[last : match.start()]
+        if text_before.strip():
+            st.markdown(text_before)
+        caption, b64 = match.group(1), match.group(2)
+        st.image(base64.b64decode(b64), caption=caption or None)
+        last = match.end()
+    remaining = content[last:]
+    if remaining.strip():
+        st.markdown(remaining)
 
 
 st.html("""
@@ -73,7 +92,7 @@ if "chat_messages" not in st.session_state:
 # Display chat
 for message in st.session_state.chat_messages:
     with st.chat_message(message["role"], avatar="🧑‍🎓" if message["role"] == "user" else "🎓"):
-        st.markdown(message["content"])
+        render_message(message["content"])
         if "agent_type" in message and message["role"] == "assistant":
             st.caption(f"Agent: {message['agent_type']}")
 
@@ -99,7 +118,7 @@ if prompt := st.chat_input(placeholder="Haz tu pregunta..."):
             )
 
             if success:
-                st.markdown(data["response"])
+                render_message(data["response"])
                 st.caption(f"Agent: {data['agent_type']}")
 
                 st.session_state.chat_messages.append(

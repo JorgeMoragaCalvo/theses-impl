@@ -321,6 +321,7 @@ class LLMService:
         tools: list[BaseTool],
         iteration: int,
         is_async: bool = False,
+        image_results: list[str] | None = None,
     ) -> str | None:
         """
         Process tool calls from an LLM response.
@@ -361,6 +362,9 @@ class LLMService:
             langchain_messages.append(
                 ToolMessage(content=tool_result, tool_call_id=tool_id)
             )
+
+            if image_results is not None and "data:image/png;base64," in tool_result:
+                image_results.append(tool_result)
 
         return None
 
@@ -406,19 +410,26 @@ class LLMService:
             llm_with_tools = llm.bind_tools(tools)
 
             # Tool execution loop
+            image_results: list[str] = []
             for iteration in range(max_tool_iterations):
                 response = self._invoke_with_retry(llm_with_tools, langchain_messages)
 
                 result = self._process_tool_calls(
-                    response, langchain_messages, tools, iteration
+                    response, langchain_messages, tools, iteration,
+                    image_results=image_results,
                 )
                 if result is not None:
+                    if image_results:
+                        result = "\n\n".join(image_results) + "\n\n" + result
                     return result
 
             # Max iterations reached, get a final response without tools
             logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")
             final_response = self._invoke_with_retry(llm, langchain_messages)
-            return self._extract_content(final_response.content)
+            final_text = self._extract_content(final_response.content)
+            if image_results:
+                final_text = "\n\n".join(image_results) + "\n\n" + final_text
+            return final_text
 
         except Exception as e:
             logger.error(f"Error in generate_response_with_tools: {str(e)}")
@@ -460,19 +471,26 @@ class LLMService:
             llm_with_tools = llm.bind_tools(tools)
 
             # Tool execution loop
+            image_results: list[str] = []
             for iteration in range(max_tool_iterations):
                 response = await self._ainvoke_with_retry(llm_with_tools, langchain_messages)
 
                 result = self._process_tool_calls(
-                    response, langchain_messages, tools, iteration, is_async=True
+                    response, langchain_messages, tools, iteration, is_async=True,
+                    image_results=image_results,
                 )
                 if result is not None:
+                    if image_results:
+                        result = "\n\n".join(image_results) + "\n\n" + result
                     return result
 
             # Max iterations reached
             logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")
             final_response = await self._ainvoke_with_retry(llm, langchain_messages)
-            return self._extract_content(final_response.content)
+            final_text = self._extract_content(final_response.content)
+            if image_results:
+                final_text = "\n\n".join(image_results) + "\n\n" + final_text
+            return final_text
 
         except Exception as e:
             logger.error(f"Error in a_generate_response_with_tools: {str(e)}")

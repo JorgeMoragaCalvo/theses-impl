@@ -22,7 +22,7 @@ try:
     NUMPY_AVAILABLE = True
 except ImportError:
     NUMPY_AVAILABLE = False
-    np = None
+    np = None  # type: ignore[assignment]
 
 try:
     import matplotlib
@@ -34,7 +34,7 @@ try:
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
     matplotlib = None
-    plt = None
+    plt = None  # type: ignore[assignment]
     logger.warning(
         "matplotlib not installed - RegionVisualizerTool will have limited functionality"
     )
@@ -52,7 +52,7 @@ class RegionVisualizerTool(BaseTool):
     """
 
     name: str = "region_visualizer"
-    description: str = """Crea una visualización 2D de la región factible para problemas LP con 2 variables.
+    description: str = """Crea una visualización 2D de la región factible para problemas LP/IP con 2 variables.
 
 Entrada: JSON con la siguiente estructura:
 {
@@ -67,8 +67,13 @@ Entrada: JSON con la siguiente estructura:
   "objective": {
     "sense": "maximize",
     "expression": "3*x1 + 5*x2"
-  }
+  },
+  "show_integer_points": false
 }
+
+Usa "show_integer_points": true para problemas de programación entera: superpone los
+puntos de la cuadrícula entera que son factibles (útil para enseñar branch-and-bound
+y mostrar por qué redondear la solución LP no garantiza el óptimo entero).
 
 IMPORTANTE: Solo funciona con exactamente 2 variables.
 
@@ -119,6 +124,7 @@ Retorna: Imagen PNG codificada en base64 de la región factible."""
         variables = model.get("variables", [])
         constraints = model.get("constraints", [])
         objective = model.get("objective", {})
+        show_integer_points: bool = bool(model.get("show_integer_points", False))
 
         # Validate 2 variables
         if len(variables) != 2:
@@ -143,6 +149,20 @@ Retorna: Imagen PNG codificada en base64 de la región factible."""
                 var_bounds=var_bounds,
                 constraints=parsed_constraints,
                 objective=objective,
+                show_integer_points=show_integer_points,
+            )
+
+            integer_note = (
+                "- **Puntos enteros factibles** marcados en verde\n"
+                if show_integer_points
+                else ""
+            )
+            optimality_note = (
+                "*Nota: Solo los puntos enteros verdes son soluciones candidatas "
+                "en programación entera — redondear el óptimo LP no garantiza el óptimo entero.*"
+                if show_integer_points
+                else
+                "*Nota: Los puntos esquina son las soluciones candidatas a óptimo en programación lineal.*"
             )
 
             return f"""**Visualización de Región Factible** ✅
@@ -151,11 +171,11 @@ La imagen muestra:
 - **Líneas de restricción** en diferentes colores
 - **Región factible** sombreada en azul claro
 - **Puntos esquina** (vértices) marcados en rojo
-- **Ejes** etiquetados con los nombres de las variables
+{integer_note}- **Ejes** etiquetados con los nombres de las variables
 
 ![Región Factible](data:image/png;base64,{image_base64})
 
-*Nota: Los puntos esquina son las soluciones candidatas a óptimo en programación lineal.*"""
+{optimality_note}"""
 
         except ValueError as e:
             return self._format_error(f"Error en la formulación: {str(e)}")
@@ -249,8 +269,11 @@ La imagen muestra:
         var_bounds: list[tuple[float, float]],
         constraints: list[dict[str, Any]],
         objective: dict[str, Any],
+        show_integer_points: bool = False,
     ) -> str:
         """Generate the feasible region plot."""
+        assert plt is not None
+        assert np is not None
         fig, ax = plt.subplots(figsize=self.FIGURE_SIZE, dpi=self.DPI)
 
         # Determine plot bounds
@@ -354,6 +377,10 @@ La imagen muestra:
                     bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.7),
                 )
 
+        # Plot integer lattice points if requested (IP mode)
+        if show_integer_points:
+            self._plot_integer_points(ax, constraints, var_bounds, x_max, y_max)
+
         # Plot objective function direction if provided
         if objective and objective.get("expression"):
             self._add_objective_arrow(ax, objective, var_names, x_max, y_max)
@@ -363,7 +390,8 @@ La imagen muestra:
         ax.set_ylim(-0.5, y_max + 0.5)
         ax.set_xlabel(var_names[0], fontsize=12)
         ax.set_ylabel(var_names[1], fontsize=12)
-        ax.set_title("Región Factible", fontsize=14, fontweight="bold")
+        title = "Región Factible (Programación Entera)" if show_integer_points else "Región Factible"
+        ax.set_title(title, fontsize=14, fontweight="bold")
         ax.grid(True, alpha=0.3)
         ax.legend(loc="upper right", fontsize=9)
         ax.set_aspect("equal", adjustable="box")
@@ -528,6 +556,35 @@ La imagen muestra:
 
         return True
 
+    def _plot_integer_points(
+        self,
+        ax,
+        constraints: list[dict[str, Any]],
+        var_bounds: list[tuple[float, float]],
+        x_max: float,
+        y_max: float,
+    ) -> None:
+        """Overlay feasible integer lattice points (IP mode)."""
+        assert np is not None
+        xs = np.arange(int(var_bounds[0][0]), int(x_max) + 1)
+        ys = np.arange(int(var_bounds[1][0]), int(y_max) + 1)
+        feasible_pts = [
+            (int(x), int(y))
+            for x in xs
+            for y in ys
+            if self._is_feasible(float(x), float(y), constraints, var_bounds)
+        ]
+        if feasible_pts:
+            fx, fy = zip(*feasible_pts)
+            ax.scatter(
+                fx, fy,
+                color="green",
+                s=40,
+                zorder=6,
+                marker="o",
+                label="Puntos enteros factibles",
+            )
+
     def _add_objective_arrow(
         self,
         ax,
@@ -537,6 +594,7 @@ La imagen muestra:
         y_max: float,
     ):
         """Add an arrow showing an objective function direction."""
+        assert np is not None
         expression = objective.get("expression", "")
         sense = objective.get("sense", "maximize").lower()
 

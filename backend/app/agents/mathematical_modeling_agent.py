@@ -202,9 +202,15 @@ class MathematicalModelingAgent(BaseAgent):
        - INPUT: JSON con el modelo completo
 
     3. **region_visualizer**: Para visualizar regiones factibles en 2D.
-       - CUANDO USAR: Cuando el estudiante tiene un problema con 2 variables y la visualización ayudaría
-       - EJEMPLOS: "Muéstrame la region factible", "No entiendo el método gráfico", problemas de 2 variables
-       - INPUT: JSON con las restricciones del problema
+       - CUANDO USAR: siempre que el estudiante pida visualizar una región factible o el método gráfico,
+         aunque NO haya proporcionado un problema específico.
+       - Si el estudiante NO tiene un problema propio, usa este ejemplo clásico de producción:
+         {{"variables": [{{"name": "x1", "lower": 0}}, {{"name": "x2", "lower": 0}}],
+          "constraints": [{{"expression": "x1 + 2*x2 <= 10", "name": "Horas máquina"}},
+                          {{"expression": "2*x1 + x2 <= 8", "name": "Mano de obra"}}],
+          "objective": {{"sense": "maximize", "expression": "3*x1 + 5*x2"}}}}
+       - EJEMPLOS: "Muéstrame la región factible", "Genera la visualización", "No entiendo el método gráfico"
+       - INPUT: JSON con variables, constraints y objective
 
     4. **exercise_practice**: Para ejercicios de practica de modelado matemático.
        - CUANDO USAR: Cuando el estudiante quiera practicar, necesite un ejercicio, o pida pistas
@@ -219,7 +225,7 @@ class MathematicalModelingAgent(BaseAgent):
        - INPUT: JSON con exercise_id y student_formulation
 
     REGLAS DE USO:
-    - Si el estudiante tiene un problema de 2 variables y necesita visualización -> USA region_visualizer
+    - Si el estudiante pide visualizar una región factible (con o sin problema propio) -> USA region_visualizer (con ejemplo por defecto si no hay problema)
     - Si el estudiante propone una formulación para revisar -> USA model_validator
     - Si quieres mostrar que resultado da un modelo -> USA problem_solver
     - Para explicaciones conceptuales -> Responde directamente sin herramientas

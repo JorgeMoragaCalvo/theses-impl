@@ -1,5 +1,7 @@
 import logging
+from typing import Any
 
+from ..tools.modeling_tools import RegionVisualizerTool
 from .base_agent import BaseAgent
 
 """
@@ -31,7 +33,8 @@ class IntegerProgrammingAgent(BaseAgent):
         super().__init__(
             agent_name="Tutor de Programación Entera", agent_type="integer_programming"
         )
-        logger.info("Integer Programming agent initialized")
+        self.tools = [RegionVisualizerTool()]
+        logger.info("Integer Programming agent initialized with region_visualizer tool")
 
     def _get_identity_prompt(self, student_name: str) -> str:
         return f"""Eres un tutor experto en Programación Entera para {student_name}.
@@ -128,6 +131,31 @@ class IntegerProgrammingAgent(BaseAgent):
     - Resalta condiciones clave (ej: "Nota: usamos big-M con M suficientemente grande")
     - Muestra el arbol de branch and bound cuando sea util
     - Indica claramente cotas y gaps"""
+
+    def _get_extra_prompt_sections(self, context: dict[str, Any]) -> list[str]:
+        return ["""
+    HERRAMIENTAS DISPONIBLES:
+    Tienes acceso a una herramienta especializada que debes usar activamente:
+
+    1. **region_visualizer**: Para visualizar la relajación LP con puntos enteros factibles.
+       - CUANDO USAR: siempre que el estudiante necesite visualizar un problema con 2 variables,
+         quiera entender por qué no se puede redondear la solución LP, o pida ver el método gráfico.
+       - IMPORTANTE: siempre incluye "show_integer_points": true para mostrar los puntos enteros.
+       - Si el estudiante NO tiene un problema propio, usa este ejemplo:
+         {"variables": [{"name": "x1", "lower": 0}, {"name": "x2", "lower": 0}],
+          "constraints": [{"expression": "x1 + 2*x2 <= 7", "name": "Restricción 1"},
+                          {"expression": "2*x1 + x2 <= 7", "name": "Restricción 2"}],
+          "objective": {"sense": "maximize", "expression": "x1 + x2"},
+          "show_integer_points": true}
+       - EJEMPLOS: "¿Por qué no se puede redondear?", "Muéstrame los puntos enteros factibles",
+         "Visualiza este problema IP", "¿Cuántos puntos enteros hay en la región?"
+       - INPUT: JSON con variables, constraints, objective y "show_integer_points": true
+
+    REGLAS DE USO:
+    - Para problemas de 2 variables que necesiten visualización -> USA region_visualizer con show_integer_points: true
+    - Al explicar por qué redondear falla -> muestra la imagen para que el estudiante vea que el óptimo LP redondeado puede estar fuera de la región entera
+    - Integra la imagen pedagógicamente: señala los puntos verdes como los únicos candidatos al óptimo entero
+    """]
 
     def _get_fewshot_examples(self, knowledge_level: str) -> str:
         """
@@ -461,9 +489,6 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             # Solution methods (English)
             "branch and bound",
             "branch-and-bound",
-            "bnb",
-            "cutting plane",
-            "gomory cut",
             "cutting plane method",
             "branch and cut",
             "branch-and-cut",
@@ -494,8 +519,6 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             "gap de optimalidad",
             "brecha de integridad",
             # Common applications (English)
-            "facility location",
-            "plant location",
             "warehouse location",
             "knapsack",
             "knapsack problem",
@@ -508,13 +531,7 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             "tsp",
             "vehicle routing",
             "vrp",
-            "set covering",
-            "set packing",
-            "set partitioning",
             "bin packing",
-            "cutting stock",
-            "project selection",
-            "capital budgeting",
             # Aplicaciones comunes (Spanish)
             "ubicación de instalaciones",
             "localización de plantas",
@@ -530,18 +547,6 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             "empaquetamiento",
             "corte de material",
             "selección de proyectos",
-            # Modeling techniques (English)
-            "logical constraint",
-            "either-or constraint",
-            "if-then constraint",
-            "fixed charge",
-            "fixed cost",
-            "big-m",
-            "big m",
-            "indicator variable",
-            "piecewise linear",
-            "sos",
-            "special ordered set",
             # Técnicas de modelado (Spanish)
             "restricción lógica",
             "restricción either-or",
@@ -549,19 +554,6 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
             "costo fijo",
             "cargo fijo",
             "variable indicadora",
-            # Properties and concepts (English)
-            "feasible solution",
-            "incumbent solution",
-            "node",
-            "branching",
-            "fathom",
-            "pruning",
-            "subproblem",
-            "branch tree",
-            "search tree",
-            "heuristic",
-            "rounding",
-            "feasibility rounding",
             # Propiedades y conceptos (Spanish)
             "solución factible",
             "solución incumbente",

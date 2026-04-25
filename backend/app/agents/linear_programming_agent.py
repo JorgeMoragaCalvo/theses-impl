@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from typing import Any
 
+from ..tools.modeling_tools import RegionVisualizerTool
 from .base_agent import BaseAgent
 
 """
@@ -43,6 +44,9 @@ class LinearProgrammingAgent(BaseAgent):
             logger.info("LP course materials loaded successfully")
         else:
             logger.warning(f"LP course materials not found at {materials_path}")
+
+        self.tools = [RegionVisualizerTool()]
+        logger.info("LP agent initialized with region_visualizer tool")
 
     def _get_identity_prompt(self, student_name: str) -> str:
         return f"""Eres un tutor experto en Programación Lineal para {student_name}.
@@ -138,17 +142,39 @@ class LinearProgrammingAgent(BaseAgent):
     - Usa formato claro para tablas simplex"""
 
     def _get_extra_prompt_sections(self, context: dict[str, Any]) -> list[str]:
-        if not self.course_materials:
-            return []
+        sections: list[str] = []
 
-        return [
-            f"""
+        if self.course_materials:
+            sections.append(f"""
     MATERIALES DEL CURSO:
     Tienes acceso a materiales de referencia sobre Programación Lineal.
     Adapta las explicaciones al nivel del estudiante y contexto presente.
     {self.format_context_for_prompt(context)}
-    """
-        ]
+    """)
+
+        sections.append("""
+    HERRAMIENTAS DISPONIBLES:
+    Tienes acceso a una herramienta especializada que debes usar activamente:
+
+    1. **region_visualizer**: Para visualizar regiones factibles en 2D.
+       - CUANDO USAR: siempre que el estudiante pida visualizar una región factible, graficar
+         restricciones, o aplicar el método gráfico, aunque NO haya proporcionado un problema específico.
+       - Si el estudiante NO tiene un problema propio, usa este ejemplo clásico de producción:
+         {"variables": [{"name": "x1", "lower": 0}, {"name": "x2", "lower": 0}],
+          "constraints": [{"expression": "x1 + 2*x2 <= 10", "name": "Horas máquina"},
+                          {"expression": "2*x1 + x2 <= 8", "name": "Mano de obra"}],
+          "objective": {"sense": "maximize", "expression": "3*x1 + 5*x2"}}
+       - EJEMPLOS: "Muéstrame la región factible", "Grafica las restricciones",
+         "No visualizo el método gráfico", "¿Cómo se ve este problema?"
+       - INPUT: JSON con variables, constraints y objective (solo funciona con exactamente 2 variables)
+
+    REGLAS DE USO:
+    - Si el estudiante pide visualizar una región factible (con o sin problema propio) -> USA region_visualizer (con ejemplo por defecto si no hay problema)
+    - Para explicaciones del método gráfico a principiantes -> ofrece SIEMPRE la visualización
+    - Integra la imagen en tu explicación pedagógica: señala los vértices, la región sombreada y la dirección de mejora del objetivo
+    """)
+
+        return sections
 
     def _get_fewshot_examples(self, knowledge_level: str) -> str:
         """
