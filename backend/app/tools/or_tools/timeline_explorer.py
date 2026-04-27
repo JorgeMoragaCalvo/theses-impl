@@ -119,9 +119,10 @@ Use this when students ask about OR history, origins, key figures, or timeline."
         """Strip accents for accent-insensitive matching (e.g. 'símplex' → 'simplex')."""
         return unicodedata.normalize("NFD", text).encode("ascii", "ignore").decode("ascii")
 
-    def _matches_milestone(self, milestone: dict, query: str) -> bool:
+    @staticmethod
+    def _matches_milestone(milestone: dict, query: str) -> bool:
         """Check if a milestone matches the query."""
-        n = self._normalize
+        n = TimelineExplorerTool._normalize
         searchable = [
             n(milestone.get("title", "").lower()),
             n(milestone.get("description", "").lower()),
@@ -133,9 +134,10 @@ Use this when students ask about OR history, origins, key figures, or timeline."
 
         return any(query in field for field in searchable)
 
-    def _matches_figure(self, figure: dict, query: str) -> bool:
+    @staticmethod
+    def _matches_figure(figure: dict, query: str) -> bool:
         """Check if a key figure matches the query."""
-        n = self._normalize
+        n = TimelineExplorerTool._normalize
         searchable = [
             n(figure.get("name", "").lower()),
             n(figure.get("nationality", "").lower()),
@@ -146,9 +148,10 @@ Use this when students ask about OR history, origins, key figures, or timeline."
 
         return any(query in field for field in searchable)
 
-    def _matches_era(self, era: dict, query: str) -> bool:
+    @staticmethod
+    def _matches_era(era: dict, query: str) -> bool:
         """Check if an era matches the query."""
-        n = self._normalize
+        n = TimelineExplorerTool._normalize
         searchable = [
             n(era.get("name", "").lower()),
             n(era.get("period", "").lower()),

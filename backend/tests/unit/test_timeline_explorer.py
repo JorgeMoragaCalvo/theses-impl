@@ -2,6 +2,9 @@
 Unit tests for TimelineExplorerTool — OR history searches.
 """
 
+from unittest.mock import patch
+
+import pytest
 from app.tools.or_tools.timeline_explorer import TimelineExplorerTool
 
 
@@ -186,4 +189,43 @@ class TestDataLoading:
         tool._timeline_data = {"milestones": [], "key_figures": [], "eras": []}
         tool._data_loaded = True
         result = tool._run("anything")
+        assert "No se encontró" in result
+
+    def test_already_loaded_skips_io(self):
+        tool = TimelineExplorerTool.__new__(TimelineExplorerTool)
+        tool._data_loaded = True
+        tool._timeline_data = {"milestones": [], "key_figures": [], "eras": []}
+        tool._load_data()
+        assert tool._data_loaded is True
+
+    def test_load_data_file_not_found(self, tmp_path):
+        tool = TimelineExplorerTool.__new__(TimelineExplorerTool)
+        tool._data_loaded = False
+        missing = str(tmp_path / "no_such_file.json")
+        with patch.object(TimelineExplorerTool, "_get_data_path", return_value=missing):
+            tool._load_data()
+        assert tool._timeline_data == {"milestones": [], "key_figures": [], "eras": []}
+
+    def test_load_data_invalid_json(self, tmp_path):
+        bad_file = tmp_path / "bad.json"
+        bad_file.write_text("not valid json")
+        tool = TimelineExplorerTool.__new__(TimelineExplorerTool)
+        tool._data_loaded = False
+        with patch.object(TimelineExplorerTool, "_get_data_path", return_value=str(bad_file)):
+            tool._load_data()
+        assert tool._timeline_data == {"milestones": [], "key_figures": [], "eras": []}
+
+    def test_run_triggers_load_when_not_loaded(self):
+        tool = TimelineExplorerTool.__new__(TimelineExplorerTool)
+        tool._data_loaded = False
+        with patch.object(TimelineExplorerTool, "_get_data_path", return_value="/nonexistent/path.json"):
+            result = tool._run("anything")
+        assert "No se encontró" in result
+
+    @pytest.mark.asyncio
+    async def test_arun_delegates_to_run(self):
+        tool = TimelineExplorerTool.__new__(TimelineExplorerTool)
+        tool._data_loaded = True
+        tool._timeline_data = {"milestones": [], "key_figures": [], "eras": []}
+        result = await tool._arun("simplex")
         assert "No se encontró" in result
