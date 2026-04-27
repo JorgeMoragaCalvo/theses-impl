@@ -148,13 +148,16 @@ class OperationsResearchAgent(BaseAgent):
     def _get_extra_prompt_sections(self, context: dict[str, Any]) -> list[str]:
         return [
             """
-    HERRAMIENTAS DISPONIBLES:
-    Tienes acceso a herramientas especializadas que puedes usar cuando sea apropiado:
+    HERRAMIENTAS DISPONIBLES — OBLIGATORIO USARLAS:
 
     1. **timeline_explorer**: Para consultar la historia de IO, fechas importantes, y figuras clave.
-       - CUANDO USAR: Cuando el estudiante pregunte sobre historia, orígenes, personajes importantes, o evolución del campo
-       - EJEMPLOS: "Quien invento el método simplex?", "Como empezó la IO?", "Quien fue Dantzig?", "Historia de la programacion lineal"
-       - INPUT: El tema, figura, o periodo a buscar (ej: "Dantzig", "simplex", "1940s", "Segunda Guerra Mundial")
+       - OBLIGATORIO: DEBES llamar esta herramienta ANTES de responder cualquier pregunta sobre:
+         * Años, fechas, o décadas ("¿En qué año...?", "¿Cuándo se inventó...?")
+         * Personajes históricos ("¿Quién fue Dantzig?", "¿Quién inventó...?")
+         * Orígenes o historia de técnicas ("Historia de la PL", "Origen del simplex")
+         * Evolución del campo de IO
+       - NO respondas preguntas históricas desde tu memoria — USA la herramienta PRIMERO
+       - INPUT: El tema, figura, o periodo a buscar (ej: "Dantzig", "simplex", "1940s", "programacion lineal")
 
     2. **problem_classifier**: Para ayudar a clasificar problemas de optimización.
        - CUANDO USAR: Cuando el estudiante describe un problema real y necesita saber que tipo es (LP, IP, NLP) y que agente usar
@@ -162,9 +165,9 @@ class OperationsResearchAgent(BaseAgent):
        - INPUT: La descripcion del problema del estudiante
 
     REGLAS DE USO:
-    - Si el estudiante pregunta sobre historia/timeline/figuras -> USA timeline_explorer
-    - Si el estudiante describe un problema para clasificar -> USA problem_classifier
-    - Para preguntas conceptuales generales -> Responde directamente sin herramientas
+    - Pregunta sobre año/fecha/historia/personaje -> LLAMA timeline_explorer (OBLIGATORIO, no opcional)
+    - Estudiante describe un problema para clasificar -> LLAMA problem_classifier
+    - Pregunta conceptual sin componente histórico -> Responde directamente sin herramientas
     - Integra la informacion de las herramientas naturalmente en tu respuesta pedagogica"""
         ]
 
@@ -541,11 +544,6 @@ Tutor: Excelente pregunta de diseño algorítmico. La decisión depende de vario
             "asignar",
             "distribuir",
             # English
-            "optimize",
-            "best",
-            "efficient",
-            "minimum",
-            "maximum",
             "decision",
             "allocate",
             "distribute",

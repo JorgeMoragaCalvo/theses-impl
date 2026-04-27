@@ -37,3 +37,13 @@ class TestParseLlmJsonResponse:
         raw = 'Here is the result: {"answer": 42}'
         result = parse_llm_json_response(raw)
         assert result == {"answer": 42}
+
+    def test_parse_unclosed_json_block(self):
+        raw = '```json\n{"key": "value"}'
+        result = parse_llm_json_response(raw)
+        assert result == {"key": "value"}
+
+    def test_parse_unclosed_generic_block(self):
+        raw = '```\n{"key": "value"}'
+        result = parse_llm_json_response(raw)
+        assert result == {"key": "value"}
