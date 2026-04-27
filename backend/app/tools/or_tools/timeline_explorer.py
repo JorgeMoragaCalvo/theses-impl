@@ -8,6 +8,7 @@ Operations Research, including milestones, key figures, and eras.
 import json
 import logging
 import os
+import unicodedata
 from typing import Any
 
 from langchain_core.tools import BaseTool
@@ -28,8 +29,8 @@ class TimelineExplorerTool(BaseTool):
     name: str = "timeline_explorer"
     description: str = """Use this tool to find historical information about Operations Research.
 Input can be:
-- A topic (e.g., "simplex method", "linear programming origins")
-- A time period (e.g., "1940s", "World War II era", "WWII")
+- A topic (e.g., "método símplex", "orígenes de la programacion lineal")
+- A time period (e.g., "1940s", "segunda guerra mundial", "WWII")
 - A key figure name (e.g., "Dantzig", "Kantorovich", "von Neumann")
 
 Returns historical information formatted for teaching purposes.
@@ -55,7 +56,7 @@ Use this when students ask about OR history, origins, key figures, or timeline."
         return os.path.normpath(data_path)
 
     def _load_data(self) -> None:
-        """Load timeline data from JSON file."""
+        """Load timeline data from the JSON file."""
         if self._data_loaded:
             return
 
@@ -86,7 +87,7 @@ Use this when students ask about OR history, origins, key figures, or timeline."
         if not self._data_loaded:
             self._load_data()
 
-        query_lower = query.lower().strip()
+        query_lower = self._normalize(query.lower().strip())
         results = []
 
         # Search milestones
@@ -114,43 +115,44 @@ Use this when students ask about OR history, origins, key figures, or timeline."
         )
 
     @staticmethod
-    def _matches_milestone(milestone: dict, query: str) -> bool:
+    def _normalize(text: str) -> str:
+        """Strip accents for accent-insensitive matching (e.g. 'símplex' → 'simplex')."""
+        return unicodedata.normalize("NFD", text).encode("ascii", "ignore").decode("ascii")
+
+    def _matches_milestone(self, milestone: dict, query: str) -> bool:
         """Check if a milestone matches the query."""
+        n = self._normalize
         searchable = [
-            milestone.get("title", "").lower(),
-            milestone.get("description", "").lower(),
+            n(milestone.get("title", "").lower()),
+            n(milestone.get("description", "").lower()),
             str(milestone.get("year", "")),
-            milestone.get("decade", "").lower(),
+            n(milestone.get("decade", "").lower()),
         ]
-        # Add tags
-        searchable.extend([tag.lower() for tag in milestone.get("tags", [])])
-        # Add key figures
-        searchable.extend([fig.lower() for fig in milestone.get("key_figures", [])])
+        searchable.extend([n(tag.lower()) for tag in milestone.get("tags", [])])
+        searchable.extend([n(fig.lower()) for fig in milestone.get("key_figures", [])])
 
         return any(query in field for field in searchable)
 
-    @staticmethod
-    def _matches_figure(figure: dict, query: str) -> bool:
+    def _matches_figure(self, figure: dict, query: str) -> bool:
         """Check if a key figure matches the query."""
+        n = self._normalize
         searchable = [
-            figure.get("name", "").lower(),
-            figure.get("nationality", "").lower(),
-            figure.get("famous_for", "").lower(),
+            n(figure.get("name", "").lower()),
+            n(figure.get("nationality", "").lower()),
+            n(figure.get("famous_for", "").lower()),
         ]
-        # Add contributions
-        searchable.extend([c.lower() for c in figure.get("contributions", [])])
-        # Add tags
-        searchable.extend([tag.lower() for tag in figure.get("tags", [])])
+        searchable.extend([n(c.lower()) for c in figure.get("contributions", [])])
+        searchable.extend([n(tag.lower()) for tag in figure.get("tags", [])])
 
         return any(query in field for field in searchable)
 
-    @staticmethod
-    def _matches_era(era: dict, query: str) -> bool:
+    def _matches_era(self, era: dict, query: str) -> bool:
         """Check if an era matches the query."""
+        n = self._normalize
         searchable = [
-            era.get("name", "").lower(),
-            era.get("period", "").lower(),
-            era.get("description", "").lower(),
+            n(era.get("name", "").lower()),
+            n(era.get("period", "").lower()),
+            n(era.get("description", "").lower()),
         ]
         return any(query in field for field in searchable)
 
