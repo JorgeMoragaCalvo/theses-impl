@@ -71,7 +71,7 @@ class Settings(BaseSettings):
     access_token_expire_days: int = 7  # JWT token expiration
 
     # LLM Configuration
-    temperature: float = 0.4
+    temperature: float = 0.3
     max_tokens: int = 2000
     llm_timeout: int = 60  # Seconds before an LLM call is aborted
 
