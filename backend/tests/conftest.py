@@ -128,7 +128,7 @@ def client(test_db, fake_llm_service):
     - get_db → test_db
     - init_db patched out (lifespan tries to connect to production DB)
     - SessionLocal patched to use the test engine
-    - LLMService singleton replaced with mock
+    - LLMService singleton replaced it with mock
     - Taxonomy registry returns empty data
     """
     fake_registry = MagicMock()
