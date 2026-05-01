@@ -1,0 +1,53 @@
+name: theses-impl
+
+services:
+  - name: backend
+    dockerfile_path: backend/Dockerfile
+    source_dir: /
+    http_port: 8080
+    run_command: gunicorn -c gunicorn.conf.py app.main:app
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: PORT
+        value: "8080"
+      - key: DEBUG
+        value: "false"
+      - key: SECRET_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET
+      - key: LLM_PROVIDER
+        value: "gemini"
+      - key: GEMINI_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 15
+      period_seconds: 30
+      timeout_seconds: 10
+      failure_threshold: 4
+
+  - name: frontend
+    dockerfile_path: frontend/Dockerfile
+    source_dir: /
+    http_port: 8501
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: BACKEND_URL
+        value: "http://backend:8080"
+
+# NOTE: Digital Ocean App Platform provides HTTPS, load balancing, and routing
+# natively — you likely do NOT need the nginx service below. Uncomment only if
+# you need custom Nginx config (custom headers, rate limiting, etc.).
+#
+#  - name: nginx
+#    dockerfile_path: nginx/Dockerfile
+#    source_dir: /
+#    http_port: 80
+#    instance_count: 1
+#    instance_size_slug: basic-xxs

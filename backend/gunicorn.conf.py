@@ -5,6 +5,7 @@ import os
 
 # Server socket
 bind = f"0.0.0.0:{os.getenv('PORT', '8000')}"
+wsgi_app = "app.main:app" # new line
 
 # Worker processes
 workers = int(os.getenv("GUNICORN_WORKERS", multiprocessing.cpu_count() * 2 + 1))
