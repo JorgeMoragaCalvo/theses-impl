@@ -174,7 +174,9 @@ IMPORTANTE: Toda la evaluación debe estar escrita en español, incluyendo el en
             prompt += "\n## Brechas de conocimiento identificadas:\n"
             for gap in knowledge_gaps:
                 prompt += f"- {gap}\n"
-            prompt += "\nPor favor, diseña la evaluación para abordar estas áreas débiles.\n"
+            prompt += (
+                "\nPor favor, diseña la evaluación para abordar estas áreas débiles.\n"
+            )
 
         # Add conversation context if available
         if conversation_context:
@@ -192,12 +194,8 @@ IMPORTANTE: Toda la evaluación debe estar escrita en español, incluyendo el en
                         if msg.get("role") == "user"
                     ]
                 )
-                prompt += (
-                    f"\n## Contexto de conversación reciente:\n{recent_topics_summary}\n"
-                )
-                prompt += (
-                    "Por favor, construye sobre los conceptos discutidos recientemente en la conversación.\n"
-                )
+                prompt += f"\n## Contexto de conversación reciente:\n{recent_topics_summary}\n"
+                prompt += "Por favor, construye sobre los conceptos discutidos recientemente en la conversación.\n"
 
             # Add learning preferences
             if strategies_used:

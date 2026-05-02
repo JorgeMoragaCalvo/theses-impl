@@ -107,7 +107,12 @@ def get_taxonomy_registry() -> ConceptTaxonomyRegistry:
     global _taxonomy_registry
     if _taxonomy_registry is None:
         taxonomies_path = os.path.join(
-            os.path.dirname(str(__file__)), "..", "..", "..", "data", "concept_taxonomies"
+            os.path.dirname(str(__file__)),
+            "..",
+            "..",
+            "..",
+            "data",
+            "concept_taxonomies",
         )
         _taxonomy_registry = ConceptTaxonomyRegistry(taxonomies_path)
     assert _taxonomy_registry is not None
@@ -217,7 +222,9 @@ class CompetencyService:
                 .first()
             )
 
-            concept_name = str(concept_node.concept_name) if concept_node else concept_id
+            concept_name = (
+                str(concept_node.concept_name) if concept_node else concept_id
+            )
             topic = concept_node.topic if concept_node else Topic.OPERATIONS_RESEARCH
 
             competency = StudentCompetency(
@@ -351,7 +358,9 @@ class CompetencyService:
                     "concept_name": comp.concept_name,
                     "mastery_level": comp.mastery_level.value,
                     "mastery_score": round(comp.mastery_score, 3),
-                    "bkt_p_learn": round(comp.bkt_p_learn, 3) if comp.bkt_p_learn is not None else None,
+                    "bkt_p_learn": round(comp.bkt_p_learn, 3)
+                    if comp.bkt_p_learn is not None
+                    else None,
                     "attempts_count": comp.attempts_count,
                 }
             )

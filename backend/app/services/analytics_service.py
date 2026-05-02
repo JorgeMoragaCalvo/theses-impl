@@ -58,7 +58,9 @@ class AnalyticsService:
             return len(db_events)
         except Exception as e:
             self.db.rollback()
-            logger.error(f"Failed to record activity events for student {student_id}: {e}")
+            logger.error(
+                f"Failed to record activity events for student {student_id}: {e}"
+            )
             raise
 
     def get_daily_active_users(

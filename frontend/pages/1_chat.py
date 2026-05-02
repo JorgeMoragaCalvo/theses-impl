@@ -32,7 +32,9 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 # Get API client
 api_client = get_api_client(BACKEND_URL)
 
-_BASE64_IMAGE_RE = re.compile(r"!\[([^\]]*)\]\(data:image/png;base64,([A-Za-z0-9+/=]+)\)")
+_BASE64_IMAGE_RE = re.compile(
+    r"!\[([^\]]*)\]\(data:image/png;base64,([A-Za-z0-9+/=]+)\)"
+)
 
 
 def render_message(content: str) -> None:
@@ -91,7 +93,9 @@ if "chat_messages" not in st.session_state:
 
 # Display chat
 for message in st.session_state.chat_messages:
-    with st.chat_message(message["role"], avatar="🧑‍🎓" if message["role"] == "user" else "🎓"):
+    with st.chat_message(
+        message["role"], avatar="🧑‍🎓" if message["role"] == "user" else "🎓"
+    ):
         render_message(message["content"])
         if "agent_type" in message and message["role"] == "assistant":
             st.caption(f"Agent: {message['agent_type']}")

@@ -415,7 +415,10 @@ class LLMService:
                 response = self._invoke_with_retry(llm_with_tools, langchain_messages)
 
                 result = self._process_tool_calls(
-                    response, langchain_messages, tools, iteration,
+                    response,
+                    langchain_messages,
+                    tools,
+                    iteration,
                     image_results=image_results,
                 )
                 if result is not None:
@@ -424,11 +427,15 @@ class LLMService:
                             result = "\n\n".join(image_results) + "\n\n" + result
                         return result
                     # Empty response from tool-enabled LLM — fall through to no-tools fallback
-                    logger.warning("Tool-enabled LLM returned empty content, using fallback")
+                    logger.warning(
+                        "Tool-enabled LLM returned empty content, using fallback"
+                    )
                     break
 
             # Max iterations reached or empty response — get final response without tools
-            logger.warning(f"Max tool iterations ({max_tool_iterations}) reached or empty response")
+            logger.warning(
+                f"Max tool iterations ({max_tool_iterations}) reached or empty response"
+            )
             final_response = self._invoke_with_retry(llm, langchain_messages)
             final_text = self._extract_content(final_response.content)
             if image_results:
@@ -477,10 +484,16 @@ class LLMService:
             # Tool execution loop
             image_results: list[str] = []
             for iteration in range(max_tool_iterations):
-                response = await self._ainvoke_with_retry(llm_with_tools, langchain_messages)
+                response = await self._ainvoke_with_retry(
+                    llm_with_tools, langchain_messages
+                )
 
                 result = self._process_tool_calls(
-                    response, langchain_messages, tools, iteration, is_async=True,
+                    response,
+                    langchain_messages,
+                    tools,
+                    iteration,
+                    is_async=True,
                     image_results=image_results,
                 )
                 if result is not None:
@@ -489,11 +502,15 @@ class LLMService:
                             result = "\n\n".join(image_results) + "\n\n" + result
                         return result
                     # Empty response from tool-enabled LLM — fall through to no-tools fallback
-                    logger.warning("Tool-enabled LLM returned empty content, using fallback")
+                    logger.warning(
+                        "Tool-enabled LLM returned empty content, using fallback"
+                    )
                     break
 
             # Max iterations reached or empty response — get final response without tools
-            logger.warning(f"Max tool iterations ({max_tool_iterations}) reached or empty response")
+            logger.warning(
+                f"Max tool iterations ({max_tool_iterations}) reached or empty response"
+            )
             final_response = await self._ainvoke_with_retry(llm, langchain_messages)
             final_text = self._extract_content(final_response.content)
             if image_results:

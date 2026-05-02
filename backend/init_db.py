@@ -74,20 +74,20 @@ def create_admin_user(
                 "mathematical_modeling": "advanced",
                 "linear_programming": "advanced",
                 "integer_programming": "advanced",
-                "nonlinear_programming": "advanced"
+                "nonlinear_programming": "advanced",
             },
-            preferences={}
+            preferences={},
         )
 
         db.add(admin_user)
         db.commit()
         db.refresh(admin_user)
 
-        logger.info(f"Admin user created successfully")
+        logger.info("Admin user created successfully")
         logger.info(f"  Email: {email}")
         logger.info(f"  Password: {password}")
         logger.info(f"  ID: {admin_user.id}")
-        logger.info(f"  IMPORTANT: Change the admin password after first login!")
+        logger.info("  IMPORTANT: Change the admin password after first login!")
 
         return admin_user
 
@@ -125,8 +125,16 @@ def main():
     print()
 
     name = input("Admin name (default: Admin User): ").strip() or "Admin User"
-    email = input("Admin email (default: admin@example.com): ").strip() or "admin@example.com"
-    password = input(f"Admin password (default from ADMIN_PASSWORD: {settings.admin_password}): ").strip() or settings.admin_password
+    email = (
+        input("Admin email (default: admin@example.com): ").strip()
+        or "admin@example.com"
+    )
+    password = (
+        input(
+            f"Admin password (default from ADMIN_PASSWORD: {settings.admin_password}): "
+        ).strip()
+        or settings.admin_password
+    )
 
     print()
     create_admin_user(name=name, email=email, password=password)

@@ -246,7 +246,9 @@ class BaseAgent(ABC):
         if early is not None:
             return early
         if components is None:
-            raise ValueError(f"{self.agent_name}: _validate_and_prepare returned None components without an early response")
+            raise ValueError(
+                f"{self.agent_name}: _validate_and_prepare returned None components without an early response"
+            )
         if self.tools:
             return self._generate_with_tools(components, conversation_history, context)
         return self._generate_and_postprocess(components, conversation_history, context)
@@ -264,7 +266,9 @@ class BaseAgent(ABC):
         if early is not None:
             return early
         if components is None:
-            raise ValueError(f"{self.agent_name}: _validate_and_prepare returned None components without an early response")
+            raise ValueError(
+                f"{self.agent_name}: _validate_and_prepare returned None components without an early response"
+            )
         if self.tools:
             return await self._a_generate_with_tools(
                 components, conversation_history, context
@@ -763,12 +767,16 @@ class BaseAgent(ABC):
         if error_message:
             return None, error_message
         if preprocessed_message is None:
-            raise ValueError(f"{self.agent_name}: _validate_and_preprocess returned None without an error message")
+            raise ValueError(
+                f"{self.agent_name}: _validate_and_preprocess returned None without an error message"
+            )
 
         is_fresh_conversation = not conversation_history
-        if is_fresh_conversation and not self._is_meta_question(
-            preprocessed_message
-        ) and not self.is_topic_related(preprocessed_message):
+        if (
+            is_fresh_conversation
+            and not self._is_meta_question(preprocessed_message)
+            and not self.is_topic_related(preprocessed_message)
+        ):
             return None, self._get_off_topic_response()
 
         components = self._prepare_generation_components(

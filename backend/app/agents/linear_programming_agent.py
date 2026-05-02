@@ -36,7 +36,13 @@ class LinearProgrammingAgent(BaseAgent):
 
         # load course materials
         materials_path = str(
-            Path(__file__).parent / ".." / ".." / ".." / "data" / "course_materials" / "linear_programming_fundamental.md"
+            Path(__file__).parent
+            / ".."
+            / ".."
+            / ".."
+            / "data"
+            / "course_materials"
+            / "linear_programming_fundamental.md"
         )
 
         if os.path.exists(materials_path):

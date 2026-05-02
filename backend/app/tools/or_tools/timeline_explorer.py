@@ -117,7 +117,9 @@ Use this when students ask about OR history, origins, key figures, or timeline."
     @staticmethod
     def _normalize(text: str) -> str:
         """Strip accents for accent-insensitive matching (e.g. 'símplex' → 'simplex')."""
-        return unicodedata.normalize("NFD", text).encode("ascii", "ignore").decode("ascii")
+        return (
+            unicodedata.normalize("NFD", text).encode("ascii", "ignore").decode("ascii")
+        )
 
     @staticmethod
     def _matches_milestone(milestone: dict, query: str) -> bool:

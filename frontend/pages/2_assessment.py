@@ -32,7 +32,6 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 api_client = get_api_client(BACKEND_URL)
 
 
-
 # Check if the user is authenticated
 if not api_client.is_authenticated():
     st.warning("¡Primero inicia sesión desde la página de inicio!")
@@ -320,16 +319,22 @@ with tab1:
         knowledge_levels = progress_data.get("knowledge_levels", {})
         if knowledge_levels:
             st.subheader("🎯 Niveles de conocimiento")
-            _level_es = {"beginner": "Principiante", "intermediate": "Intermedio", "advanced": "Avanzado"}
+            _level_es = {
+                "beginner": "Principiante",
+                "intermediate": "Intermedio",
+                "advanced": "Avanzado",
+            }
             badges_html = "".join(
                 f'<div class="kl-badge">'
                 f'<div class="kl-dot kl-dot-{level}"></div>'
                 f'<span class="kl-topic">{TOPIC_DISPLAY_NAMES.get(topic, topic.replace("_", " ").title())}</span>'
                 f'<span class="kl-level">{_level_es.get(level, level.capitalize())}</span>'
-                f'</div>'
+                f"</div>"
                 for topic, level in knowledge_levels.items()
             )
-            st.markdown(f'<div class="kl-grid">{badges_html}</div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="kl-grid">{badges_html}</div>', unsafe_allow_html=True
+            )
 
         st.divider()
 
@@ -341,7 +346,9 @@ with tab1:
                 f'<span class="topic-pill">{TOPIC_DISPLAY_NAMES.get(t, t.replace("_", " ").title())}</span>'
                 for t in topics_covered
             )
-            st.markdown(f'<div class="topic-pills">{pills_html}</div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="topic-pills">{pills_html}</div>', unsafe_allow_html=True
+            )
             st.divider()
 
         # Recent Activity Timeline
@@ -354,7 +361,9 @@ with tab1:
                 topic_key = activity.get("topic", "General")
                 topic_name = TOPIC_DISPLAY_NAMES.get(
                     topic_key,
-                    topic_key.replace("_", " ").title() if isinstance(topic_key, str) else topic_key,
+                    topic_key.replace("_", " ").title()
+                    if isinstance(topic_key, str)
+                    else topic_key,
                 )
 
                 try:
@@ -371,7 +380,9 @@ with tab1:
                         if conv_id:
                             cache_key = f"_conv_detail_{conv_id}"
                             if cache_key not in st.session_state:
-                                if st.button("Cargar conversación", key=f"load_{conv_id}"):
+                                if st.button(
+                                    "Cargar conversación", key=f"load_{conv_id}"
+                                ):
                                     detail_success, detail_data = api_client.get(
                                         f"conversations/{conv_id}"
                                     )
@@ -380,7 +391,9 @@ with tab1:
                                     else:
                                         st.error("No se pudo cargar la conversación.")
                             if st.session_state.get(cache_key):
-                                messages = st.session_state[cache_key].get("messages", [])
+                                messages = st.session_state[cache_key].get(
+                                    "messages", []
+                                )
                                 if messages:
                                     for msg in messages:
                                         role = msg.get("role", "user")
@@ -396,15 +409,23 @@ with tab1:
                 elif activity_type == "assessment":
                     score = activity.get("score")
                     status = activity.get("status", "unknown")
-                    status_emoji = {"graded": "✅", "submitted": "📝", "pending": "⏳"}.get(status, "❓")
-                    score_str = f"Puntaje: {score}" if score is not None else status.capitalize()
+                    status_emoji = {
+                        "graded": "✅",
+                        "submitted": "📝",
+                        "pending": "⏳",
+                    }.get(status, "❓")
+                    score_str = (
+                        f"Puntaje: {score}"
+                        if score is not None
+                        else status.capitalize()
+                    )
                     st.markdown(
                         f'<div class="activity-item">'
                         f'<div class="activity-icon">{status_emoji}</div>'
                         f'<div class="activity-body">'
                         f'<div class="activity-title">Evaluación · {topic_name}</div>'
                         f'<div class="activity-meta">{score_str} · {time_str}</div>'
-                        f'</div></div>',
+                        f"</div></div>",
                         unsafe_allow_html=True,
                     )
         else:
@@ -659,10 +680,16 @@ with tab3:
                         "hard": "difícil",
                         "very-hard": "muy difícil",
                     }
-                    ex_num = ex["id"].split("_")[-1].lstrip("0") or ex["id"].split("_")[-1]
+                    ex_num = (
+                        ex["id"].split("_")[-1].lstrip("0") or ex["id"].split("_")[-1]
+                    )
                     title = ex["title"]
                     details = f" ({model_type})" if model_type else ""
-                    diff_str = f" · {_diff_es.get(difficulty, difficulty)}" if difficulty else ""
+                    diff_str = (
+                        f" · {_diff_es.get(difficulty, difficulty)}"
+                        if difficulty
+                        else ""
+                    )
                     label = f"{topic_display} · {ex_num} · {title}{details}{diff_str}"
                     exercise_options[label] = ex["id"]
 
@@ -763,7 +790,9 @@ with tab3:
                     new_topic, new_topic.lower().replace(" ", "_")
                 )
                 # student_id extracted from the auth token automatically
-                difficulty_value = DIFFICULTY_MAP.get(new_difficulty, new_difficulty.lower())
+                difficulty_value = DIFFICULTY_MAP.get(
+                    new_difficulty, new_difficulty.lower()
+                )
                 result = generate_assessment(topic_value, difficulty_value)
 
                 if result is not None:

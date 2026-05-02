@@ -333,7 +333,9 @@ class SpacedRepetitionService:
             self.db.commit()
         except Exception as e:
             self.db.rollback()
-            logger.error(f"Failed to schedule initial review for student={student_id}, concept={concept_id}: {e}")
+            logger.error(
+                f"Failed to schedule initial review for student={student_id}, concept={concept_id}: {e}"
+            )
             raise
 
         logger.info(

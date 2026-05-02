@@ -44,7 +44,13 @@ class MathematicalModelingAgent(BaseAgent):
 
         # load course materials
         materials_path = str(
-            Path(__file__).parent / ".." / ".." / ".." / "data" / "course_materials" / "mathematical_modeling_fundamental.md"
+            Path(__file__).parent
+            / ".."
+            / ".."
+            / ".."
+            / "data"
+            / "course_materials"
+            / "mathematical_modeling_fundamental.md"
         )
 
         if os.path.exists(materials_path):
@@ -57,7 +63,14 @@ class MathematicalModelingAgent(BaseAgent):
 
         # Load exercises
         exercises_path = str(
-            Path(__file__).parent / ".." / ".." / ".." / "data" / "course_materials" / "mathematical_modeling" / "exercises"
+            Path(__file__).parent
+            / ".."
+            / ".."
+            / ".."
+            / "data"
+            / "course_materials"
+            / "mathematical_modeling"
+            / "exercises"
         )
         self.exercise_manager = ExerciseManager(exercises_path)
         logger.info(f"Loaded {self.exercise_manager.get_exercise_count()} exercises")

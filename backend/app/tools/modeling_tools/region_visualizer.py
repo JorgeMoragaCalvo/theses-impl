@@ -161,8 +161,7 @@ Retorna: Imagen PNG codificada en base64 de la región factible."""
                 "*Nota: Solo los puntos enteros verdes son soluciones candidatas "
                 "en programación entera — redondear el óptimo LP no garantiza el óptimo entero.*"
                 if show_integer_points
-                else
-                "*Nota: Los puntos esquina son las soluciones candidatas a óptimo en programación lineal.*"
+                else "*Nota: Los puntos esquina son las soluciones candidatas a óptimo en programación lineal.*"
             )
 
             return f"""**Visualización de Región Factible** ✅
@@ -390,7 +389,11 @@ La imagen muestra:
         ax.set_ylim(-0.5, y_max + 0.5)
         ax.set_xlabel(var_names[0], fontsize=12)
         ax.set_ylabel(var_names[1], fontsize=12)
-        title = "Región Factible (Programación Entera)" if show_integer_points else "Región Factible"
+        title = (
+            "Región Factible (Programación Entera)"
+            if show_integer_points
+            else "Región Factible"
+        )
         ax.set_title(title, fontsize=14, fontweight="bold")
         ax.grid(True, alpha=0.3)
         ax.legend(loc="upper right", fontsize=9)
@@ -577,7 +580,8 @@ La imagen muestra:
         if feasible_pts:
             fx, fy = zip(*feasible_pts, strict=False)
             ax.scatter(
-                fx, fy,
+                fx,
+                fy,
                 color="green",
                 s=40,
                 zorder=6,

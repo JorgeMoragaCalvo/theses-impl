@@ -11,7 +11,9 @@ logger = logging.getLogger(__name__)
 _FRUSTRATION_TOPIC_SWITCHES = 3  # ≥ N TOPIC_CHANGE events in session
 _BOREDOM_IDLE_SECONDS = 120.0  # total idle duration ≥ N seconds in session
 _BOREDOM_IDLE_FREQUENCY = 3  # ≥ N IDLE_START events in session
-_DISENGAGEMENT_WINDOW_SECONDS = 60.0  # session ended within N seconds after a failed assessment
+_DISENGAGEMENT_WINDOW_SECONDS = (
+    60.0  # session ended within N seconds after a failed assessment
+)
 _MIN_CONFIDENCE_TO_REPORT = 0.2  # below this → NEUTRAL
 
 

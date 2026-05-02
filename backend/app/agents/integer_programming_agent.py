@@ -133,7 +133,8 @@ class IntegerProgrammingAgent(BaseAgent):
     - Indica claramente cotas y gaps"""
 
     def _get_extra_prompt_sections(self, context: dict[str, Any]) -> list[str]:
-        return ["""
+        return [
+            """
     HERRAMIENTAS DISPONIBLES:
     Tienes acceso a una herramienta especializada que debes usar activamente:
 
@@ -155,7 +156,8 @@ class IntegerProgrammingAgent(BaseAgent):
     - Para problemas de 2 variables que necesiten visualización -> USA region_visualizer con show_integer_points: true
     - Al explicar por qué redondear falla -> muestra la imagen para que el estudiante vea que el óptimo LP redondeado puede estar fuera de la región entera
     - Integra la imagen pedagógicamente: señala los puntos verdes como los únicos candidatos al óptimo entero
-    """]
+    """
+        ]
 
     def _get_fewshot_examples(self, knowledge_level: str) -> str:
         """

@@ -544,7 +544,10 @@ def main():
         st.divider()
 
         # Getting started steps
-        st.markdown('<p class="steps-section-title">🚀 Primeros pasos</p>', unsafe_allow_html=True)
+        st.markdown(
+            '<p class="steps-section-title">🚀 Primeros pasos</p>',
+            unsafe_allow_html=True,
+        )
         st.markdown(
             """
             <div class="steps-row">
@@ -583,7 +586,9 @@ def main():
         st.divider()
 
         # Topics section
-        st.markdown('<p class="section-title">📚 Lo que aprenderás</p>', unsafe_allow_html=True)
+        st.markdown(
+            '<p class="section-title">📚 Lo que aprenderás</p>', unsafe_allow_html=True
+        )
 
         col1, col2 = st.columns(2)
 
@@ -618,7 +623,9 @@ def main():
 
         # Display chat history
         for message in st.session_state.messages:
-            with st.chat_message(message["role"], avatar="🧑‍🎓" if message["role"] == "user" else "🎓"):
+            with st.chat_message(
+                message["role"], avatar="🧑‍🎓" if message["role"] == "user" else "🎓"
+            ):
                 st.markdown(message["content"])
 
         if prompt := st.chat_input("Haz una pregunta sobre métodos de optimización..."):
@@ -675,11 +682,13 @@ def main():
 
 home_page = st.Page(main, title="app", icon="🏠")
 set_home_page(home_page)
-pg = st.navigation([
-    home_page,
-    st.Page("pages/1_chat.py", title="chat", icon="💬"),
-    st.Page("pages/2_assessment.py", title="evaluación", icon="📝"),
-    st.Page("pages/3_progress.py", title="progreso", icon="📊"),
-    st.Page("pages/4_admin.py", title="admin", icon="⚙️"),
-])
+pg = st.navigation(
+    [
+        home_page,
+        st.Page("pages/1_chat.py", title="chat", icon="💬"),
+        st.Page("pages/2_assessment.py", title="evaluación", icon="📝"),
+        st.Page("pages/3_progress.py", title="progreso", icon="📊"),
+        st.Page("pages/4_admin.py", title="admin", icon="⚙️"),
+    ]
+)
 pg.run()

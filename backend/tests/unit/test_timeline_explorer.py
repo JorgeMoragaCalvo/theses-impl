@@ -211,14 +211,20 @@ class TestDataLoading:
         bad_file.write_text("not valid json")
         tool = TimelineExplorerTool.__new__(TimelineExplorerTool)
         tool._data_loaded = False
-        with patch.object(TimelineExplorerTool, "_get_data_path", return_value=str(bad_file)):
+        with patch.object(
+            TimelineExplorerTool, "_get_data_path", return_value=str(bad_file)
+        ):
             tool._load_data()
         assert tool._timeline_data == {"milestones": [], "key_figures": [], "eras": []}
 
     def test_run_triggers_load_when_not_loaded(self):
         tool = TimelineExplorerTool.__new__(TimelineExplorerTool)
         tool._data_loaded = False
-        with patch.object(TimelineExplorerTool, "_get_data_path", return_value="/nonexistent/path.json"):
+        with patch.object(
+            TimelineExplorerTool,
+            "_get_data_path",
+            return_value="/nonexistent/path.json",
+        ):
             result = tool._run("anything")
         assert "No se encontró" in result
 
