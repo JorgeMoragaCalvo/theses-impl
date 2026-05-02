@@ -60,20 +60,50 @@ nano .env
 
 - Set these values (the rest can stay as defaults):
 ```bash
-# Required — postgres container uses this
-POSTGRES_PASSWORD=choose_a_strong_password_here
+# Choose one: "openai" or "anthropic"
+LLM_PROVIDER=gemini
 
-# Required — generate with:
-# python3 -c "import secrets; print(secrets.token_urlsafe(32))"
-SECRET_KEY=paste_generated_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL =gpt-4-turbo-preview
 
-# Required — your Gemini API key
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
+
 GOOGLE_API_KEY=your_gemini_api_key_here
+GOOGLE_MODEL=gemini-2.5-flash-lite
 
-# Production settings
+DATABASE_URL=postgresql://postgres:postgres123@db:5432/<any_name>
+DATABASE_ECHO=false
+
+# Chroma Vector Store Configuration
+CHROMA_PERSIST_DIRECTORY=./chroma_db
+CHROMA_COLLECTION_NAME=course_materials
+
+# Application Configuration
 DEBUG=false
+LOG_LEVEL=info
+
+# Backend API Configuration
+BACKEND_HOST=0.0.0.0
+BACKEND_PORT=8000
+BACKEND_URL=http://backend:8000
+
 CORS_ORIGINS=https://<droplet-ip>
-DATABASE_URL=postgresql://postgres:postgres123@db:5432/<any_name_here>
+
+# Authentication & Security
+# IMPORTANT: Generate a secure random secret key for production!
+# You can generate one using: python -c "import secrets; print(secrets.token_urlsafe(32))"
+SECRET_KEY=your_secret_key_here
+ADMIN_PASSWORD=your_admin_password_here
+
+SESSION_TIMEOUT_MINUTES=60
+ACCESS_TOKEN_EXPIRE_DAYS=7
+
+# Frontend Configuration
+FRONTEND_HOST=localhost
+FRONTEND_PORT=8501
+
+POSTGRES_PASSWORD=<any_password:postgres123>
 ```
 - Save with `Ctrl+O`, exit with `Ctrl+X`.
 
