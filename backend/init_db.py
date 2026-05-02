@@ -4,16 +4,17 @@ Drops existing tables, creates new tables with updated schema,
 and creates an initial admin user.
 """
 
-import sys
 import os
+import sys
 
 # Add the parent directory to the path so we can import app modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from app.database import drop_db, init_db, SessionLocal, Student, UserRole
+import logging
+
 from app.auth import get_password_hash
 from app.config import settings
-import logging
+from app.database import SessionLocal, Student, UserRole, drop_db, init_db
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
