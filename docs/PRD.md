@@ -2,9 +2,12 @@
 
 ## Multi-Agent Adaptive Tutoring System for Operations Research
 
-**Version:** 1.6.4
-**Date:** March 2026
+**Version:** 1.8.7
+
+**Date:** April 2026
+
 **Author:** Jorge Moraga Calvo
+
 **Type:** Thesis Project — Universidad de Santiago de Chile (USACH)
 
 ---
@@ -302,7 +305,7 @@ Visual markers in prompts: ⚠️ high confusion, 📌 medium, 💡 low
 
 #### Exercise Library
 
-41 pre-built exercises across 5 topics:
+Forty-one pre-built exercises across five topics:
 
 | Topic                 | Count | IDs             |
 |-----------------------|-------|-----------------|
@@ -366,7 +369,7 @@ new_score = α × performance + (1 - α) × old_score
   - Prerequisites all at PROFICIENT or MASTERED level
   - Concept not yet MASTERED
   - Sorted by Bloom level (lower first), then by score
-  - Limited to 5 recommendations per query
+  - Limited to five recommendations per query
 
 ---
 
@@ -445,7 +448,7 @@ All metrics support configurable date ranges (7, 14, 30, 60, 90 days).
 
 ### 5.9 Agent Tools
 
-Seven LangChain tools available to agents during conversations:
+Seven LangChain tools are available to agents during conversations:
 
 #### Modeling Tools
 
@@ -717,7 +720,7 @@ Student ──────────< Conversation ──────< Message
 4. Feedback check injected → a student continues or changes a topic
 
 **Assessment Flow:**
-1. Student navigates to Assessment page → chooses mode (exercise or LLM-generated)
+1. Student navigates to the Assessment page → chooses a mode (exercise or LLM-generated)
 2. System presents the question with rubric
 3. Student submits answer → auto-grading with competency update
 4. Score, feedback, and correct answer displayed
