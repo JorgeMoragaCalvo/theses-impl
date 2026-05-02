@@ -18,63 +18,77 @@ In DO dashboard → Droplets → Create Droplet:
 ---
 ## Step 2 — SSH in and install Docker
 - In your Droplet's console click on `Web Console`
+- In the `Web Console` terminal enter:
 ```bash
-  ssh root@<droplet-ip>
-
-  apt update && apt upgrade -y
-  apt install -y docker.io docker-compose-plugin git
-  systemctl enable docker && systemctl start docker
+apt update && apt upgrade -y
+apt install -y docker.io docker-compose-plugin git
+systemctl enable docker && systemctl start docker
 ```
+- If errors occur, try this:
+```bash
+apt update && apt upgrade -y
+apt install -y docker.io git
+curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+systemctl enable docker && systemctl start docker
+```
+- Verify it works: `docker-compose --version`
 
 ---
 ## Step 3 — Clone the repo
-
-  git clone https://github.com/<your-username>/thesis-impl.git
-  cd thesis-impl
-
+```bash
+git clone https://github.com/<your-username>/<your-project-name>.git
+cd <your-project-name>
+```
 ---
 ## Step 4 — Generate SSL certificates
-
-Nginx requires these to start. Run the script already in your repo:
-
+- Nginx requires these to start. Run the script already in your repo:
+```bash
 bash nginx/ssl/generate-certs.sh
+```
 
-This creates nginx/ssl/cert.pem and nginx/ssl/key.pem (self-signed, valid 1 year). Your browser will show a security warning — just click Advanced → Proceed.
+> This creates nginx/ssl/cert.pem and nginx/ssl/key.pem (self-signed, valid 1 year). Your browser will show a security warning — just click Advanced → Proceed.
 
 ---
 ## Step 5 — Create the .env file
+```bash
+cp .env.example .env # optional
+nano .env
+```
 
-  cp .env.example .env
-  nano .env
+- Set these values (the rest can stay as defaults):
+```bash
+# Required — postgres container uses this
+POSTGRES_PASSWORD=choose_a_strong_password_here
 
-Set these values (the rest can stay as defaults):
+# Required — generate with:
+# python3 -c "import secrets; print(secrets.token_urlsafe(32))"
+SECRET_KEY=paste_generated_key_here
 
-  # Required — postgres container uses this
-  POSTGRES_PASSWORD=choose_a_strong_password_here
+# Required — your Gemini API key
+GOOGLE_API_KEY=your_gemini_api_key_here
 
-  # Required — generate with:
-  # python3 -c "import secrets; print(secrets.token_urlsafe(32))"
-  SECRET_KEY=paste_generated_key_here
-
-  # Required — your Gemini API key
-  GOOGLE_API_KEY=your_gemini_api_key_here
-
-  # Production settings
-  DEBUG=false
-  CORS_ORIGINS=https://<droplet-ip>
-
-  ▎ DATABASE_URL does not need to be set — docker-compose builds it automatically from POSTGRES_PASSWORD.
-
-  Save with Ctrl+O, exit with Ctrl+X.
+# Production settings
+DEBUG=false
+CORS_ORIGINS=https://<droplet-ip>
+DATABASE_URL=postgresql://postgres:postgres123@db:5432/<any_name_here>
+```
+- Save with `Ctrl+O`, exit with `Ctrl+X`.
 
 ---
 ## Step 6 — Start everything
-`docker compose up -d`
-
+- `docker-compose up -d`
+- Any problem, try this:
+```bash
+apt remove -y docker.io
+curl -fsSL https://get.docker.com | sh
+systemctl start docker
+systemctl enable docker
+docker-compose up -d
+```
 This builds and starts all four services in order: postgres → backend → frontend → nginx. The first run takes a few minutes to build the images.
 
-Check status:
-docker compose ps
+Check status: `docker compose ps`
 
 All should show health. Check logs if something is wrong:
 - docker compose logs backend
@@ -83,31 +97,32 @@ All should show health. Check logs if something is wrong:
 ---
 ## Step 7 — Open the app
 
-Go to https://<droplet-ip> in your browser. Accept the security warning (self-signed cert). The Streamlit UI should load.
+Go to `https://<droplet-ip>` in your browser. Accept the security warning (self-signed cert). The Streamlit UI should load.
 
 The routing nginx handles:
 - https://<droplet-ip>/ → Streamlit frontend
 - https://<droplet-ip>/api/ → FastAPI backend
 - https://<droplet-ip>/api/docs → API docs
 
-  ---
-  That's it. If any step throws an error, paste the output here and we'll fix it.
+---
 
-Yes. The flow is:                                                                                                                                                                 
+## Additional steps
+> Turn off the app:                                                                                                                                                                         
+> docker-compose down
                                                                                                                                                                                     
-1. Make changes locally                                                                                                                                                           
+> Turn back on the app:   
+> docker-compose up -d
+
+If you want to make changes to the app:
+1. Make changes locally
 2. git push from your local machine
-3. On the Droplet console:                                                                                                                                                        
-  cd thesis-impl  
-  git pull
-  docker-compose up -d --build
+3. In the Droplet console:
+```bash
+cd thesis-impl
+git pull
+docker-compose up -d --build
+```
 
 The --build flag rebuilds the Docker images with your new code.
-
-Turn off:                                                                                                                                                                         
-docker-compose down
-                                                                                                                                                                                    
-Turn back on:   
-docker-compose up -d
 
 Also, the app will automatically restart if the Droplet reboots, because all services have restart: unless-stopped in docker-compose.yml.
