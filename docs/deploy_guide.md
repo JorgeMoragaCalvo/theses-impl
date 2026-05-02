@@ -1,15 +1,15 @@
-# Guide to deploying the app on DigitalOcean
+# Guide to deploying on DigitalOcean (DO)
 
 ## Step 1 — Create a Droplet
 In DO dashboard → Droplets → Create Droplet:
 - Image: Ubuntu 24.04 LTS
 - Plan: Basic → Regular → $12/mo (2GB RAM, 1 vCPU)
 - Region: nyc1
-- Authentication: add your SSH key
-  - In the PowerShell terminal enter: `ssh-keygen`
-  - If you to store your key in a password-protected file, create a new file if not, press enter.
-  - Create a password.
-  - Copy the SSH key with: `Get-Content ~/.ssh/id_ed25519.pub | Set-Clipboard` in PowerShell.
+- **Authentication**. Add your SSH key:
+  - Open a PowerShell (PS) terminal in your local and enter: `ssh-keygen`
+  - If you want to store your key in a password-protected file, create a new file if not press enter.
+  - Create any password.
+  - To copy the SSH key, write this into your PS: `Get-Content ~/.ssh/id_ed25519.pub | Set-Clipboard`.
   - Paste the key into the DO dashboard.
 - Click Create Droplet
 
@@ -32,25 +32,27 @@ curl -SL https://github.com/docker/compose/releases/latest/download/docker-compo
 chmod +x /usr/local/bin/docker-compose
 systemctl enable docker && systemctl start docker
 ```
-- Verify it works: `docker-compose --version`
+> Verify it works: `docker-compose --version`
 
 ---
 ## Step 3 — Clone the repo
+- In your Droplet's `Web Console`:
 ```bash
 git clone https://github.com/<your-username>/<your-project-name>.git
 cd <your-project-name>
 ```
 ---
 ## Step 4 — Generate SSL certificates
-- Nginx requires these to start. Run the script already in your repo:
+- Nginx requires these to start. Run the script already in your repo (Droplet's `Web Console`):
 ```bash
 bash nginx/ssl/generate-certs.sh
 ```
 
-> This creates nginx/ssl/cert.pem and nginx/ssl/key.pem (self-signed, valid 1 year). Your browser will show a security warning — just click Advanced → Proceed.
+> This creates nginx/ssl/cert.pem and nginx/ssl/key.pem (self-signed, valid 1 year). Your browser will show a security warning — click Advanced → Proceed.
 
 ---
 ## Step 5 — Create the .env file
+- In your Droplet's `Web Console`:
 ```bash
 cp .env.example .env # optional
 nano .env
@@ -86,7 +88,7 @@ systemctl start docker
 systemctl enable docker
 docker-compose up -d
 ```
-This builds and starts all four services in order: postgres → backend → frontend → nginx. The first run takes a few minutes to build the images.
+> This builds and starts all four services in order: postgres → backend → frontend → nginx. The first run takes a few minutes to build the images.
 
 Check status: `docker compose ps`
 
@@ -118,11 +120,11 @@ If you want to make changes to the app:
 2. git push from your local machine
 3. In the Droplet console:
 ```bash
-cd thesis-impl
+cd <you-project-name>
 git pull
 docker-compose up -d --build
 ```
 
 The --build flag rebuilds the Docker images with your new code.
 
-Also, the app will automatically restart if the Droplet reboots, because all services have restart: unless-stopped in docker-compose.yml.
+> Also, the app will automatically restart if the Droplet reboots, because all services have restart: unless-stopped in docker-compose.yml.
