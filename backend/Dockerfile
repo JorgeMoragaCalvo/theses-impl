@@ -27,7 +27,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 LABEL org.opencontainers.image.title="Backend" \
       org.opencontainers.image.description="FastAPI service for AI Tutoring System" \
-      org.opencontainers.image.version="1.6.4" \
+      org.opencontainers.image.version="1.6.4"
 
 # LABEL maintainer="AI Tutoring System"
 
