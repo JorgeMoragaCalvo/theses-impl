@@ -139,10 +139,11 @@ The routing nginx handles:
 ---
 
 ## Additional steps
-> Turn off the app:                                                                                                                                                                         
+> Turn off the app:
 > docker-compose down
                                                                                                                                                                                     
-> Turn back on the app:   
+> Turn back on the app:
+> cd <your-project-name>
 > docker-compose up -d
 
 If you want to make changes to the app:
@@ -153,6 +154,11 @@ If you want to make changes to the app:
 cd <you-project-name>
 git pull
 docker-compose up -d --build
+```
+
+Create Admin User. The backend should be running.
+```bash
+docker compose exec backend python -c "from init_db import create_admin_user; create_admin_user()"
 ```
 
 The --build flag rebuilds the Docker images with your new code.

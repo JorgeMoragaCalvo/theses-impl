@@ -2,9 +2,9 @@
 
 ## Multi-Agent Adaptive Tutoring System for Operations Research
 
-**Version:** 1.8.7
+**Version:** 1.8.8
 
-**Date:** April 2026
+**Date:** May 2026
 
 **Author:** Jorge Moraga Calvo
 
