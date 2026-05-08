@@ -1,7 +1,15 @@
 import logging
+from pathlib import Path
 from typing import Any
 
-from ..tools.modeling_tools import RegionVisualizerTool
+from ..services.exercise_manager import ExerciseManager
+from ..tools.modeling_tools import (
+    ExercisePracticeTool,
+    ExerciseValidatorTool,
+    ModelValidatorTool,
+    ProblemSolverTool,
+    RegionVisualizerTool,
+)
 from .base_agent import BaseAgent
 
 """
@@ -33,8 +41,32 @@ class IntegerProgrammingAgent(BaseAgent):
         super().__init__(
             agent_name="Tutor de Programación Entera", agent_type="integer_programming"
         )
-        self.tools = [RegionVisualizerTool()]
-        logger.info("Integer Programming agent initialized with region_visualizer tool")
+
+        exercises_path = str(
+            Path(__file__).parent
+            / ".."
+            / ".."
+            / ".."
+            / "data"
+            / "course_materials"
+            / "integer_programming"
+            / "exercises"
+        )
+        self.exercise_manager = ExerciseManager(exercises_path)
+        logger.info(
+            f"Loaded {self.exercise_manager.get_exercise_count()} IP exercises"
+        )
+
+        self.tools = [
+            RegionVisualizerTool(),
+            ProblemSolverTool(),
+            ModelValidatorTool(),
+            ExercisePracticeTool(exercise_manager=self.exercise_manager),
+            ExerciseValidatorTool(
+                exercise_manager=self.exercise_manager, llm_service=self.llm_service
+            ),
+        ]
+        logger.info(f"Integer Programming agent initialized with {len(self.tools)} tools")
 
     def _get_identity_prompt(self, student_name: str) -> str:
         return f"""Eres un tutor experto en Programación Entera para {student_name}.
@@ -133,29 +165,51 @@ class IntegerProgrammingAgent(BaseAgent):
     - Indica claramente cotas y gaps"""
 
     def _get_extra_prompt_sections(self, context: dict[str, Any]) -> list[str]:
+        exercise_list = (
+            ", ".join(
+                f"{exercise['id']} ({exercise['title']})"
+                for exercise in self.exercise_manager.list_exercises()
+            )
+            if self.exercise_manager.get_exercise_count() > 0
+            else "No hay ejercicios cargados"
+        )
+
         return [
-            """
+            f"""
     HERRAMIENTAS DISPONIBLES:
-    Tienes acceso a una herramienta especializada que debes usar activamente:
+    Tienes acceso a herramientas especializadas que debes usar activamente:
 
     1. **region_visualizer**: Para visualizar la relajación LP con puntos enteros factibles.
        - CUANDO USAR: siempre que el estudiante necesite visualizar un problema con 2 variables,
          quiera entender por qué no se puede redondear la solución LP, o pida ver el método gráfico.
        - IMPORTANTE: siempre incluye "show_integer_points": true para mostrar los puntos enteros.
        - Si el estudiante NO tiene un problema propio, usa este ejemplo:
-         {"variables": [{"name": "x1", "lower": 0}, {"name": "x2", "lower": 0}],
-          "constraints": [{"expression": "x1 + 2*x2 <= 7", "name": "Restricción 1"},
-                          {"expression": "2*x1 + x2 <= 7", "name": "Restricción 2"}],
-          "objective": {"sense": "maximize", "expression": "x1 + x2"},
-          "show_integer_points": true}
-       - EJEMPLOS: "¿Por qué no se puede redondear?", "Muéstrame los puntos enteros factibles",
-         "Visualiza este problema IP", "¿Cuántos puntos enteros hay en la región?"
+         {{"variables": [{{"name": "x1", "lower": 0}}, {{"name": "x2", "lower": 0}}],
+          "constraints": [{{"expression": "x1 + 2*x2 <= 7", "name": "Restricción 1"}},
+                          {{"expression": "2*x1 + x2 <= 7", "name": "Restricción 2"}}],
+          "objective": {{"sense": "maximize", "expression": "x1 + x2"}},
+          "show_integer_points": true}}
        - INPUT: JSON con variables, constraints, objective y "show_integer_points": true
+
+    2. **problem_solver**: Para resolver IP/MIP/binarios con SciPy (linprog/milp).
+       - CUANDO USAR: cuando quieras mostrar el óptimo entero, comparar con la relajación LP, o verificar la solución del estudiante.
+       - INPUT: JSON con el modelo completo, marcando integrality donde corresponda.
+
+    3. **model_validator**: Para validar formulaciones IP/MIP propuestas por el estudiante.
+       - CUANDO USAR: cuando el estudiante proponga una formulación con variables binarias o enteras y quieras revisarla antes de resolver.
+
+    4. **exercise_practice**: Para ejercicios de práctica de Programación Entera.
+       - ACCIONES: list, get_exercise, get_hint, reveal_solution.
+       - EJERCICIOS DISPONIBLES: {exercise_list}
+
+    5. **exercise_validator**: Para validar la formulación del estudiante contra la referencia.
+       - INPUT: JSON con exercise_id y student_formulation.
 
     REGLAS DE USO:
     - Para problemas de 2 variables que necesiten visualización -> USA region_visualizer con show_integer_points: true
-    - Al explicar por qué redondear falla -> muestra la imagen para que el estudiante vea que el óptimo LP redondeado puede estar fuera de la región entera
-    - Integra la imagen pedagógicamente: señala los puntos verdes como los únicos candidatos al óptimo entero
+    - Al explicar por qué redondear falla -> muestra la imagen y resuelve ambas versiones (relajación con problem_solver sin integrality, IP con integrality) para evidenciar la diferencia
+    - Si el estudiante propone una formulación -> USA model_validator antes de resolver
+    - Integra los resultados de las herramientas en la explicación pedagógica
     """
         ]
 

@@ -1,5 +1,13 @@
 import logging
+from pathlib import Path
+from typing import Any
 
+from ..services.exercise_manager import ExerciseManager
+from ..tools.modeling_tools import (
+    ExercisePracticeTool,
+    ExerciseValidatorTool,
+    ModelValidatorTool,
+)
 from .base_agent import BaseAgent
 
 logger = logging.getLogger(__name__)
@@ -12,6 +20,61 @@ class NonLinearProgrammingAgent(BaseAgent):
             agent_name="Tutor de Programación No Lineal",
             agent_type="nonlinear_programming",
         )
+
+        exercises_path = str(
+            Path(__file__).parent
+            / ".."
+            / ".."
+            / ".."
+            / "data"
+            / "course_materials"
+            / "non_lineal_programming"
+            / "exercises"
+        )
+        self.exercise_manager = ExerciseManager(exercises_path)
+        logger.info(
+            f"Loaded {self.exercise_manager.get_exercise_count()} NLP exercises"
+        )
+
+        self.tools = [
+            ModelValidatorTool(),
+            ExercisePracticeTool(exercise_manager=self.exercise_manager),
+            ExerciseValidatorTool(
+                exercise_manager=self.exercise_manager, llm_service=self.llm_service
+            ),
+        ]
+        logger.info(f"NLP agent initialized with {len(self.tools)} tools")
+
+    def _get_extra_prompt_sections(self, context: dict[str, Any]) -> list[str]:
+        exercise_list = (
+            ", ".join(
+                f"{exercise['id']} ({exercise['title']})"
+                for exercise in self.exercise_manager.list_exercises()
+            )
+            if self.exercise_manager.get_exercise_count() > 0
+            else "No hay ejercicios cargados"
+        )
+
+        return [
+            f"""
+    HERRAMIENTAS DISPONIBLES:
+    Tienes acceso a herramientas especializadas para apoyar la enseñanza:
+
+    1. **model_validator**: Para validar la estructura de una formulación que proponga el estudiante.
+       - CUANDO USAR: cuando el estudiante presente variables, objetivo y restricciones y quieras verificar que la formulación esté bien planteada antes de discutir KKT, convexidad u optimalidad.
+       - LIMITACIÓN: valida estructura general; no resuelve problemas no lineales.
+
+    2. **exercise_practice**: Para ejercicios de práctica de Programación No Lineal.
+       - CUANDO USAR: cuando el estudiante quiera practicar, pida un ejercicio o solicite pistas.
+       - ACCIONES: list, get_exercise, get_hint, reveal_solution.
+       - EJERCICIOS DISPONIBLES: {exercise_list}
+
+    3. **exercise_validator**: Para validar la formulación del estudiante contra la referencia de un ejercicio NLP.
+       - INPUT: JSON con exercise_id y student_formulation.
+
+    NOTA: No dispones de un solver no lineal automático. Para resolver problemas concretos, guía al estudiante paso a paso (KKT, gradientes, derivadas) en lugar de delegar el cálculo a una herramienta.
+    """
+        ]
 
     def _get_identity_prompt(self, student_name: str) -> str:
         return f"""Eres un tutor experto en Programación No Lineal para {student_name}.
