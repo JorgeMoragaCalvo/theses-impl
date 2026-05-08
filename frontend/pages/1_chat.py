@@ -35,6 +35,9 @@ api_client = get_api_client(BACKEND_URL)
 _BASE64_IMAGE_RE = re.compile(
     r"!\[([^\]]*)\]\(data:image/png;base64,([A-Za-z0-9+/=]+)\)"
 )
+_BASE64_LEFTOVER_RE = re.compile(
+    r"!\[[^\]]*\]\(data:image/png;base64,[\s\S]*?\)"
+)
 
 
 def render_message(content: str) -> None:
@@ -43,11 +46,11 @@ def render_message(content: str) -> None:
     for match in _BASE64_IMAGE_RE.finditer(content):
         text_before = content[last : match.start()]
         if text_before.strip():
-            st.markdown(text_before)
+            st.markdown(_BASE64_LEFTOVER_RE.sub("", text_before))
         caption, b64 = match.group(1), match.group(2)
         st.image(base64.b64decode(b64), caption=caption or None)
         last = match.end()
-    remaining = content[last:]
+    remaining = _BASE64_LEFTOVER_RE.sub("", content[last:])
     if remaining.strip():
         st.markdown(remaining)
 

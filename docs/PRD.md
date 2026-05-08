@@ -193,9 +193,9 @@ Five specialist agents, each inheriting from `BaseAgent`, are routed by a topic:
 
 | Agent                     | Topic                   | Key Areas                                                                            | Tools                                                                                |
 |---------------------------|-------------------------|--------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| **Linear Programming**    | `linear_programming`    | Formulation, graphical method, simplex, duality, sensitivity analysis                | —                                                                                    |
-| **Integer Programming**   | `integer_programming`   | IP formulation, binary variables, branch & bound, cutting planes, MIP                | —                                                                                    |
-| **Nonlinear Programming** | `nlp_agent`             | Unconstrained/constrained optimization, KKT conditions, convexity, numerical methods | —                                                                                    |
+| **Linear Programming**    | `linear_programming`    | Formulation, graphical method, simplex, duality, sensitivity analysis                | RegionVisualizer, ProblemSolver, ModelValidator, ExercisePractice, ExerciseValidator |
+| **Integer Programming**   | `integer_programming`   | IP formulation, binary variables, branch & bound, cutting planes, MIP                | RegionVisualizer, ProblemSolver, ModelValidator, ExercisePractice, ExerciseValidator |
+| **Nonlinear Programming** | `nlp_agent`             | Unconstrained/constrained optimization, KKT conditions, convexity, numerical methods | ModelValidator, ExercisePractice, ExerciseValidator                                  |
 | **Mathematical Modeling** | `mathematical_modeling` | Problem formulation, decision variables, objectives, constraints, model selection    | ModelValidator, ProblemSolver, RegionVisualizer, ExercisePractice, ExerciseValidator |
 | **Operations Research**   | `operations_research`   | OR methodology, problem classification, decision frameworks                          | ProblemClassifier, TimelineExplorer                                                  |
 

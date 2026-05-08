@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Any
 
 from langchain_anthropic import ChatAnthropic
@@ -21,6 +22,10 @@ Supports both Gemini, OpenAI and Anthropic with easy switching via configuration
 """
 
 logger = logging.getLogger(__name__)
+
+_BASE64_IMAGE_RE = re.compile(
+    r"!\[[^\]]*\]\(data:image/png;base64,[A-Za-z0-9+/=]+\)"
+)
 
 
 class LLMService:
@@ -359,11 +364,17 @@ class LLMService:
 
             tool_result = self._execute_tool(tools, tool_name, tool_args)
 
+            has_image = "data:image/png;base64," in tool_result
+            sanitized_result = (
+                _BASE64_IMAGE_RE.sub("[imagen generada]", tool_result)
+                if has_image
+                else tool_result
+            )
             langchain_messages.append(
-                ToolMessage(content=tool_result, tool_call_id=tool_id)
+                ToolMessage(content=sanitized_result, tool_call_id=tool_id)
             )
 
-            if image_results is not None and "data:image/png;base64," in tool_result:
+            if image_results is not None and has_image:
                 image_results.append(tool_result)
 
         return None

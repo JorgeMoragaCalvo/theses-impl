@@ -3,7 +3,14 @@ import os
 from pathlib import Path
 from typing import Any
 
-from ..tools.modeling_tools import RegionVisualizerTool
+from ..services.exercise_manager import ExerciseManager
+from ..tools.modeling_tools import (
+    ExercisePracticeTool,
+    ExerciseValidatorTool,
+    ModelValidatorTool,
+    ProblemSolverTool,
+    RegionVisualizerTool,
+)
 from .base_agent import BaseAgent
 
 """
@@ -51,8 +58,31 @@ class LinearProgrammingAgent(BaseAgent):
         else:
             logger.warning(f"LP course materials not found at {materials_path}")
 
-        self.tools = [RegionVisualizerTool()]
-        logger.info("LP agent initialized with region_visualizer tool")
+        exercises_path = str(
+            Path(__file__).parent
+            / ".."
+            / ".."
+            / ".."
+            / "data"
+            / "course_materials"
+            / "linear_programming"
+            / "exercises"
+        )
+        self.exercise_manager = ExerciseManager(exercises_path)
+        logger.info(
+            f"Loaded {self.exercise_manager.get_exercise_count()} LP exercises"
+        )
+
+        self.tools = [
+            RegionVisualizerTool(),
+            ProblemSolverTool(),
+            ModelValidatorTool(),
+            ExercisePracticeTool(exercise_manager=self.exercise_manager),
+            ExerciseValidatorTool(
+                exercise_manager=self.exercise_manager, llm_service=self.llm_service
+            ),
+        ]
+        logger.info(f"LP agent initialized with {len(self.tools)} tools")
 
     def _get_identity_prompt(self, student_name: str) -> str:
         return f"""Eres un tutor experto en Programación Lineal para {student_name}.
@@ -158,26 +188,52 @@ class LinearProgrammingAgent(BaseAgent):
     {self.format_context_for_prompt(context)}
     """)
 
-        sections.append("""
+        exercise_list = (
+            ", ".join(
+                f"{exercise['id']} ({exercise['title']})"
+                for exercise in self.exercise_manager.list_exercises()
+            )
+            if self.exercise_manager.get_exercise_count() > 0
+            else "No hay ejercicios cargados"
+        )
+
+        sections.append(f"""
     HERRAMIENTAS DISPONIBLES:
-    Tienes acceso a una herramienta especializada que debes usar activamente:
+    Tienes acceso a herramientas especializadas que debes usar activamente:
 
     1. **region_visualizer**: Para visualizar regiones factibles en 2D.
        - CUANDO USAR: siempre que el estudiante pida visualizar una región factible, graficar
          restricciones, o aplicar el método gráfico, aunque NO haya proporcionado un problema específico.
        - Si el estudiante NO tiene un problema propio, usa este ejemplo clásico de producción:
-         {"variables": [{"name": "x1", "lower": 0}, {"name": "x2", "lower": 0}],
-          "constraints": [{"expression": "x1 + 2*x2 <= 10", "name": "Horas máquina"},
-                          {"expression": "2*x1 + x2 <= 8", "name": "Mano de obra"}],
-          "objective": {"sense": "maximize", "expression": "3*x1 + 5*x2"}}
-       - EJEMPLOS: "Muéstrame la región factible", "Grafica las restricciones",
-         "No visualizo el método gráfico", "¿Cómo se ve este problema?"
+         {{"variables": [{{"name": "x1", "lower": 0}}, {{"name": "x2", "lower": 0}}],
+          "constraints": [{{"expression": "x1 + 2*x2 <= 10", "name": "Horas máquina"}},
+                          {{"expression": "2*x1 + x2 <= 8", "name": "Mano de obra"}}],
+          "objective": {{"sense": "maximize", "expression": "3*x1 + 5*x2"}}}}
        - INPUT: JSON con variables, constraints y objective (solo funciona con exactamente 2 variables)
+
+    2. **problem_solver**: Para resolver LP (máximo 20 variables, 50 restricciones) con SciPy.
+       - CUANDO USAR: cuando quieras demostrar el óptimo de una formulación, verificar la respuesta del estudiante, o ilustrar efectos de un cambio de parámetro.
+       - EJEMPLOS: "Resuelve este LP", "Cuál es la solución óptima?", verificar trabajo del estudiante.
+
+    3. **model_validator**: Para validar formulaciones LP propuestas por el estudiante.
+       - CUANDO USAR: cuando el estudiante proponga una formulación y quieras verificarla antes de resolverla.
+       - EJEMPLOS: "Está bien mi formulación?", "Revisa mi modelo".
+
+    4. **exercise_practice**: Para ejercicios de práctica de Programación Lineal.
+       - CUANDO USAR: cuando el estudiante quiera practicar, pida un ejercicio o solicite pistas.
+       - ACCIONES: list, get_exercise, get_hint, reveal_solution.
+       - EJERCICIOS DISPONIBLES: {exercise_list}
+
+    5. **exercise_validator**: Para validar la formulación del estudiante contra la solución de referencia de un ejercicio.
+       - CUANDO USAR: cuando el estudiante presente su formulación de un ejercicio LP y quiera feedback estructurado.
+       - INPUT: JSON con exercise_id y student_formulation.
 
     REGLAS DE USO:
     - Si el estudiante pide visualizar una región factible (con o sin problema propio) -> USA region_visualizer (con ejemplo por defecto si no hay problema)
     - Para explicaciones del método gráfico a principiantes -> ofrece SIEMPRE la visualización
-    - Integra la imagen en tu explicación pedagógica: señala los vértices, la región sombreada y la dirección de mejora del objetivo
+    - Si el estudiante propone una formulación -> USA model_validator antes de resolver
+    - Para mostrar el óptimo numérico -> USA problem_solver
+    - Integra la salida de las herramientas naturalmente en tu explicación pedagógica
     """)
 
         return sections
