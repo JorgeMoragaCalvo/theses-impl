@@ -108,8 +108,6 @@ data/course_materials/   Pre-built exercises per topic
 nginx/                   Reverse proxy + TLS configuration
 ```
 
-Full structural breakdown lives in [`CLAUDE.md`](CLAUDE.md).
-
 ---
 
 ## 🛠️ Getting Started
