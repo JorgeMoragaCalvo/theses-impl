@@ -140,11 +140,11 @@ The routing nginx handles:
 
 ## Additional steps
 > Turn off the app:
-> docker-compose down
+> - docker-compose down
                                                                                                                                                                                     
 > Turn back on the app:
-> cd <your-project-name>
-> docker-compose up -d
+> - cd <your-project-name>
+> - docker-compose up -d
 
 If you want to make changes to the app:
 1. Make changes locally
