@@ -6,7 +6,7 @@ $x_i$ = toneladas de materia prima $i$ a utilizar $(i = 1, 2, ..., 7)$
 
 ## Función objetivo
 
-min Z = $200x_1 + 250x_2 + 150x_)3 + 220x_4 + 240x_5 + 200x_6 + 165x_7$
+min Z = $200x_1 + 250x_2 + 150x_3 + 220x_4 + 240x_5 + 200x_6 + 165x_7$
 
 ## Restricciones
 
@@ -26,7 +26,13 @@ min Z = $200x_1 + 250x_2 + 150x_)3 + 220x_4 + 240x_5 + 200x_6 + 165x_7$
 - $0.013x_1 + 0.008x_2 + 0.04x_5 + 0.012x_6 \leq 0.0165 \cdot 500$
 
 **Disponibilidad:**
-- $x_1 \leq 400$, $x_2 \leq 300$, $x_3 \leq 600$, $x_4 \leq 500$, $x_5 \leq 200$, $x_6 \leq 300$, $x_7 \leq 250$
+- $x_1 \leq 400$
+- $x_2 \leq 300$
+- $x_3 \leq 600$
+- $x_4 \leq 500$
+- $x_5 \leq 200$
+- $x_6 \leq 300$
+- $x_7 \leq 250$
 
 **No negatividad:**
 - $x_i \geq 0; \space \forall i$
