@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Any
 
 import requests
@@ -21,6 +22,7 @@ class APIClient:
             base_url: Base URL for the backend API
         """
         self.base_url = base_url.rstrip("/")
+        self.timeout = int(os.getenv("BACKEND_TIMEOUT", "120"))
 
     @staticmethod
     def _get_headers() -> dict[str, str]:
@@ -90,7 +92,7 @@ class APIClient:
                 f"{self.base_url}/{endpoint.lstrip('/')}",
                 headers=self._get_headers(),
                 params=params,
-                timeout=30,
+                timeout=self.timeout,
             )
             return self._handle_response(response)
         except requests.exceptions.RequestException as e:
@@ -116,7 +118,7 @@ class APIClient:
                 headers=self._get_headers(),
                 data=data,
                 json=json_data,
-                timeout=30,
+                timeout=self.timeout,
             )
             return self._handle_response(response)
         except requests.exceptions.RequestException as e:
@@ -142,7 +144,7 @@ class APIClient:
                 headers=self._get_headers(),
                 data=data,
                 json=json_data,
-                timeout=30,
+                timeout=self.timeout,
             )
             return self._handle_response(response)
         except requests.exceptions.RequestException as e:
@@ -162,7 +164,7 @@ class APIClient:
             response = requests.delete(
                 f"{self.base_url}/{endpoint.lstrip('/')}",
                 headers=self._get_headers(),
-                timeout=30,
+                timeout=self.timeout,
             )
             return self._handle_response(response)
         except requests.exceptions.RequestException as e:
