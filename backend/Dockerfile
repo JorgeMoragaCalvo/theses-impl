@@ -33,7 +33,7 @@ LABEL org.opencontainers.image.title="Backend" \
 
 # Install runtime-only OS dependencies and create a non-root user
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libpq5 && \
+    apt-get install -y --no-install-recommends libpq5 fonts-dejavu-core && \
     rm -rf /var/lib/apt/lists/* && \
     groupadd --gid 1000 appuser && \
     useradd  --uid 1000 --gid appuser --shell /usr/sbin/nologin --create-home appuser
@@ -52,6 +52,9 @@ COPY data/ /app/data/
 RUN chown -R appuser:appuser /app
 
 USER appuser
+
+# Pre-build matplotlib font cache so the first plot request isn't slow
+RUN python -c "import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt; plt.figure(); plt.plot([0,1],[0,1]); plt.close('all')"
 
 EXPOSE 8000
 
