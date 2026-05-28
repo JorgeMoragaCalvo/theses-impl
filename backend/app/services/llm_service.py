@@ -437,7 +437,7 @@ class LLMService:
                         if image_results:
                             result = "\n\n".join(image_results) + "\n\n" + result
                         return result
-                    # Empty response from tool-enabled LLM — fall through to no-tools fallback
+                    # Empty response from tool-enabled LLM — fall through to no-tool fallback
                     logger.warning(
                         "Tool-enabled LLM returned empty content, using fallback"
                     )
@@ -512,7 +512,7 @@ class LLMService:
                         if image_results:
                             result = "\n\n".join(image_results) + "\n\n" + result
                         return result
-                    # Empty response from tool-enabled LLM — fall through to no-tools fallback
+                    # Empty response from tool-enabled LLM — fall through to no-tool fallback
                     logger.warning(
                         "Tool-enabled LLM returned empty content, using fallback"
                     )
