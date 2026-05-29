@@ -954,6 +954,16 @@ class BaseAgent(ABC):
 
     # ── Tool-aware generation (used when self.tools is non-empty) ──
 
+    def _select_tool_choice(
+        self, messages: list[dict[str, str]], context: dict[str, Any]
+    ) -> str | None:
+        """Hook for subclasses to force a specific tool for the current turn.
+
+        Return a tool name to require the LLM to call that tool, or None to let
+        the LLM decide. Default is None (no enforcement).
+        """
+        return None
+
     def _generate_with_tools(
         self,
         components: dict[str, Any],
@@ -963,10 +973,12 @@ class BaseAgent(ABC):
         """Generate a response using agent tools with fallback to plain generation."""
         try:
             all_tools = self.tools + context.get("tools", [])
+            tool_choice = self._select_tool_choice(components["messages"], context)
             response = self.llm_service.generate_response_with_tools(
                 messages=components["messages"],
                 tools=all_tools,
                 system_prompt=components["system_prompt"],
+                tool_choice=tool_choice,
             )
         except Exception as e:
             logger.warning(f"Tool-enabled generation failed, falling back: {e}")
@@ -998,10 +1010,12 @@ class BaseAgent(ABC):
         """Async version of _generate_with_tools."""
         try:
             all_tools = self.tools + context.get("tools", [])
+            tool_choice = self._select_tool_choice(components["messages"], context)
             response = await self.llm_service.a_generate_response_with_tools(
                 messages=components["messages"],
                 tools=all_tools,
                 system_prompt=components["system_prompt"],
+                tool_choice=tool_choice,
             )
         except Exception as e:
             logger.warning(f"Tool-enabled async generation failed, falling back: {e}")
