@@ -15,6 +15,6 @@
 
 ## Solución gráfica
 
-![]()
+![image2](data/course_materials/linear_programming/images/image-02.png)
 
 $X = 85, Y = 37.5, Z = 36.25 $

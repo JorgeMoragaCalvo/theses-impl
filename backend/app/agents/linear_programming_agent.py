@@ -458,6 +458,37 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
 ¿Te interesa profundizar en algún método específico?
 ---"""
 
+    _GRAPHICAL_INTENT_KEYWORDS: tuple[str, ...] = (
+        "gráfic",  # gráfico, gráfica, gráficamente
+        "grafic",  # grafico, grafica, graficar (sin tilde)
+        "región factible",
+        "region factible",
+        "dibuja",
+        "visualiza",
+        "método gráfico",
+        "metodo grafico",
+        "graphical method",
+    )
+
+    def _select_tool_choice(
+        self, messages: list[dict[str, str]], context: dict[str, Any]
+    ) -> str | None:
+        """Force region_visualizer when the student explicitly asks for a graphical solution.
+
+        bind_tools() alone does not guarantee the model invokes the tool, so the
+        LP agent's graphical-method requests were producing inconsistent output
+        (sometimes text-only, sometimes plotted). When the latest user message
+        contains a graphical-method keyword, we require the tool call.
+        """
+        last_user = next(
+            (m["content"] for m in reversed(messages) if m.get("role") == "user"),
+            "",
+        )
+        text = (last_user or "").lower()
+        if any(kw in text for kw in self._GRAPHICAL_INTENT_KEYWORDS):
+            return "region_visualizer"
+        return None
+
     def get_available_strategies(self) -> list[str]:
         """Return available explanation strategies for Linear Programming."""
         return [

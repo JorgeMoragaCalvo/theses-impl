@@ -319,6 +319,22 @@ class LLMService:
                     return f"Error executing tool '{tool_name}': {str(e)}"
         return f"Tool '{tool_name}' not found"
 
+    @staticmethod
+    def _bind_tools(llm, tools: list[BaseTool], tool_choice: str | None):
+        """Bind tools to the LLM, optionally forcing a specific tool call.
+
+        Falls back to plain bind_tools if the provider does not accept tool_choice.
+        """
+        if not tool_choice:
+            return llm.bind_tools(tools)
+        try:
+            return llm.bind_tools(tools, tool_choice=tool_choice)
+        except TypeError:
+            logger.warning(
+                f"Provider does not support tool_choice={tool_choice!r}; binding without enforcement"
+            )
+            return llm.bind_tools(tools)
+
     def _process_tool_calls(
         self,
         response,
@@ -387,6 +403,7 @@ class LLMService:
         temperature: float | None = None,
         max_tokens: int | None = None,
         max_tool_iterations: int = 3,
+        tool_choice: str | None = None,
     ) -> str:
         """
         Generate a response with tool calling support.
@@ -418,11 +435,16 @@ class LLMService:
 
             # Get LLM with overrides and bind tools
             llm = self._get_llm_with_overrides(temperature, max_tokens)
-            llm_with_tools = llm.bind_tools(tools)
+            llm_with_tools = self._bind_tools(llm, tools, tool_choice)
 
             # Tool execution loop
             image_results: list[str] = []
             for iteration in range(max_tool_iterations):
+                # If tool_choice was forced for iteration 0, relax it afterwards so
+                # the LLM can produce narrative text and exit the loop instead of
+                # being forced to call the tool on every iteration.
+                if iteration == 1 and tool_choice:
+                    llm_with_tools = self._bind_tools(llm, tools, None)
                 response = self._invoke_with_retry(llm_with_tools, langchain_messages)
 
                 result = self._process_tool_calls(
@@ -437,7 +459,13 @@ class LLMService:
                         if image_results:
                             result = "\n\n".join(image_results) + "\n\n" + result
                         return result
-                    # Empty response from tool-enabled LLM — fall through to no-tool fallback
+                    # Empty content. If a tool already produced an image, that IS the answer.
+                    if image_results:
+                        logger.info(
+                            "Tool-enabled LLM returned empty content; returning tool image result"
+                        )
+                        return "\n\n".join(image_results)
+                    # No image either — fall through to no-tool fallback
                     logger.warning(
                         "Tool-enabled LLM returned empty content, using fallback"
                     )
@@ -465,6 +493,7 @@ class LLMService:
         temperature: float | None = None,
         max_tokens: int | None = None,
         max_tool_iterations: int = 3,
+        tool_choice: str | None = None,
     ) -> str:
         """
         Async version of generate_response_with_tools.
@@ -490,11 +519,16 @@ class LLMService:
 
             # Get LLM with overrides and bind tools
             llm = self._get_llm_with_overrides(temperature, max_tokens)
-            llm_with_tools = llm.bind_tools(tools)
+            llm_with_tools = self._bind_tools(llm, tools, tool_choice)
 
             # Tool execution loop
             image_results: list[str] = []
             for iteration in range(max_tool_iterations):
+                # If tool_choice was forced for iteration 0, relax it afterwards so
+                # the LLM can produce narrative text and exit the loop instead of
+                # being forced to call the tool on every iteration.
+                if iteration == 1 and tool_choice:
+                    llm_with_tools = self._bind_tools(llm, tools, None)
                 response = await self._ainvoke_with_retry(
                     llm_with_tools, langchain_messages
                 )
@@ -512,7 +546,13 @@ class LLMService:
                         if image_results:
                             result = "\n\n".join(image_results) + "\n\n" + result
                         return result
-                    # Empty response from tool-enabled LLM — fall through to no-tool fallback
+                    # Empty content. If a tool already produced an image, that IS the answer.
+                    if image_results:
+                        logger.info(
+                            "Tool-enabled LLM returned empty content; returning tool image result"
+                        )
+                        return "\n\n".join(image_results)
+                    # No image either — fall through to no-tool fallback
                     logger.warning(
                         "Tool-enabled LLM returned empty content, using fallback"
                     )

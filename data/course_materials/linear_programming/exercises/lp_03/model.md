@@ -10,10 +10,10 @@
 - Maximizar $z = 0.07X + 0.08Y + 0.12(12 - X - Y) = 1.44 - 0.05X - 0.04Y$
 
 ### Restricciones
-- ~~$12 - X - Y \geq 0 $
+- $12 - X - Y \geq 0 $
 - $12 - X - Y \leq 2 $
 - $Y \leq \frac{1}{3} X$
-- $X, Y \geq 0$~~
+- $X, Y \geq 0$
 
 ## Solución gráfica
 

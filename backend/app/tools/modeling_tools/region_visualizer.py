@@ -9,6 +9,7 @@ import base64
 import io
 import json
 import logging
+import re
 from typing import Any, ClassVar
 
 from langchain_core.tools import BaseTool
@@ -198,6 +199,8 @@ La imagen muestra:
             bounds.append((float(lower), float(upper)))
         return bounds
 
+    _FLIPPED_SENSE: ClassVar[dict[str, str]] = {"<=": ">=", ">=": "<=", "=": "="}
+
     def _parse_constraints(
         self, constraints: list[dict[str, Any]], var_names: list[str]
     ) -> list[dict[str, Any]]:
@@ -211,54 +214,76 @@ La imagen muestra:
             if not expression:
                 continue
 
-            # Find operator
-            for op in ["<=", ">=", "="]:
-                if op in expression:
-                    parts = expression.split(op, 1)
-                    # Parses constraint expression; extracts coefficients, sense, and RHS
-                    if len(parts) == 2:
-                        lhs, rhs = parts[0].strip(), parts[1].strip()
-                        coeffs = self._parse_expression(lhs, var_names)
-                        try:
-                            rhs_val = float(rhs)
-                        except ValueError:
-                            rhs_val = 0
+            # Find operator (check longer ones first so "<=" wins over "=")
+            for op in ("<=", ">=", "="):
+                if op not in expression:
+                    continue
+                lhs, rhs = (s.strip() for s in expression.split(op, 1))
 
-                        parsed.append(
-                            {
-                                "name": name,
-                                "coeffs": coeffs,
-                                "rhs": rhs_val,
-                                "sense": op,
-                            }
-                        )
-                        break
+                # Try standard form: variables on LHS, constant on RHS.
+                try:
+                    rhs_val = float(rhs)
+                    coeffs = self._parse_expression(lhs, var_names)
+                    sense = op
+                except ValueError:
+                    # Try flipped form: "10 >= x1 + 2*x2" -> "x1 + 2*x2 <= 10"
+                    try:
+                        rhs_val = float(lhs)
+                        coeffs = self._parse_expression(rhs, var_names)
+                        sense = self._FLIPPED_SENSE[op]
+                    except ValueError as e:
+                        raise ValueError(
+                            f"No se pudo parsear la restricción '{expression}': "
+                            f"se esperaba una constante en uno de los lados."
+                        ) from e
+
+                parsed.append(
+                    {
+                        "name": name,
+                        "coeffs": coeffs,
+                        "rhs": rhs_val,
+                        "sense": sense,
+                    }
+                )
+                break
 
         return parsed
 
     @staticmethod
     def _parse_expression(expression: str, var_names: list[str]) -> list[float]:
-        """Parse a linear expression into coefficients."""
-        coefficients = [0.0, 0.0]
+        """Parse a linear expression into coefficients aligned to var_names.
 
-        expr = expression.replace(" ", "").replace("-", "+-")
-        terms = [t for t in expr.split("+") if t]
+        Uses word-boundary regex matching so variable names like "x1" do not
+        collide with "x10" (a substring match would assign 2*x10's coefficient
+        to x1 and silently drop x10).
+        """
+        coefficients = [0.0] * len(var_names)
 
-        for term in terms:
-            for i, var in enumerate(var_names):
-                if var in term:
-                    coef_str = term.replace(var, "").replace("*", "").strip()
-                    if not coef_str or coef_str == "+":
-                        coef = 1.0
-                    elif coef_str == "-":
-                        coef = -1.0
-                    else:
-                        try:
-                            coef = float(coef_str)
-                        except ValueError:
-                            coef = 1.0
-                    coefficients[i] += coef
-                    break
+        expr = expression.replace(" ", "")
+        if not expr:
+            return coefficients
+
+        # Sort longest-first so the alternation prefers x10 over x1 at the same position
+        sorted_names = sorted(var_names, key=len, reverse=True)
+        var_alt = "|".join(re.escape(v) for v in sorted_names)
+
+        # Term: optional sign, optional numeric coefficient (incl. scientific),
+        # optional '*', then a variable name not followed by an identifier char.
+        term_re = re.compile(
+            r"(?P<sign>[+-]?)"
+            r"(?P<coef>\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)?"
+            r"\*?"
+            r"(?P<var>" + var_alt + r")"
+            r"(?![A-Za-z0-9_])"
+        )
+
+        for m in term_re.finditer(expr):
+            sign = -1.0 if m.group("sign") == "-" else 1.0
+            coef_str = m.group("coef")
+            coef = float(coef_str) if coef_str else 1.0
+            var = m.group("var")
+            idx = var_names.index(var)
+            coefficients[idx] += sign * coef
 
         return coefficients
 
