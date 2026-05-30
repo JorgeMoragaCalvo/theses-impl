@@ -20,6 +20,6 @@ De capacitores:
 De no negatividad:
 - $x, y \geq 0$
 
-**--resume e0a8069f-2cb7-4eab-81d2-9b8849bde7bf**
+ **--resume e0a8069f-2cb7-4eab-81d2-9b8849bde7bf** -->
 
-Monitoring tools **claude --resume b566325e-4b76-44c7-8b24-736a83d80051**
+<!-- Monitoring tools **claude --resume b566325e-4b76-44c7-8b24-736a83d80051** -->
