@@ -1,4 +1,4 @@
-# P15 — Fábrica de instrumentos
+# P14 — Fábrica de instrumentos
 
 Una empresa produce banjos, guitarras y mandolinas, utiliza madera, mano de obra y metal. Las cantidades de estos insumos para fabricar una unidad de cada instrumento musical se presentan en la Tabla.
 
