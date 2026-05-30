@@ -199,12 +199,17 @@ La imagen muestra:
             bounds.append((float(lower), float(upper)))
         return bounds
 
-    _FLIPPED_SENSE: ClassVar[dict[str, str]] = {"<=": ">=", ">=": "<=", "=": "="}
-
     def _parse_constraints(
         self, constraints: list[dict[str, Any]], var_names: list[str]
     ) -> list[dict[str, Any]]:
-        """Parse constraints into coefficient form."""
+        """Parse constraints into normalized coefficient form.
+
+        Each side is parsed as (variable coefficients, constant). The constraint
+        is then normalized so all variable terms are on the LHS and all constants
+        on the RHS, preserving the inequality sense. This handles textbook forms
+        such as ``12 - X - Y >= 0`` (where the constant lives on the LHS alongside
+        the variables), which the previous implementation silently dropped.
+        """
         parsed = []
 
         for constraint in constraints:
@@ -220,29 +225,24 @@ La imagen muestra:
                     continue
                 lhs, rhs = (s.strip() for s in expression.split(op, 1))
 
-                # Try standard form: variables on LHS, constant on RHS.
-                try:
-                    rhs_val = float(rhs)
-                    coeffs = self._parse_expression(lhs, var_names)
-                    sense = op
-                except ValueError:
-                    # Try flipped form: "10 >= x1 + 2*x2" -> "x1 + 2*x2 <= 10"
-                    try:
-                        rhs_val = float(lhs)
-                        coeffs = self._parse_expression(rhs, var_names)
-                        sense = self._FLIPPED_SENSE[op]
-                    except ValueError as e:
-                        raise ValueError(
-                            f"No se pudo parsear la restricción '{expression}': "
-                            f"se esperaba una constante en uno de los lados."
-                        ) from e
+                lhs_coeffs, lhs_const = self._parse_side(lhs, var_names)
+                rhs_coeffs, rhs_const = self._parse_side(rhs, var_names)
+
+                # Move variables to LHS, constants to RHS.
+                net_coeffs = [a - b for a, b in zip(lhs_coeffs, rhs_coeffs, strict=False)]
+                net_rhs = rhs_const - lhs_const
+
+                if all(abs(c) < 1e-12 for c in net_coeffs):
+                    raise ValueError(
+                        f"Restricción sin variables: '{expression}'"
+                    )
 
                 parsed.append(
                     {
                         "name": name,
-                        "coeffs": coeffs,
-                        "rhs": rhs_val,
-                        "sense": sense,
+                        "coeffs": net_coeffs,
+                        "rhs": net_rhs,
+                        "sense": op,
                     }
                 )
                 break
@@ -250,42 +250,57 @@ La imagen muestra:
         return parsed
 
     @staticmethod
-    def _parse_expression(expression: str, var_names: list[str]) -> list[float]:
-        """Parse a linear expression into coefficients aligned to var_names.
+    def _parse_side(
+        expression: str, var_names: list[str]
+    ) -> tuple[list[float], float]:
+        """Parse one side of a linear (in)equality into (coefficients, constant).
 
-        Uses word-boundary regex matching so variable names like "x1" do not
-        collide with "x10" (a substring match would assign 2*x10's coefficient
-        to x1 and silently drop x10).
+        Uses word-boundary regex matching so variable names like ``x1`` do not
+        collide with ``x10``. Bare numeric terms accumulate into ``constant``.
         """
         coefficients = [0.0] * len(var_names)
+        constant = 0.0
 
         expr = expression.replace(" ", "")
         if not expr:
-            return coefficients
+            return coefficients, constant
 
-        # Sort longest-first so the alternation prefers x10 over x1 at the same position
+        # Sort longest-first so x10 is tried before x1 at the same position.
         sorted_names = sorted(var_names, key=len, reverse=True)
         var_alt = "|".join(re.escape(v) for v in sorted_names)
 
-        # Term: optional sign, optional numeric coefficient (incl. scientific),
-        # optional '*', then a variable name not followed by an identifier char.
-        term_re = re.compile(
+        # Each term is: optional sign, then EITHER (optional coef * variable)
+        # OR a bare constant. Variable-bearing terms have priority because the
+        # alternation matches left-to-right.
+        token_re = re.compile(
             r"(?P<sign>[+-]?)"
-            r"(?P<coef>\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)?"
-            r"\*?"
-            r"(?P<var>" + var_alt + r")"
-            r"(?![A-Za-z0-9_])"
+            r"(?:"
+            r"(?P<coef>\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)?\*?"
+            r"(?P<var>" + var_alt + r")(?![A-Za-z0-9_])"
+            r"|"
+            r"(?P<const>\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)"
+            r")"
         )
 
-        for m in term_re.finditer(expr):
+        for m in token_re.finditer(expr):
             sign = -1.0 if m.group("sign") == "-" else 1.0
-            coef_str = m.group("coef")
-            coef = float(coef_str) if coef_str else 1.0
             var = m.group("var")
-            idx = var_names.index(var)
-            coefficients[idx] += sign * coef
+            if var is not None:
+                coef = float(m.group("coef")) if m.group("coef") else 1.0
+                coefficients[var_names.index(var)] += sign * coef
+            else:
+                constant += sign * float(m.group("const"))
 
-        return coefficients
+        return coefficients, constant
+
+    @classmethod
+    def _parse_expression(cls, expression: str, var_names: list[str]) -> list[float]:
+        """Parse a linear expression into variable coefficients (constant discarded).
+
+        Kept for the objective-arrow path, which only needs the gradient direction.
+        """
+        coeffs, _ = cls._parse_side(expression, var_names)
+        return coeffs
 
     def _generate_plot(
         self,
