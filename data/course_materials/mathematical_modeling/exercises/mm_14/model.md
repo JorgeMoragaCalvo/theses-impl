@@ -1,4 +1,4 @@
-# P15 — Modelo
+# P14 — Modelo
 ## Variables de decision
 
 $x_1$: cantidad de banjos producidos.
