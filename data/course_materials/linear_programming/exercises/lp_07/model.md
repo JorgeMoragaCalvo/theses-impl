@@ -1,4 +1,4 @@
-# Solución P6
+# Solución P7
 
 ## Variables de decisión
 - $x =$ cantidad de hectáreas de cebada.

@@ -1,4 +1,4 @@
-# P7 — Cultivos de cebada y
+# P7 — Cultivos de cebada y Bruselas
 
 Un agricultor tiene $20$ hectáreas para el cultivo de cebada y bruselas. El agricultor tiene que decidir cuánto de cada uno cultivar. El costo por hectárea para la cebada es de $30$ U.M. y para las bruselas es de $20$ U.M. El agricultor tiene presupuestado $480$ U.M.
 
