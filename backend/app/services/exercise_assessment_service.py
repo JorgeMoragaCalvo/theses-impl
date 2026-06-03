@@ -8,6 +8,7 @@ import os
 from typing import Any
 
 from ..enums import Topic
+from ..utils import strip_markdown_images
 from .exercise_manager import ExerciseManager
 from .llm_response_parser import parse_llm_json_response
 from .llm_service import LLMService, get_llm_service
@@ -236,7 +237,7 @@ class ExerciseAssessmentService:
 
         return {
             "question": exercise.statement,
-            "correct_answer": exercise.model,
+            "correct_answer": strip_markdown_images(exercise.model),
             "rubric": rubric,
             "metadata": {
                 "source": "exercise",
@@ -256,6 +257,8 @@ class ExerciseAssessmentService:
         """
         exercise = self.exercise_manager.get_exercise(exercise_id)
 
+        reference_model = strip_markdown_images(exercise.model)
+
         system_prompt = f"""Eres un experto en modelado matemático y optimización.
 Tu tarea es crear un problema SIMILAR pero DIFERENTE al ejercicio de referencia.
 
@@ -263,7 +266,7 @@ EJERCICIO ORIGINAL:
 {exercise.statement}
 
 SOLUCIÓN DE REFERENCIA:
-{exercise.model}
+{reference_model}
 
 INSTRUCCIONES:
 1. Crea un problema que use el mismo tipo de modelo: {exercise.model_type}
@@ -365,6 +368,8 @@ Genera SOLO el JSON, sin texto adicional."""
 4. **Tipo de Modelo (10%)** - 0.7 puntos
    - Identificación correcta del tipo (LP, IP, MIP, NLP)
    - Justificación si se proporciona
+
+Nota: el estudiante entrega solo la formulación en texto y no puede adjuntar gráficos. Evalúa únicamente la formulación; la solución gráfica es ilustrativa y no se requiere ni se penaliza su ausencia.
 
 Puntuación máxima: 7.0 puntos"""
 

@@ -15,5 +15,6 @@
 
 ## Solución gráfica
 ![lp_09_model.png](data/course_materials/linear_programming/images/image-07.png)
+*Solución gráfica (referencia visual ilustrativa; no se entrega ni se evalúa). Puedes pedírsela al tutor.*
 
 La región sombreada (azul claro) es donde se cumplen todas las condiciones (restricciones) del problema.

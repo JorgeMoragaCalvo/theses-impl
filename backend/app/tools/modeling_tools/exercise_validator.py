@@ -14,6 +14,8 @@ from typing import Any
 
 from langchain_core.tools import BaseTool
 
+from ...utils import strip_markdown_images
+
 # if TYPE_CHECKING:
 #     from ...services.exercise_manager import ExerciseManager
 #     from ...services.llm_service import LLMService
@@ -102,6 +104,10 @@ Retorna: Feedback pedagógico detallado sobre la formulación."""
             return self._format_error(
                 f"No hay solución de referencia para '{exercise_id}'"
             )
+
+        # The graphical-solution image is a visual reference only and cannot be
+        # submitted by students; strip it so the text-only comparison isn't polluted.
+        reference = strip_markdown_images(reference)
 
         return exercise_id, student_formulation, reference
 

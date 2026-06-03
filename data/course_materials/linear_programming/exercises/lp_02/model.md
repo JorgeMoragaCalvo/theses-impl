@@ -22,6 +22,8 @@ Maximizar $z = 2100x_1 + 3000x_2 \rightarrow z = 21x_1 + 30x_2$
 #### Solución gráfica
 ![solution](data/course_materials/linear_programming/images/image-01.png)
 
+*Solución gráfica (referencia visual ilustrativa; no se entrega ni se evalúa). Puedes pedírsela al tutor.*
+
 $x_1 = 0, x_2 = 15$
 
 Por lo tanto, la planta de ensamblaje de autos no debería ensamblar sedanes de cuatro puertas, sino $1500$ minivans al día, lo que supone un beneficio de $\$4500000$.

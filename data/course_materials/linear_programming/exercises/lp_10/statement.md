@@ -9,4 +9,4 @@ Hay una ganancia de \$10 por caja en tornillos para madera y de \$17 por caja en
 
 ## Pistas
 - Construir modelo
-- Resolver por el método gráfico.
+- Puedes pedir al tutor la solución gráfica (región factible); no es necesario adjuntarla.

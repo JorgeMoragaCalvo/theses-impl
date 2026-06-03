@@ -9,4 +9,4 @@ Podrían hacer solo blusas o solo faldas o un poco de cada una. Su primera idea 
 
 ## Pistas
 - Construir modelo
-- Resolver por el método gráfico.
+- Puedes pedir al tutor la solución gráfica (región factible); no es necesario adjuntarla.

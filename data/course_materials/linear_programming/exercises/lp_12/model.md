@@ -23,5 +23,6 @@ No negatividad
 
 ## Solución gráfica
 ![P12](data/course_materials/linear_programming/images/image-08.png)
+*Solución gráfica (referencia visual ilustrativa; no se entrega ni se evalúa). Puedes pedírsela al tutor.*
 
 - $x = 6; y = 8 \space$ $\therefore$ la mayor recaudación por noche es de \$20 y se alcanza con $6$ casas rodantes y $8$ carpas.

@@ -10,4 +10,4 @@ Al menos $200 \text{m}^2 $ deben estar disponibles para cada casa rodante y $90 
 
 ## Pistas
 - Construir modelo matemático.
-- Graficar region factible.
+- Puedes pedir al tutor la solución gráfica (región factible); no es necesario adjuntarla.

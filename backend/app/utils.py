@@ -70,6 +70,31 @@ def extract_code_blocks(text: str) -> list[str]:
     return matches
 
 
+def strip_markdown_images(text: str) -> str:
+    """
+    Remove Markdown image tags (``![alt](url)``) from text.
+
+    Used to clean reference solutions before they are sent to the LLM grader,
+    the "generate similar problem" prompt, or the formulation validator: those
+    paths are text-only and the embedded graphical-solution images are noise
+    that students cannot submit anyway. Surrounding text (headings, the textual
+    optimal-solution result, captions) is preserved, and the source files are
+    left untouched so the tutor agent can still show the image on request.
+
+    Args:
+        text: Markdown text that may contain image tags
+
+    Returns:
+        Text with image tags removed and resulting blank lines collapsed
+    """
+    if not text:
+        return text
+    # Remove image tags, then drop now-empty lines and collapse blank runs
+    without_images = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", text)
+    without_empty_lines = re.sub(r"[ \t]+\n", "\n", without_images)
+    return re.sub(r"\n{3,}", "\n\n", without_empty_lines)
+
+
 def clean_whitespace(text: str) -> str:
     """
     Clean excessive whitespace from text.

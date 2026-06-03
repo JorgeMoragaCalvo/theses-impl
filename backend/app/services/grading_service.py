@@ -222,6 +222,7 @@ class GradingService:
             6. **Errores menores**: No penalizar severamente por errores aritméticos menores si el enfoque es correcto
             7. **Enfoques alternativos**: Aceptar métodos de solución alternativos válidos si son correctos
             8. **Completitud**: Considerar si el estudiante abordó completamente todas las partes de la pregunta
+            9. **Solo formulación en texto**: El estudiante entrega únicamente la formulación en texto y no puede adjuntar gráficos. Si la solución de referencia menciona una solución gráfica, trátala como ilustrativa: evalúa solo la formulación y no penalices la ausencia de un gráfico
 {concepts_section}
             ## Formato de salida:
             Proporciona tu respuesta en el siguiente formato JSON:

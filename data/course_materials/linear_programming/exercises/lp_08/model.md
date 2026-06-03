@@ -14,5 +14,6 @@
 
 ## Solución gráfica
 ![P8](data/course_materials/linear_programming/images/image-06.png)
+*Solución gráfica (referencia visual ilustrativa; no se entrega ni se evalúa). Puedes pedírsela al tutor.*
 
 De los vértices, el punto $(3, 4)$ maximiza las ganancias diarias.
