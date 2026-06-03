@@ -16,6 +16,7 @@
 ## Solución gráfica
 
 ![Image05](data/course_materials/linear_programming/images/image-05.png)
+*Solución gráfica (referencia visual ilustrativa; no se entrega ni se evalúa). Puedes pedírsela al tutor.*
 
 De la imagen, los vértices son:
 - $(0, 0)$

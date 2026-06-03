@@ -7,4 +7,4 @@ Una empresa de distribución tiene que transportar $1200$ paquetes usando vans g
 
 ## Pistas
 - Construir modelo
-- Resolver por el método gráfico.
+- Puedes pedir al tutor la solución gráfica (región factible); no es necesario adjuntarla.

@@ -1,11 +1,11 @@
- # P6 — Fábrica de cobertizos
+# P6 — Fábrica de cobertizos
  
-Una pequeña empresa fábrica dos tipos de cobertizos de jardín. El tipo A requiere de 2 horas de tiempo de máquina y 5 horas hombre. El tipo A requiere de 3 horas de tiempo de máquina y 5 horas hombre.
+Una pequeña empresa fábrica dos tipos de cobertizos de jardín. El tipo A requiere de 2 horas de tiempo de máquina y 5 horas hombre. El tipo B requiere de 3 horas de tiempo de máquina y 5 horas hombre.
 
-Cada día hay 30 horas de tiempo de máquina disponible y 60 horas hombre. La ganancia del cobertizo A es de $\$60$ y el de tipo B es de $\$84$.
+Cada día hay 30 horas de tiempo de máquina disponible y 60 horas hombre. La ganancia del cobertizo A es de \$60 y el de tipo B es de \$84.
 
 ## Lo que se pide
 - Formular el modelo.
-- Resolver gráficamente.
+- Resolver el modelo (entrega la formulación). La representación gráfica de la región factible es ilustrativa; puedes solicitarla al tutor.
 
 ## Pistas

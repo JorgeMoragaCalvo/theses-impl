@@ -2,7 +2,47 @@
 Unit tests for app.utils — pure functions, no DB or LLM required.
 """
 
-from app.utils import detect_confusion_signals, detect_repeated_topic
+from app.utils import (
+    detect_confusion_signals,
+    detect_repeated_topic,
+    strip_markdown_images,
+)
+
+# ---- strip_markdown_images ----
+
+
+class TestStripMarkdownImages:
+    def test_removes_image_tag(self):
+        text = "antes\n![alt](data/course_materials/lp/images/image-01.png)\ndespués"
+        result = strip_markdown_images(text)
+        assert "![" not in result
+        assert "image-01.png" not in result
+
+    def test_preserves_surrounding_text(self):
+        text = (
+            "## Solución gráfica\n"
+            "![sol](data/.../image-02.png)\n"
+            "$X = 85, Y = 37.5$\n"
+            "*referencia visual*"
+        )
+        result = strip_markdown_images(text)
+        assert "## Solución gráfica" in result
+        assert "$X = 85, Y = 37.5$" in result
+        assert "*referencia visual*" in result
+        assert "![" not in result
+
+    def test_collapses_blank_lines(self):
+        text = "linea1\n\n![a](b.png)\n\nlinea2"
+        result = strip_markdown_images(text)
+        assert "\n\n\n" not in result
+
+    def test_no_images_unchanged(self):
+        text = "Maximizar z = 5x + 12y\n- 20x + 10y <= 200"
+        assert strip_markdown_images(text) == text
+
+    def test_empty_input(self):
+        assert strip_markdown_images("") == ""
+
 
 # ---- detect_confusion_signals ----
 

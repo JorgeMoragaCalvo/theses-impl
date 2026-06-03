@@ -16,5 +16,6 @@
 ## Solución gráfica
 
 ![image2](data/course_materials/linear_programming/images/image-02.png)
+*Solución gráfica (referencia visual ilustrativa; no se entrega ni se evalúa). Puedes pedírsela al tutor.*
 
 $X = 85, Y = 37.5, Z = 36.25 $
