@@ -29,8 +29,8 @@ Step-by-step deployment instructions (Droplet creation → Docker → SSL certs 
 
 ## ✨ Highlights
 
-- **Multi-agent AI system** — 5 specialist tutors (Linear, Integer, Nonlinear Programming, Mathematical Modeling, Operations Research) inheriting a shared `BaseAgent`. Built on LangChain with tool-calling so agents can solve, plot, and validate during the conversation.
-- **Adaptive pedagogy engine** — keyword-based confusion detection, dynamic switching between 7 explanation strategies, SM-2 spaced repetition for review scheduling, and Bloom-taxonomy competency tracking per concept.
+- **Multi-agent AI system** — $5$ specialist tutors (Linear, Integer, Nonlinear Programming, Mathematical Modeling, Operations Research) inheriting a shared `BaseAgent`. Built on LangChain with tool-calling so agents can solve, plot, and validate during the conversation.
+- **Adaptive pedagogy engine** — keyword-based confusion detection, dynamic switching between $7$ explanation strategies, SM-2 spaced repetition for review scheduling, and Bloom-taxonomy competency tracking per concept.
 - **LLM provider abstraction** — single adapter over Google Gemini, OpenAI, and Anthropic, switchable via `LLM_PROVIDER` env var.
 - **Domain tooling for optimization** — SciPy/PuLP solvers, matplotlib feasible-region plots, and model validators wired as LangChain tools the agents invoke autonomously.
 - **Production-grade infra** — multi-stage Docker builds, non-root containers, Nginx reverse proxy with HTTPS + rate limiting, Prometheus + Sentry observability, GitHub Actions CI with `pip-audit` and CodeQL.
@@ -68,7 +68,7 @@ JWT auth, role-based authorization, Pydantic validation on every endpoint, CORS 
 </details>
 
 <details>
-<summary><b>Frontend</b> — Streamlit multi-page app with singleton API client</summary>
+<summary><b>Frontend</b> — Streamlit multipage app with singleton API client</summary>
 
 File-based routing across `pages/1_chat.py`, `2_assessment.py`, `3_progress.py`, `4_admin.py`. Singleton API client (`utils/api_client.py`) auto-injects JWT and triggers logout on 401. State managed via `st.session_state`.
 </details>
