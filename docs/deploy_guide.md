@@ -136,6 +136,71 @@ The routing nginx handles:
 - https://<droplet-ip>/api/ → FastAPI backend
 - https://<droplet-ip>/api/docs → API docs
 
+> At this point you are running on a **self-signed certificate**, so the browser shows "Your connection is not private" (`NET::ERR_CERT_AUTHORITY_INVALID`) and you must click Advanced → Proceed. That is expected for testing, but **do not give this URL to students** — training users to click through security warnings is a bad habit, and the warning makes the app look broken. Step 8 replaces it with a trusted certificate.
+
+---
+## Step 8 — (Recommended) Use a domain + trusted SSL certificate
+
+This removes the browser warning by replacing the self-signed cert with a free [Let's Encrypt](https://letsencrypt.org/) certificate. A trusted certificate requires a **hostname** — you cannot get one for a bare IP like `192.241.142.33`.
+
+> **Note:** DigitalOcean does *not* sell domain names. It only offers free DNS hosting for a domain you already own (DO → Networking → Domains). You register the name elsewhere, or use a free option below.
+
+### 8a — Pick a hostname
+
+Choose one:
+
+- **Free, no registration (fastest):** use [`nip.io`](https://nip.io). The hostname `192.241.142.33.nip.io` automatically resolves to your droplet IP — just substitute your own IP. Nothing to configure. Good enough for a thesis demo.
+- **Free subdomain:** register one at [DuckDNS](https://www.duckdns.org) (e.g. `tutoria.duckdns.org`) and point it at your droplet IP.
+- **Your own domain:** buy one (Porkbun, Namecheap, Cloudflare…), then add an `A` record pointing `tutoria.tudominio.com` → your droplet IP. You can manage that record for free in DO → Networking → Domains.
+
+Set a shell variable so the rest of the steps are copy-paste (Droplet `Web Console`):
+```bash
+DOMAIN=192.241.142.33.nip.io   # replace with your chosen hostname
+```
+
+### 8b — Open port 80 and free it for issuance
+
+Let's Encrypt validates over port 80. Make sure it's allowed (DO Cloud Firewall, if you use one, must permit 80/tcp), then stop nginx so certbot can bind to it:
+```bash
+docker compose stop nginx
+```
+
+### 8c — Issue the certificate
+
+```bash
+apt install -y certbot
+certbot certonly --standalone -d "$DOMAIN" --agree-tos -m tu-correo@ejemplo.com --no-eff-email
+```
+
+Copy the freshly issued cert into the location nginx already expects (overwriting the self-signed ones from Step 4):
+```bash
+cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem nginx/ssl/cert.pem
+cp /etc/letsencrypt/live/$DOMAIN/privkey.pem   nginx/ssl/key.pem
+```
+> No nginx config change is needed — `server_name _;` already accepts any hostname.
+
+### 8d — Point the app at the hostname and bring it back up
+
+Edit `.env` (`nano .env`) and change CORS to the hostname (HTTPS, no trailing slash):
+```bash
+CORS_ORIGINS=https://192.241.142.33.nip.io   # your $DOMAIN
+```
+Then restart:
+```bash
+docker compose up -d
+```
+
+Open `https://<your-domain>` — the padlock should now be clean, with no warning.
+
+### 8e — Auto-renew (Let's Encrypt certs expire every 90 days)
+
+Add a cron job that renews, copies the fresh certs, and reloads nginx. Run `crontab -e` and add (replace `$DOMAIN` and the repo path with your real values):
+```cron
+0 3 * * * certbot renew --quiet \
+  --pre-hook  "docker compose -f /root/<your-project-name>/docker-compose.yml stop nginx" \
+  --post-hook "cp /etc/letsencrypt/live/<your-domain>/fullchain.pem /root/<your-project-name>/nginx/ssl/cert.pem && cp /etc/letsencrypt/live/<your-domain>/privkey.pem /root/<your-project-name>/nginx/ssl/key.pem && docker compose -f /root/<your-project-name>/docker-compose.yml up -d nginx"
+```
+
 ---
 
 ## Additional steps
@@ -143,7 +208,7 @@ The routing nginx handles:
 > - docker-compose down
                                                                                                                                                                                     
 > Turn back on the app:
-> - cd <your-project-name>
+> - `cd <your-project-name>`
 > - docker-compose up -d
 
 If you want to make changes to the app:
