@@ -1,7 +1,10 @@
 import base64
+import csv
 import os
 import re
 import sys
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import streamlit as st
@@ -31,6 +34,34 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # Get API client
 api_client = get_api_client(BACKEND_URL)
+
+# Registro temporal de latencias para el experimento RNF7 (activar con RNF7_LOG=true)
+RNF7_LOG = os.getenv("RNF7_LOG", "").lower() == "true"
+RNF7_LOG_FILE = Path(
+    os.getenv("RNF7_LOG_FILE", str(Path(__file__).parent.parent / "rnf7_latencias.csv"))
+)
+
+
+def log_rnf7_latency(
+    tema: str, timestamp_inicio: str, timestamp_fin: str, latencia_ms: float
+) -> None:
+    """Append one latency measurement to the RNF7 CSV file."""
+    nuevo = not RNF7_LOG_FILE.exists()
+    id_pregunta = (
+        1
+        if nuevo
+        else sum(1 for _ in RNF7_LOG_FILE.open(encoding="utf-8"))
+    )
+    with RNF7_LOG_FILE.open("a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        if nuevo:
+            writer.writerow(
+                ["id_pregunta", "tema", "timestamp_inicio", "timestamp_fin", "latencia_ms"]
+            )
+        writer.writerow(
+            [id_pregunta, tema, timestamp_inicio, timestamp_fin, round(latencia_ms, 1)]
+        )
+
 
 _BASE64_IMAGE_RE = re.compile(
     r"!\[([^\]]*)\]\(data:image/png;base64,([A-Za-z0-9+/=]+)\)"
@@ -115,6 +146,8 @@ if prompt := st.chat_input(placeholder="Haz tu pregunta..."):
     with st.chat_message("assistant", avatar="🎓"):
         with st.spinner("El Tutor de IA está pensando..."):
             # Use the authenticated API client (student_id extracted from token)
+            timestamp_inicio = datetime.now(timezone.utc).isoformat()
+            t0 = time.perf_counter()
             success, data = api_client.post(
                 "/chat",
                 json_data={
@@ -123,8 +156,17 @@ if prompt := st.chat_input(placeholder="Haz tu pregunta..."):
                     "topic": TOPIC_OPTIONS[selected_topic],
                 },
             )
+            latencia_ms = (time.perf_counter() - t0) * 1000
+            timestamp_fin = datetime.now(timezone.utc).isoformat()
 
             if success:
+                if RNF7_LOG:
+                    log_rnf7_latency(
+                        TOPIC_OPTIONS[selected_topic],
+                        timestamp_inicio,
+                        timestamp_fin,
+                        latencia_ms,
+                    )
                 render_message(data["response"])
                 st.caption(f"Agent: {data['agent_type']}")
 
