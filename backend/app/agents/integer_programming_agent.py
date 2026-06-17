@@ -4,11 +4,13 @@ from typing import Any
 
 from ..services.exercise_manager import ExerciseManager
 from ..tools.modeling_tools import (
+    BranchAndBoundTool,
     ExercisePracticeTool,
     ExerciseValidatorTool,
     ModelValidatorTool,
     ProblemSolverTool,
     RegionVisualizerTool,
+    SimplexSolverTool,
 )
 from .base_agent import BaseAgent
 
@@ -60,6 +62,8 @@ class IntegerProgrammingAgent(BaseAgent):
         self.tools = [
             RegionVisualizerTool(),
             ProblemSolverTool(),
+            SimplexSolverTool(),
+            BranchAndBoundTool(),
             ModelValidatorTool(),
             ExercisePracticeTool(exercise_manager=self.exercise_manager),
             ExerciseValidatorTool(
@@ -133,6 +137,15 @@ class IntegerProgrammingAgent(BaseAgent):
     3. "Como modelamos la restriccion 'si hacemos A, entonces debemos hacer B'?"
     Solo da la solucion directa si: (a) el estudiante lo pide, (b) muestra frustración, o (c) ya intento responder.
 
+    USO DE LAS HERRAMIENTAS DE RESOLUCIÓN (clave de respuesta):
+    Cuando una herramienta (problem_solver, simplex_solver, branch_and_bound) devuelve una
+    solución, ese resultado es tu fuente de verdad VERIFICADA: nunca inventes ni alteres sus
+    números, nodos o cotas. Pero NO lo pegues literalmente: revélalo de forma GRADUAL,
+    explicando paso a paso según el protocolo socrático y comprobando la comprensión
+    ("¿Tiene sentido este paso?"). Aunque el estudiante haya pedido la solución (excepción
+    (a)), preséntala como una explicación guiada del resultado, no como un volcado del bloque
+    de la herramienta. EXCEPCIÓN: el gráfico de region_visualizer se muestra tal cual.
+
     ANDAMIAJE (Scaffolding):
     1. Primero: pista orientadora ("Que tipo de variable necesitas para una decisión abrir/no abrir?")
     2. Si no avanza: pista mas directa ("Usa una variable binaria y_i in {0,1}")
@@ -180,9 +193,11 @@ class IntegerProgrammingAgent(BaseAgent):
     Tienes acceso a herramientas especializadas que debes usar activamente:
 
     1. **region_visualizer**: Para visualizar la relajación LP con puntos enteros factibles.
-       - CUANDO USAR: siempre que el estudiante necesite visualizar un problema con 2 variables,
-         quiera entender por qué no se puede redondear la solución LP, o pida ver el método gráfico.
-       - IMPORTANTE: siempre incluye "show_integer_points": true para mostrar los puntos enteros.
+       - CUANDO USAR: SÓLO cuando el estudiante pida explícitamente graficar, visualizar, ver la
+         región factible o el método gráfico (problemas de 2 variables), o entender por qué no se
+         puede redondear la solución LP. NO lo uses para una petición de "resolver" — para eso usa
+         problem_solver.
+       - IMPORTANTE: cuando lo uses, incluye "show_integer_points": true para mostrar los puntos enteros.
        - Si el estudiante NO tiene un problema propio, usa este ejemplo:
          {{"variables": [{{"name": "x1", "lower": 0}}, {{"name": "x2", "lower": 0}}],
           "constraints": [{{"expression": "x1 + 2*x2 <= 7", "name": "Restricción 1"}},
@@ -205,10 +220,26 @@ class IntegerProgrammingAgent(BaseAgent):
     5. **exercise_validator**: Para validar la formulación del estudiante contra la referencia.
        - INPUT: JSON con exercise_id y student_formulation.
 
-    REGLAS DE USO:
-    - Para problemas de 2 variables que necesiten visualización -> USA region_visualizer con show_integer_points: true
-    - Al explicar por qué redondear falla -> muestra la imagen y resuelve ambas versiones (relajación con problem_solver sin integrality, IP con integrality) para evidenciar la diferencia
+    6. **simplex_solver**: Para mostrar la relajación LP PASO A PASO con el método símplex de dos fases (tableaus, iteraciones, pivoteo).
+       - CUANDO USAR: cuando el estudiante quiera ver cómo se resuelve la relajación LP paso a paso (apoya la enseñanza de branch-and-bound), pida los tableaus, las iteraciones o el método símplex.
+       - INPUT: mismo JSON que problem_solver (sin integrality; resuelve la relajación LP). Maneja restricciones <=, >= y =.
+       - SALIDA: cada iteración con su tableau, prueba del cociente mínimo y elemento pivote.
+
+    7. **branch_and_bound**: Para resolver un problema ENTERO (IP/MIP/binario) PASO A PASO con ramificación y acotamiento (construye el árbol de búsqueda completo).
+       - CUANDO USAR: cuando el estudiante pida ver el árbol de branch and bound, la ramificación y el acotamiento, o resolver el problema entero "paso a paso".
+       - INPUT: mismo JSON que problem_solver, marcando "type" entero/binario en las variables.
+       - SALIDA: cada nodo con su restricción de ramificación, la relajación LP (z* y x*) y la decisión (entero/incumbente, podado por cota, infactible o ramificar), más la solución entera óptima.
+
+    REGLAS DE USO (sigue este orden de prioridad):
+    - Si el estudiante pide "resolver / resuélveme / solución óptima / valor óptimo" (sin pedir pasos) -> USA problem_solver para mostrar el óptimo entero. NO ofrezcas un gráfico.
+    - Si pide resolver el problema ENTERO "paso a paso", el árbol de branch and bound o la ramificación y acotamiento -> USA branch_and_bound
+    - Si pide ver la relajación LP "paso a paso" o el método símplex / tableaus -> USA simplex_solver
+    - Si pide explícitamente graficar / visualizar / la región factible (2 variables) -> USA region_visualizer con show_integer_points: true
+    - Al explicar por qué redondear falla -> resuelve ambas versiones (relajación con problem_solver sin integrality, IP con integrality) para evidenciar la diferencia; añade el gráfico sólo si lo piden
     - Si el estudiante propone una formulación -> USA model_validator antes de resolver
+    - IMPORTANTE: los números/nodos/cotas de la herramienta son la clave de respuesta VERIFICADA; NUNCA los inventes ni completes por tu cuenta
+    - Revela la solución de forma gradual y paso a paso, no la pegues literalmente (ver PROTOCOLO SOCRÁTICO); el árbol/los tableaus se explican apoyándose en lo calculado
+    - Si no hay un problema concreto (variables y restricciones) en la conversación, NO inventes uno: pide al estudiante su formulación antes de resolver
     - Integra los resultados de las herramientas en la explicación pedagógica
     """
         ]
@@ -333,16 +364,17 @@ Un nodo se cierra si:
 **4. SELECCIÓN:**
 Elige qué nodo explorar (DFS, BFS, best-bound)
 
-**Ejemplo visual:**
+**Esquema del árbol (estructura, sin valores inventados):**
 ```
-        LP: z=10.5, x=2.7
-           /        \
-    x≤2: z=9.8    x≥3: z=10.2
-         |              |
-    Entero: 9.8    x=3.4, sigue...
+            relajación LP (raíz)
+           /                    \
+   xᵢ ≤ ⌊v⌋                  xᵢ ≥ ⌈v⌉
+   (subproblema)             (subproblema)
 ```
 
-¿Quieres que hagamos un ejemplo numérico completo?
+Si quieres un árbol con números reales, dame tu problema y lo resolveré paso a paso con la herramienta branch_and_bound: cada nodo, su relajación LP y la decisión saldrán **calculados, no estimados**.
+
+¿Tienes un problema entero específico para resolver?
 ---
 
 ---
@@ -473,6 +505,108 @@ La formulación ideal no siempre es computable (puede tener exponenciales restri
 
 ¿Quieres ver cómo derivar las desigualdades xᵢⱼ ≤ yⱼ?
 ---"""
+
+    # Explicit branch-and-bound requests that should force the tool. Kept narrow
+    # so conceptual questions ("¿por qué B&B converge?") are not hijacked.
+    _BNB_INTENT_KEYWORDS: tuple[str, ...] = (
+        "branch and bound",
+        "branch-and-bound",
+        "ramificación y acotamiento",
+        "ramificacion y acotamiento",
+        "ramificar y acotar",
+        "árbol de ramificación",
+        "arbol de ramificacion",
+        "árbol de branch",
+        "arbol de branch",
+    )
+    _INTEGER_CUES: tuple[str, ...] = (
+        "entero",
+        "entera",
+        "integer",
+        " ip ",
+        "mip",
+        "binaria",
+        "binario",
+    )
+    # Step-by-step LP-relaxation requests: route to the tableau tool, not B&B.
+    _SIMPLEX_INTENT_KEYWORDS: tuple[str, ...] = (
+        "símplex",
+        "simplex",
+        "tableau",
+        "tabla",
+        "pivote",
+        "pivoteo",
+    )
+    # Plain "solve this" intent → numeric optimum via problem_solver.
+    # Kept high precision: bare "óptimo"/"solve" are omitted because they leak into
+    # purely conceptual questions, and forcing a tool there would make the model
+    # fabricate a problem to satisfy the required call.
+    _SOLVE_INTENT_KEYWORDS: tuple[str, ...] = (
+        "resuelve",
+        "resuélve",  # resuélveme, resuélvelo
+        "resuelva",
+        "resolver",
+        "solución óptima",
+        "solucion optima",
+        "valor óptimo",
+        "valor optimo",
+        "cuál es la solución",
+        "cual es la solucion",
+        "cuál es el óptimo",
+        "cual es el optimo",
+        "encuentra la solución",
+        "encuentra la solucion",
+    )
+    # Explicit graphical requests → region_visualizer (kept reserved for these).
+    _GRAPHICAL_INTENT_KEYWORDS: tuple[str, ...] = (
+        "gráfic",  # gráfico, gráfica, gráficamente
+        "grafic",  # grafico, grafica, graficar (sin tilde)
+        "región factible",
+        "region factible",
+        "dibuja",
+        "visualiza",
+        "método gráfico",
+        "metodo grafico",
+        "graphical method",
+    )
+
+    def _select_tool_choice(
+        self, messages: list[dict[str, str]], context: dict[str, Any]
+    ) -> str | None:
+        """Force a concrete tool so the LLM cannot narrate JSON instead of solving.
+
+        bind_tools() alone does not guarantee the model invokes the tool. Without
+        enforcement a "resuélveme este problema" request produced text describing
+        region_visualizer plus the raw model JSON, instead of an actual solution.
+        Precedence: explicit branch-and-bound → step-by-step símplex → plain solve
+        (numeric optimum) → explicit graphical request.
+        """
+        last_user = next(
+            (m["content"] for m in reversed(messages) if m.get("role") == "user"),
+            "",
+        )
+        text = f" {(last_user or '').lower()} "
+
+        # 1. Explicit branch-and-bound (integer tree).
+        if any(kw in text for kw in self._BNB_INTENT_KEYWORDS):
+            return "branch_and_bound"
+        if "paso a paso" in text and any(cue in text for cue in self._INTEGER_CUES):
+            return "branch_and_bound"
+
+        # 2. Step-by-step símplex / LP-relaxation tableaus.
+        if any(kw in text for kw in self._SIMPLEX_INTENT_KEYWORDS):
+            return "simplex_solver"
+        if "paso a paso" in text and "relajación" in text:
+            return "simplex_solver"
+
+        # 3. Plain solve intent → numeric integer optimum.
+        if any(kw in text for kw in self._SOLVE_INTENT_KEYWORDS):
+            return "problem_solver"
+
+        # 4. Explicit graphical request only.
+        if any(kw in text for kw in self._GRAPHICAL_INTENT_KEYWORDS):
+            return "region_visualizer"
+        return None
 
     def get_available_strategies(self) -> list[str]:
         """Return available explanation strategies for Integer Programming."""

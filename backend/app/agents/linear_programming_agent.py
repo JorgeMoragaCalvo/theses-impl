@@ -10,6 +10,7 @@ from ..tools.modeling_tools import (
     ModelValidatorTool,
     ProblemSolverTool,
     RegionVisualizerTool,
+    SimplexSolverTool,
 )
 from .base_agent import BaseAgent
 
@@ -49,6 +50,7 @@ class LinearProgrammingAgent(BaseAgent):
             / ".."
             / "data"
             / "course_materials"
+            / "linear_programming"
             / "linear_programming_fundamental.md"
         )
 
@@ -76,6 +78,7 @@ class LinearProgrammingAgent(BaseAgent):
         self.tools = [
             RegionVisualizerTool(),
             ProblemSolverTool(),
+            SimplexSolverTool(),
             ModelValidatorTool(),
             ExercisePracticeTool(exercise_manager=self.exercise_manager),
             ExerciseValidatorTool(
@@ -146,6 +149,15 @@ class LinearProgrammingAgent(BaseAgent):
     3. "Qué restricciones tenemos?"
     Solo da la solución directa si: (a) el estudiante lo pide, (b) muestra frustración, o (c) ya intentó responder.
 
+    USO DE LAS HERRAMIENTAS DE RESOLUCIÓN (clave de respuesta):
+    Cuando una herramienta (problem_solver, simplex_solver) devuelve una solución, ese
+    resultado es tu fuente de verdad VERIFICADA: nunca inventes ni alteres sus números.
+    Pero NO lo pegues literalmente: revélalo de forma GRADUAL, explicando paso a paso según
+    el protocolo socrático y comprobando la comprensión ("¿Tiene sentido este paso?").
+    Aunque el estudiante haya pedido la solución (excepción (a)), preséntala como una
+    explicación guiada del resultado, no como un volcado del bloque de la herramienta.
+    EXCEPCIÓN: el gráfico de region_visualizer se muestra tal cual (es la salida esperada).
+
     ANDAMIAJE (Scaffolding):
     1. Primero: pista orientadora ("Qué método usarías para 2 variables?")
     2. Si no avanza: pista mas directa ("Prueba graficando las restricciones")
@@ -202,8 +214,9 @@ class LinearProgrammingAgent(BaseAgent):
     Tienes acceso a herramientas especializadas que debes usar activamente:
 
     1. **region_visualizer**: Para visualizar regiones factibles en 2D.
-       - CUANDO USAR: siempre que el estudiante pida visualizar una región factible, graficar
-         restricciones, o aplicar el método gráfico, aunque NO haya proporcionado un problema específico.
+       - CUANDO USAR: SÓLO cuando el estudiante pida explícitamente visualizar/graficar una región
+         factible, graficar restricciones, o aplicar el método gráfico. NO lo uses para una petición
+         de "resolver" — para eso usa problem_solver (óptimo) o simplex_solver (paso a paso).
        - Si el estudiante NO tiene un problema propio, usa este ejemplo clásico de producción:
          {{"variables": [{{"name": "x1", "lower": 0}}, {{"name": "x2", "lower": 0}}],
           "constraints": [{{"expression": "x1 + 2*x2 <= 10", "name": "Horas máquina"}},
@@ -228,11 +241,19 @@ class LinearProgrammingAgent(BaseAgent):
        - CUANDO USAR: cuando el estudiante presente su formulación de un ejercicio LP y quiera feedback estructurado.
        - INPUT: JSON con exercise_id y student_formulation.
 
-    REGLAS DE USO:
-    - Si el estudiante pide visualizar una región factible (con o sin problema propio) -> USA region_visualizer (con ejemplo por defecto si no hay problema)
-    - Para explicaciones del método gráfico a principiantes -> ofrece SIEMPRE la visualización
+    6. **simplex_solver**: Para resolver un LP PASO A PASO con el método símplex de dos fases (tableaus, iteraciones, pivoteo).
+       - CUANDO USAR: cuando el estudiante pida resolver "paso a paso", ver el método símplex, los tableaus, las iteraciones, la variable entrante/saliente o el pivoteo.
+       - INPUT: mismo JSON que problem_solver (variables, objective, constraints). Maneja restricciones <=, >= y =.
+       - SALIDA: cada iteración con su tableau, prueba del cociente mínimo y elemento pivote, más la solución óptima.
+
+    REGLAS DE USO (sigue este orden de prioridad):
+    - Si el estudiante pide "resolver / resuélveme / solución óptima / valor óptimo" (sin pedir pasos) -> USA problem_solver para mostrar el óptimo numérico. NO ofrezcas un gráfico.
+    - Si pide resolver "paso a paso" o ver el método símplex / tableaus -> USA simplex_solver (NO problem_solver)
+    - Si pide explícitamente visualizar / graficar / la región factible / el método gráfico -> USA region_visualizer (con ejemplo por defecto si no hay problema)
     - Si el estudiante propone una formulación -> USA model_validator antes de resolver
-    - Para mostrar el óptimo numérico -> USA problem_solver
+    - Apóyate en los tableaus que devuelve simplex_solver para explicar cada paso; no inventes números de tablas tú mismo
+    - La solución de problem_solver/simplex_solver es una clave de respuesta VERIFICADA: revélala de forma gradual y paso a paso, no la pegues literalmente (ver PROTOCOLO SOCRÁTICO)
+    - Si no hay un problema concreto (variables y restricciones) en la conversación, NO inventes uno: pide al estudiante su formulación antes de resolver
     - Integra la salida de las herramientas naturalmente en tu explicación pedagógica
     """)
 
@@ -469,24 +490,68 @@ La complejidad teórica favorece punto interior O(n³·⁵L), pero en práctica 
         "metodo grafico",
         "graphical method",
     )
+    # Step-by-step / símplex requests: route to the tableau tool.
+    _SIMPLEX_INTENT_KEYWORDS: tuple[str, ...] = (
+        "símplex",
+        "simplex",
+        "tableau",
+        "tabla",
+        "pivote",
+        "pivoteo",
+    )
+    # Plain "solve this" intent → numeric optimum via problem_solver.
+    # Kept high precision: bare "óptimo"/"solve" are omitted because they leak into
+    # purely conceptual questions, and forcing a tool there would make the model
+    # fabricate a problem to satisfy the required call.
+    _SOLVE_INTENT_KEYWORDS: tuple[str, ...] = (
+        "resuelve",
+        "resuélve",  # resuélveme, resuélvelo
+        "resuelva",
+        "resolver",
+        "solución óptima",
+        "solucion optima",
+        "valor óptimo",
+        "valor optimo",
+        "cuál es la solución",
+        "cual es la solucion",
+        "cuál es el óptimo",
+        "cual es el optimo",
+        "encuentra la solución",
+        "encuentra la solucion",
+    )
 
     def _select_tool_choice(
         self, messages: list[dict[str, str]], context: dict[str, Any]
     ) -> str | None:
-        """Force region_visualizer when the student explicitly asks for a graphical solution.
+        """Force a concrete tool so the LLM cannot narrate JSON instead of solving.
 
-        bind_tools() alone does not guarantee the model invokes the tool, so the
-        LP agent's graphical-method requests were producing inconsistent output
-        (sometimes text-only, sometimes plotted). When the latest user message
-        contains a graphical-method keyword, we require the tool call.
+        bind_tools() alone does not guarantee the model invokes the tool, so a
+        plain "resuélveme este problema" used to produce text describing
+        region_visualizer plus the raw model JSON, instead of an actual solution.
+        Precedence: explicit símplex/tableaus → explicit graphical request →
+        bare "paso a paso" (símplex) → plain solve (numeric optimum).
         """
         last_user = next(
             (m["content"] for m in reversed(messages) if m.get("role") == "user"),
             "",
         )
         text = (last_user or "").lower()
+
+        # 1. Explicit símplex / tableau request.
+        if any(kw in text for kw in self._SIMPLEX_INTENT_KEYWORDS):
+            return "simplex_solver"
+
+        # 2. Explicit graphical request (e.g. "método gráfico paso a paso").
         if any(kw in text for kw in self._GRAPHICAL_INTENT_KEYWORDS):
             return "region_visualizer"
+
+        # 3. Bare "paso a paso" with no graphical cue → step-by-step símplex.
+        if "paso a paso" in text:
+            return "simplex_solver"
+
+        # 4. Plain solve intent → numeric optimum.
+        if any(kw in text for kw in self._SOLVE_INTENT_KEYWORDS):
+            return "problem_solver"
         return None
 
     def get_available_strategies(self) -> list[str]:
