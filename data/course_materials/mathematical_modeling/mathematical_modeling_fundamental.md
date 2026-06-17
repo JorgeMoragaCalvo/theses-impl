@@ -124,7 +124,7 @@ Every optimization model has three essential parts:
 
 **Definition:** Variables that represent the decisions to be made. These are the quantities we can control or choose.
 
-**Notation:** Typically denoted as x₁, x₂, ..., xₙ or with descriptive subscripts
+**Notation:** Typically denoted as x₁, x₂, ..., xₙ, or with descriptive subscripts
 
 **Types:**
 - **Continuous**: Can take any real value (e.g., production quantities, investment amounts)
@@ -157,10 +157,10 @@ Maximize (or Minimize): f(x₁, x₂, ..., xₙ)
 ```
 
 **Best Practices:**
-- Should align with the true business objective
+- Should align with the true business goal
 - Include all relevant costs/benefits
 - Use consistent units
-- Consider multiple objectives if necessary
+- Consider multiple goals if necessary
 
 **Examples:**
 ```
@@ -238,7 +238,7 @@ Subject to:
 
 **Variants:**
 - **Pure IP**: All variables are integers
-- **Mixed IP (MIP)**: Some variables are integers, some continuous
+- **Mixed IP (MIP)**: Some variables are integers, some are continuous
 - **Binary IP (BIP)**: Variables are 0 or 1
 
 **When to Use:**
@@ -623,11 +623,11 @@ A factory produces multiple products:
 1. **Understand the problem thoroughly** before writing equations
 2. **Start simple** and add complexity as needed
 3. **Define variables clearly** with units and meaning
-4. **Connect math to reality** - every constraint should have a reason
-5. **Validate continuously** - check if results make sense
-6. **Communicate effectively** - explain models in business terms
-7. **Iterate and refine** - modeling is a process, not a one-shot task
-8. **Balance detail and solvability** - more complexity isn't always better
+4. **Connect math to reality** – every constraint should have a reason
+5. **Validate continuously** – check if results make sense
+6. **Communicate effectively** – explain models in business terms
+7. **Iterate and refine** – modeling is a process, not a one-shot task
+8. **Balance detail and solvability** – more complexity isn't always better
 
 ---
 
