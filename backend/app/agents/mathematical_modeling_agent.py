@@ -50,6 +50,7 @@ class MathematicalModelingAgent(BaseAgent):
             / ".."
             / "data"
             / "course_materials"
+            / "mathematical_modeling"
             / "mathematical_modeling_fundamental.md"
         )
 
