@@ -83,7 +83,7 @@ llm_with_tools = llm.bind_tools(tools)
 2. **LLM decides** to call one or more tools
 3. **Service executes** tool via `_run()` method
 4. **Result returned** to LLM as ToolMessage
-5. **LLM incorporates** result into response
+5. **LLM incorporates** result into a response
 6. **Loop continues** until no more tool calls (max three iterations)
 
 ### Tool Interface
@@ -221,3 +221,4 @@ tools = [MyNewTool()]
 - **v1.8.8** (2026-05-04): Deployment version.
 - **v1.8.9** (2026-05-22): Fixed agent responds, graphics rendering.
 - **v1.9.9** (2026-06-03): LP exercises and metadata for ranking.
+- **v1.10.9** (2026-06-17): New solver tools, agent behavior improvements, exercises, and documentation.

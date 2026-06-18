@@ -293,3 +293,4 @@ else:
 | v1.8.8  | 2026-05-04 | Deployment version                                                                 |
 | v1.8.9  | 2026-05-22 | Fixed agent responds, graphics rendering                                           |
 | v1.9.9  | 2026-06-03 | LP exercises and metadata for ranking                                              |
+| v1.10.9 | 2026-06-17 | New solver tools, agent behavior improvements, exercises, and documentation        |

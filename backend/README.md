@@ -277,3 +277,9 @@ Once running, access:
 - **v1.6.5** (2026-04-03): Security, routing and main.py improvements.
 - **v1.6.6** (2026-04-06): Coverage tests.
 - **v1.6.7** (2026-04-11): Code review and exercises.
+- **v1.7.7** (2026-04-23): Affect detection, BKT/DKT knowledge tracing, chat and assessment bugs.
+- **v1.8.7** (2026-04-27): Improved UI, fixed agent responds, OR tools.
+- **v1.8.8** (2026-05-04): Deployment version.
+- **v1.8.9** (2026-05-22): Fixed agent responds, graphics rendering.
+- **v1.9.9** (2026-06-03): LP exercises and metadata for ranking.
+- **v1.10.9** (2026-06-17): New solver tools, agent behavior improvements, exercises, and documentation.
