@@ -1,7 +1,0 @@
-participant_id,fecha,facilitador,rnf7_log,tarea,descripcion,duracion_s,exito_L_LD_F,seq_1a7,notas
-P1,,,No,1,Entrar + elegir especialista (LP),,,,
-P1,,,No,2,Pedir orientacion (socratico),,,,
-P1,,,No,3,Resolucion paso a paso (simplex),,,,
-P1,,,No,4,Visualizar region factible,,,,
-P1,,,No,5,Practicar ejercicio + Progreso,,,,
-P1,,,No,6,(Opc.) Branch & bound (IP),,,,
