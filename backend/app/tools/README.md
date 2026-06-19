@@ -1,4 +1,4 @@
-# Tools - Agent Capabilities
+# Tools – Agent Capabilities
 
 ## Overview
 
@@ -6,11 +6,12 @@ The `tools/` directory contains LangChain-based tools that extend agent capabili
 
 ## Contents
 
-| File/Directory    | Description                           |
-|-------------------|---------------------------------------|
-| `__init__.py`     | Package exports for all tools         |
-| `modeling_tools/` | Tools for Mathematical Modeling Agent |
-| `or_tools/`       | Tools for Operations Research Agent   |
+| File/Directory              | Description                                                        |
+|-----------------------------|--------------------------------------------------------------------|
+| `__init__.py`               | Package exports for the core tools                                 |
+| `spaced_repetition_tool.py` | `SpacedRepetitionReviewTool` — starts/fetches SM-2 review sessions |
+| `modeling_tools/`           | Tools for Mathematical Modeling Agent                              |
+| `or_tools/`                 | Tools for Operations Research Agent                                |
 
 ## Architecture
 
@@ -46,13 +47,17 @@ The `tools/` directory contains LangChain-based tools that extend agent capabili
 
 Tools for the Mathematical Modeling Agent to validate, solve, and visualize optimization problems:
 
-| Tool                    | Purpose                            |
-|-------------------------|------------------------------------|
-| `ModelValidatorTool`    | Validate optimization formulations |
-| `ProblemSolverTool`     | Solve optimization problems        |
-| `RegionVisualizerTool`  | Visualize feasible regions         |
-| `ExercisePracticeTool`  | Provide practice exercises         |
-| `ExerciseValidatorTool` | Validate student formulations      |
+| Tool                    | Purpose                                       |
+|-------------------------|-----------------------------------------------|
+| `ModelValidatorTool`    | Validate optimization formulations            |
+| `ProblemSolverTool`     | Solve optimization problems                   |
+| `RegionVisualizerTool`  | Visualize feasible regions                    |
+| `ExercisePracticeTool`  | Provide practice exercises                    |
+| `ExerciseValidatorTool` | Validate student formulations                 |
+| `BranchAndBoundTool`    | Step-by-step branch-and-bound solver (IP/MIP) |
+| `SimplexSolverTool`     | Step-by-step simplex solver (LP)              |
+
+> The package root (`app.tools`) re-exports only `ModelValidatorTool`, `ProblemSolverTool`, `RegionVisualizerTool`, `ProblemClassifierTool`, and `TimelineExplorerTool`. The remaining tools are imported from their submodules, e.g. `from app.tools.modeling_tools import BranchAndBoundTool, SimplexSolverTool`.
 
 ### OR Tools
 

@@ -13,6 +13,9 @@ The `modeling_tools/` directory contains LangChain tools that enhance the Mathem
 | `region_visualizer.py`  | Visualizes feasible regions                       |
 | `exercise_practice.py`  | Provides practice exercises                       |
 | `exercise_validator.py` | Validates student formulations against references |
+| `branch_and_bound.py`   | Step-by-step branch-and-bound solver for IP/MIP   |
+| `simplex_solver.py`     | Step-by-step simplex solver for LP                |
+| `_lp_parsing.py`        | Shared LP/IP model-parsing helpers (internal)     |
 | `__init__.py`           | Package exports                                   |
 
 ## Tools
@@ -119,6 +122,37 @@ The `modeling_tools/` directory contains LangChain tools that enhance the Mathem
 
 **Output**: Validation results with score and feedback.
 
+---
+
+### BranchAndBoundTool
+
+**Purpose**: Solves Integer/Mixed-Integer Programming problems with a step-by-step branch-and-bound trace for teaching.
+
+**Features**:
+- Shows the LP relaxation at each node
+- Branches on fractional variables
+- Reports the explored tree and the incumbent/optimal solution
+
+**Input**: JSON model specification (same shape as ModelValidatorTool)
+
+**Output**: Branch-and-bound steps and the optimal integer solution.
+
+---
+
+### SimplexSolverTool
+
+**Purpose**: Solves Linear Programming problems with a step-by-step simplex trace for teaching.
+
+**Features**:
+- Shows each simplex iteration (entering/leaving variables, pivots)
+- Reports the optimal tableau and solution
+
+**Input**: JSON model specification (same shape as ModelValidatorTool)
+
+**Output**: Simplex iterations and the optimal solution.
+
+> Both solver tools share LP/IP parsing helpers in `_lp_parsing.py`.
+
 ## Business Logic
 
 ### Validation Rules
@@ -201,21 +235,26 @@ response = llm_service.generate_response_with_tools(
 From `__init__.py`:
 
 ```python
+from .branch_and_bound import BranchAndBoundTool
+from .exercise_practice import ExercisePracticeTool
+from .exercise_validator import ExerciseValidatorTool
 from .model_validator import ModelValidatorTool
 from .problem_solver import ProblemSolverTool
 from .region_visualizer import RegionVisualizerTool
-from .exercise_practice import ExercisePracticeTool
-from .exercise_validator import ExerciseValidatorTool
+from .simplex_solver import SimplexSolverTool
 
 __all__ = [
+    "BranchAndBoundTool",
     "ModelValidatorTool",
     "ProblemSolverTool",
     "RegionVisualizerTool",
+    "SimplexSolverTool",
     "ExercisePracticeTool",
     "ExerciseValidatorTool",
 ]
 ```
 
+---
 ## Changelog
 
 - **v1.0.0** (2026-01-05): Initial documentation.

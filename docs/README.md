@@ -17,8 +17,8 @@ Plataforma educativa que utiliza múltiples agentes de IA para enseñar temas de
 **Stack Tecnológico**:
 - **Backend**: FastAPI, SQLAlchemy, Pydantic, LangChain.
 - **Frontend**: Streamlit.
-- **Database**: PostgreSQL (con respaldo de SQLite), ChromaDB.
-- **AI/ML**: proveedores de LLM, vector embeddings, semantic search
+- **Database**: PostgreSQL (SQLAlchemy 2.0).
+- **AI/ML**: proveedores de LLM (Gemini, OpenAI, Anthropic) vía LangChain, con soporte de tool-calling.
 - **Auth**: python-jose, bcrypt, JWT
 
 ## Principales Características y Funcionalidades
@@ -35,7 +35,7 @@ Plataforma educativa que utiliza múltiples agentes de IA para enseñar temas de
     - Explicaciones alternativas cuando se detecta confusión.
 4. Sistema de Evaluación
     - Consciente del contexto, utilizando el nivel de conocimiento del estudiante y el historial de conversaciones.
-    - Tres niveles de dificultad: `principiante`, `intermedio` y `avanzando`.
+    - Tres niveles de dificultad: `principiante`, `intermedio` y `avanzado`.
     - Generación de `feedback` detallado para cada envío de ejercicios.
 5. Seguimiento y métricas de progreso del estudiante.
 6. Gestión y autenticación de usuarios.
@@ -106,7 +106,7 @@ Esta pantalla permite filtrar por tema y muestra el detalle de las evaluaciones.
 
 
 ## Pantalla Creacion Evaluaciones
-Permite crear evaluaciones por tema (restringido a los temas ya mencionados) y por dificultad. Actualmente, viene por defecto la dificultad `beginner`. Falta implementar `intermedia` y `avanzada`.
+Permite crear evaluaciones por tema (restringido a los temas ya mencionados) y por dificultad. Los tres niveles —`beginner`, `intermediate` y `advanced`— están implementados; `beginner` viene seleccionado por defecto.
 <img width="1897" height="757" alt="Image" src="https://github.com/user-attachments/assets/1c91f49a-260c-4d64-b8cb-d8e86b0adc00" />
 
 ## Pantalla Progreso

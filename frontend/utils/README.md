@@ -12,7 +12,8 @@ utils/
 ├── activity_tracker.py  # Event-based analytics tracking (Python/server-side)
 ├── api_client.py        # HTTP client with JWT authentication
 ├── constants.py         # Shared constants and topic definitions
-└── idle_detector.py     # JavaScript-based idle/focus detection (client-side)
+├── idle_detector.py     # JavaScript-based idle/focus detection (client-side)
+└── pages_registry.py    # Shared reference to the home page object
 ```
 
 ---
@@ -22,8 +23,6 @@ utils/
 ### api_client.py
 
 **Purpose:** Centralized HTTP client for all API calls with JWT token management
-
-**Size:** ~330 lines
 
 #### APIClient Class
 
@@ -152,8 +151,6 @@ api_client = get_api_client(BACKEND_URL)
 
 **Purpose:** Define topic options and descriptions used across all pages
 
-**Size:** ~65 lines
-
 #### Constants Defined
 
 **TOPIC_DISPLAY_NAMES**
@@ -241,8 +238,6 @@ display_name = TOPIC_DISPLAY_NAMES["linear_programming"]
 
 **Purpose:** Server-side (Python) event-based analytics tracking that batches events in Streamlit session state and sends them to the backend
 
-**Size:** ~165 lines
-
 #### Page Constants
 
 ```python
@@ -298,8 +293,6 @@ flush_events()
 
 **Purpose:** Client-side (JavaScript) idle detection and window focus/blur tracking injected into the browser via Streamlit components
 
-**Size:** ~153 lines
-
 #### Function
 
 ```python
@@ -335,6 +328,28 @@ from utils.idle_detector import inject_idle_detector
 
 # Inject once per page (typically in the main app)
 inject_idle_detector(backend_url="http://localhost:8000", idle_timeout_seconds=300)
+```
+
+---
+
+### pages_registry.py
+
+**Purpose:** Holds a module-level reference to the home page object so it can be shared across pages without re-creating it.
+
+#### Functions
+
+| Function           | Purpose                                   |
+|--------------------|-------------------------------------------|
+| `set_home_page(page)` | Store the home page object               |
+| `get_home_page()`     | Retrieve the stored home page object (or `None`) |
+
+#### Usage Example
+
+```python
+from utils.pages_registry import set_home_page, get_home_page
+
+set_home_page(home_page)
+home = get_home_page()
 ```
 
 ---

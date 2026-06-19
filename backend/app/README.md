@@ -6,15 +6,17 @@ The `app/` directory contains the core FastAPI application for the AI Tutoring S
 
 ## Contents
 
-| File          | Description                                                      |
-|---------------|------------------------------------------------------------------|
-| `main.py`     | FastAPI application entry point with all endpoints (~908 lines)  |
-| `config.py`   | Environment-based configuration using Pydantic BaseSettings      |
-| `database.py` | SQLAlchemy ORM models and session management                     |
-| `auth.py`     | JWT authentication and password hashing                          |
-| `models.py`   | Pydantic request/response schemas                                |
-| `utils.py`    | Utility functions for message formatting and confusion detection |
-| `__init__.py` | Package initialization                                           |
+| File            | Description                                                                                             |
+|-----------------|---------------------------------------------------------------------------------------------------------|
+| `main.py`       | FastAPI application entry point, lifespan, middleware/CORS, router registration                         |
+| `config.py`     | Environment-based configuration using Pydantic BaseSettings                                             |
+| `enums.py`      | Shared enums (KnowledgeLevel, Topic, MessageRole, UserRole, GradingSource, MasteryLevel, EventCategory) |
+| `database.py`   | SQLAlchemy ORM models and session management                                                            |
+| `auth.py`       | JWT authentication and password hashing                                                                 |
+| `models.py`     | Pydantic request/response schemas                                                                       |
+| `utils.py`      | Utility functions for message formatting and confusion detection                                        |
+| `rate_limit.py` | slowapi limiter and rate-limit-exceeded handler                                                         |
+| `__init__.py`   | Package initialization                                                                                  |
 
 | Directory   | Description                                          |
 |-------------|------------------------------------------------------|

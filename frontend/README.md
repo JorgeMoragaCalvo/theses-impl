@@ -51,7 +51,7 @@ The application will be available at `http://localhost:8501`.
 
 ## Architecture
 
-```digram
+```diagram
 ┌─────────────────────────────────────────────────────────────┐
 │                    Streamlit Frontend                       │
 ├─────────────────────────────────────────────────────────────┤
@@ -173,6 +173,8 @@ Key session variables managed across pages:
 | `selected_topic`  | User's chosen learning topic |
 | `chat_messages`   | Chat conversation history    |
 | `conversation_id` | Active conversation tracker  |
+
+---
 
 ## Changelog
 

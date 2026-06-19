@@ -87,7 +87,7 @@ Three layers wired in: **Prometheus** (HTTP latency, request rate, in-flight req
 
 ## 🧪 Quality
 
-- **326 unit tests** (pytest + fixtures in `conftest.py`)
+- **Comprehensive automated test suite** — unit + integration (pytest + fixtures in `conftest.py`)
 - **ruff** linting (E, W, F, I, B, UP rule sets)
 - **GitHub Actions CI** with `pip-audit` (dependency CVE scan) and **CodeQL** (static analysis)
 - bcrypt password hashing, JWT expiration, no PII sent to Sentry

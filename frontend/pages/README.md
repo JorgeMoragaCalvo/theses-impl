@@ -61,7 +61,7 @@ Streamlit automatically detects Python files in the `pages/` directory and creat
 
 **Purpose:** Comprehensive practice and assessment system for student evaluation
 
-**Size:** Largest page (~593 lines) – Most complex functionality
+**Size:** Largest page – most complex functionality
 
 **Tabs:**
 1. **Progress Dashboard** – Overview of learning metrics
@@ -269,6 +269,8 @@ if success:
 else:
     st.error(data.get("error", "An error occurred"))
 ```
+
+---
 
 ## Changelog
 

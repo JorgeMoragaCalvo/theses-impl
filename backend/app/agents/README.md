@@ -6,16 +6,15 @@ The `agents/` directory contains specialized AI tutoring agents for different op
 
 ## Contents
 
-| File                             | Description                                       |
-|----------------------------------|---------------------------------------------------|
-| `base_agent.py`                  | Abstract base class with core agent functionality |
-| `linear_programming_agent.py`    | Agent for Linear Programming (LP)                 |
-| `integer_programming_agent.py`   | Agent for Integer Programming (IP)                |
-| `nonlinear_programming_agent.py` | Agent for Nonlinear Programming (NLP)             |
-| `nlp_agent.py`                   | Alternative NLP agent implementation              |
-| `mathematical_modeling_agent.py` | Agent for Mathematical Modeling (with tools)      |
-| `operations_research_agent.py`   | Agent for general Operations Research             |
-| `__init__.py`                    | Package initialization                            |
+| File                             | Description                                                                                                            |
+|----------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| `base_agent.py`                  | Abstract base class with core agent functionality                                                                      |
+| `linear_programming_agent.py`    | Agent for Linear Programming (LP)                                                                                      |
+| `integer_programming_agent.py`   | Agent for Integer Programming (IP)                                                                                     |
+| `nlp_agent.py`                   | Agent for Nonlinear Programming (class `NonLinearProgrammingAgent`; registry getter `get_nonlinear_programming_agent`) |
+| `mathematical_modeling_agent.py` | Agent for Mathematical Modeling (with tools)                                                                           |
+| `operations_research_agent.py`   | Agent for general Operations Research                                                                                  |
+| `__init__.py`                    | Package initialization                                                                                                 |
 
 ## Architecture
 

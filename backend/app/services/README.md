@@ -16,7 +16,9 @@ The `services/` directory contains the business logic layer of the application. 
 | `exercise_assessment_service.py` | Exercise-based assessment creation                         |
 | `exercise_progress_service.py`   | Exercise completion tracking and progression gating        |
 | `competency_service.py`          | Concept-level mastery tracking using EWA                   |
+| `bkt_service.py`                 | Bayesian Knowledge Tracing posterior (`bkt_p_learn`)       |
 | `analytics_service.py`           | Student activity recording and admin dashboard metrics     |
+| `affect_service.py`              | Infers engagement/frustration from activity events         |
 | `spaced_repetition_service.py`   | SM-2 spaced repetition scheduling for concept reviews      |
 | `llm_response_parser.py`         | JSON extraction from LLM responses                         |
 | `__init__.py`                    | Package initialization                                     |
