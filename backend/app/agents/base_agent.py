@@ -1,6 +1,7 @@
 import logging
 import os
 import random
+import re
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -18,6 +19,16 @@ Base Agent - Foundation class for all specialized agents.
 """
 
 logger = logging.getLogger(__name__)
+
+# Matches a ```json … ``` fenced block whose body contains an escaped newline
+# (literal backslash-n). Gemini sometimes re-emits a tool's clean Markdown result
+# wrapped in such a block (e.g. {"branch_and_bound_response": {"output": "...\n\n..."}}).
+# Real formulation JSON uses actual newlines inside the fence, not escaped "\n",
+# so keying on the escaped sequence keeps false positives negligible.
+_TOOL_JSON_ECHO_RE = re.compile(
+    r"```json\b(?:(?!```).)*?\\n(?:(?!```).)*?```",
+    re.DOTALL | re.IGNORECASE,
+)
 
 
 class BaseAgent(ABC):
@@ -344,6 +355,29 @@ class BaseAgent(ABC):
         return value.replace("\r", " ").replace("\n", " ")
 
     @staticmethod
+    def _strip_tool_json_echo(response: str) -> str:
+        """
+        Remove fabricated ```json``` blocks that echo a tool's clean Markdown
+        result with escaped newlines.
+
+        Gemini occasionally re-emits a solver tool's output wrapped in a JSON
+        code fence (e.g. {"branch_and_bound_response": {"output": "...\\n\\n..."}})
+        as a preamble before its real explanation. The tool output is already
+        clean Markdown, so this echo is pure noise. Only blocks containing an
+        escaped ``\\n`` are removed, leaving legitimate formulation JSON intact.
+        """
+        if "```json" not in response:
+            return response
+
+        cleaned = _TOOL_JSON_ECHO_RE.sub("", response)
+        if cleaned == response:
+            return response
+
+        # Collapse the whitespace left where the block was removed.
+        cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+        return cleaned.strip()
+
+    @staticmethod
     def postprocess_response(response: str) -> str:
         """
         Postprocess LLM response before returning to the user.
@@ -354,6 +388,9 @@ class BaseAgent(ABC):
         Returns:
             Postprocessed response
         """
+        # Drop fabricated JSON echoes of tool output before basic cleanup.
+        response = BaseAgent._strip_tool_json_echo(response)
+
         # Basic cleanup
         response = response.strip()
         return response

@@ -145,6 +145,9 @@ class IntegerProgrammingAgent(BaseAgent):
     ("¿Tiene sentido este paso?"). Aunque el estudiante haya pedido la solución (excepción
     (a)), preséntala como una explicación guiada del resultado, no como un volcado del bloque
     de la herramienta. EXCEPCIÓN: el gráfico de region_visualizer se muestra tal cual.
+    El resultado de la herramienta YA viene en Markdown limpio (tablas, encabezados):
+    NUNCA lo envuelvas en un bloque ```json``` ni lo copies con saltos de línea escapados
+    (\\n). Preséntalo directamente e intégralo en tu explicación.
 
     ANDAMIAJE (Scaffolding):
     1. Primero: pista orientadora ("Que tipo de variable necesitas para una decisión abrir/no abrir?")
@@ -238,6 +241,7 @@ class IntegerProgrammingAgent(BaseAgent):
     - Al explicar por qué redondear falla -> resuelve ambas versiones (relajación con problem_solver sin integrality, IP con integrality) para evidenciar la diferencia; añade el gráfico sólo si lo piden
     - Si el estudiante propone una formulación -> USA model_validator antes de resolver
     - IMPORTANTE: los números/nodos/cotas de la herramienta son la clave de respuesta VERIFICADA; NUNCA los inventes ni completes por tu cuenta
+    - NUNCA envuelvas el resultado de la herramienta en un bloque ```json``` ni lo copies con saltos de línea escapados (\\n): ya viene en Markdown limpio, intégralo directamente en tu explicación
     - Revela la solución de forma gradual y paso a paso, no la pegues literalmente (ver PROTOCOLO SOCRÁTICO); el árbol/los tableaus se explican apoyándose en lo calculado
     - Si no hay un problema concreto (variables y restricciones) en la conversación, NO inventes uno: pide al estudiante su formulación antes de resolver
     - Integra los resultados de las herramientas en la explicación pedagógica
