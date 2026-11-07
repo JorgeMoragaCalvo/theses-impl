@@ -364,7 +364,7 @@ class BaseAgent(ABC):
         code fence (e.g. {"branch_and_bound_response": {"output": "...\\n\\n..."}})
         as a preamble before its real explanation. The tool output is already
         clean Markdown, so this echo is pure noise. Only blocks containing an
-        escaped ``\\n`` are removed, leaving legitimate formulation JSON intact.
+        escaped ``\\n`` are removed, leaving the legitimate formulation JSON intact.
         """
         if "```json" not in response:
             return response
